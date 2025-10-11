@@ -1,0 +1,60 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,DanceUnisoner: グループダンスパフォーマンス動画作成インタフェース,土田 修平，深山 覚，後藤 真孝（産総研）,https://www.wiss.org/WISS2019Proceedings/oral/1.pdf,https://www.wiss.org/WISS2019Proceedings/oral/1.mp4,https://www.wiss.org/WISS2019Proceedings/oral/1.html,https://www.wiss.org/WISS2019Proceedings/
+,画像の類似度を用いたダンス動画モーション訂正手法,又吉 康綱（明治大），小山 裕己，深山 覚，後藤 真孝（産総研），中村 聡史（明治大）,https://www.wiss.org/WISS2019Proceedings/oral/2.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/2.html,https://www.wiss.org/WISS2019Proceedings/
+,Parrot: リアルタイム音声合成を用いたビブラートデザイン支援インタフェースの開発,小野 雄大（山梨大），森勢 将雅（明治大）,https://www.wiss.org/WISS2019Proceedings/oral/3.pdf,https://www.wiss.org/WISS2019Proceedings/oral/3.mp4,https://www.wiss.org/WISS2019Proceedings/oral/3.html,https://www.wiss.org/WISS2019Proceedings/
+,熟練者の動作の可視化によるVRスキートレーニングシステム,野澤 崇行，Erwin Wu，Florian Perteneder，小池 英樹（東工大）,https://www.wiss.org/WISS2019Proceedings/oral/4.pdf,https://www.wiss.org/WISS2019Proceedings/oral/4.mp4,https://www.wiss.org/WISS2019Proceedings/oral/4.html,https://www.wiss.org/WISS2019Proceedings/
+,UVプリンタを用いたレンズ造形手法とその応用,杉山 圭，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2019Proceedings/oral/5.pdf,https://www.wiss.org/WISS2019Proceedings/oral/5.mp4,https://www.wiss.org/WISS2019Proceedings/oral/5.html,https://www.wiss.org/WISS2019Proceedings/
+,3Dプリンターによる一体造形式回転機構の提案,新山 大翔，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2019Proceedings/oral/6.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/6.html,https://www.wiss.org/WISS2019Proceedings/
+,タンジブルなブロックを組み立てることによりAR空間で実行可能な教育用プログラミングツール,服部 圭介，井上 馨太，志賀野 桐生，平井 辰典（駒澤大）,https://www.wiss.org/WISS2019Proceedings/oral/7.pdf,https://www.wiss.org/WISS2019Proceedings/oral/7.mp4,https://www.wiss.org/WISS2019Proceedings/oral/7.html,https://www.wiss.org/WISS2019Proceedings/
+,内部構造パターンの差異を利用した3Dプリントオブジェクト識別手法,久保 勇貴，江口 佳那，青木 良輔，近藤 重邦，東 正造，犬童 拓也（NTT）,https://www.wiss.org/WISS2019Proceedings/oral/8.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/8.html,https://www.wiss.org/WISS2019Proceedings/
+,スマートフォンを拡張した残像ディスプレイとインタラクション手法の提案,玉井 由良，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2019Proceedings/oral/9.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/9.html,https://www.wiss.org/WISS2019Proceedings/
+,Self-healing UI: 機械的かつ電気的に自己修復するセンシングインタフェース,"鳴海 紘也（東大），Fang Qin（Electrical and Computing Engineering, Carnegie Mellon University），Siyuan Liu，Huai-Yu Cheng（Materials Science and Engineering, Carnegie Mellon University），Jianzhe Gu（Human-Computer Interaction Institute, Carnegie Mellon University），川原 圭博（東大），Mohammad Islam（Materials Science and Engineering, Carnegie Mellon University），Lining Yao（Human-Computer Interaction Institute, Carnegie Mellon University）",https://www.wiss.org/WISS2019Proceedings/oral/10.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/10.html,https://www.wiss.org/WISS2019Proceedings/
+,ターゲット内に両端が存在するスワイプジェスチャ,八箇 恭平，礒本 俊弥，川口 航平，志築 文太郎（筑波大）,https://www.wiss.org/WISS2019Proceedings/oral/11.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/11.html,https://www.wiss.org/WISS2019Proceedings/
+,自己表情が他者からフィードバックされることで笑顔が促進されるシステム,堀江 彩太（神戸大），寺田 努（神戸大／JST），塚本 昌彦（神戸大）,https://www.wiss.org/WISS2019Proceedings/oral/12.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/12.html,https://www.wiss.org/WISS2019Proceedings/
+,多様なマルチタッチ入力を自動生成するデバイスの構築,岡本 雅弘，村尾 和哉（立命館大）,https://www.wiss.org/WISS2019Proceedings/oral/13.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/13.html,https://www.wiss.org/WISS2019Proceedings/
+,ExtickTouch : 仮想物体への接触感を提示する先端伸縮型デバイスの開発,片岡 敬志郎，山本 拓也（立命館大），大槻 麻衣（産業技術総合研究所），柴田 史久，木村 朝子（立命館大）,https://www.wiss.org/WISS2019Proceedings/oral/14.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/14.html,https://www.wiss.org/WISS2019Proceedings/
+,ScraTouch: 静電容量方式タッチサーフェスにおける爪を使用したタッチ入力拡張技法,池松 香，山中 祥太（ヤフー）,https://www.wiss.org/WISS2019Proceedings/oral/15.pdf,,https://www.wiss.org/WISS2019Proceedings/oral/15.html,https://www.wiss.org/WISS2019Proceedings/
+,BubBowl: 電気分解を利用したカップ型泡ディスプレイ,石井 綾郁，椎尾 一郎（お茶の水女子大）,https://www.wiss.org/WISS2019Proceedings/oral/16.pdf,https://www.wiss.org/WISS2019Proceedings/oral/16.mp4,https://www.wiss.org/WISS2019Proceedings/oral/16.html,https://www.wiss.org/WISS2019Proceedings/
+,1 レスポンシブWebデザインのための画像形式及び制作用インターフェース,藤井 陽介，福里 司，五十嵐 健夫（東大）,https://www.wiss.org/WISS2019Proceedings/longteaser/01.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,2 WWW横断型ヒューマンコンピュテーション,白井 良成，岸野 泰恵，柳沢 豊，水谷 伸，須山 敬之（NTT）,https://www.wiss.org/WISS2019Proceedings/longteaser/02.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,3 スリット光を用いた点字読取方法,小嶋 祐登，吉高 淳夫（北陸先端大）,https://www.wiss.org/WISS2019Proceedings/longteaser/03.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,4 装着型小型カメラを用いた自己表情認識システム,青木 啓晃，寺田 努，塚本 昌彦（神戸大），磯山 直也（奈良先端大）,https://www.wiss.org/WISS2019Proceedings/longteaser/04.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,5 筋の信号強度依存ノイズによる運動のばらつきを考慮したジェスチャ識別,石橋 侑也，栗田 雄一（広島大）,https://www.wiss.org/WISS2019Proceedings/longteaser/05.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,6 テキスト平易化技術を利用した攻撃性緩和システムの提案とコーパス生成,村山 貴志，中村 朋生，谷合 廣紀，入江 英嗣，坂井 修一（東大）,https://www.wiss.org/WISS2019Proceedings/longteaser/06.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,7 PePe: ユーザと機械学習が相互に補い合うセグメンテーションのためのペイントツール,綾塚 祐二（クレスコ），吉高 淳夫（北陸先端大）,https://www.wiss.org/WISS2019Proceedings/longteaser/07.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,8 単語予測と文章予測によるスマートグラス向けサジェストシステム,林 健太郎，入江 英嗣，坂井 修一（東大）,https://www.wiss.org/WISS2019Proceedings/longteaser/08.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,9 WISSに適切な評価実験デザインとは？,宮下 芳明（明治大）,https://www.wiss.org/WISS2019Proceedings/longteaser/09.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,色彩調和論による配色デザイン支援システム,安達 悠斗，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/031.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,ジェスチャースタンプ: 指のストロークでジェスチャーを生成するチャット支援ツール,森口 皓貴，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/041.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,ラベルつきノードを含むネットワークの VR 可視化の一手法,佐々 日向子（お茶の水女子大），Maxime Cordeil（Monash University），吉田 光男（豊橋技科大），伊藤 貴之（お茶の水女子大）,https://www.wiss.org/WISS2019Proceedings/demo/042.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,外部ディスプレイを用いたスマートフォンの画面拡張手法の予備調査,漆山 裕太，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2019Proceedings/demo/043.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,多次元データ可視化のための散布図の選択と描画の一手法,中林 明日香，伊藤 貴之（お茶の水女子大）,https://www.wiss.org/WISS2019Proceedings/demo/044.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,パーツごとの肌状態を考慮した肌微細構造の画像計測と CG 表現,安江 志織，伊藤 貴之（お茶の水女子大），豊田 成人（資生堂）,https://www.wiss.org/WISS2019Proceedings/demo/045.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,カメラとプロジェクタを用いた折り紙への制作手順提示手法,大曽根 諒介，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/046.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,電気味覚で甘味を制御する手法,鍜治 慶亘，上野 新葉（明治大），青山 一真，中村 裕美（東大），宮下 芳明（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/047.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,リズム譜の難易度を数値化し類題を出題するリズム学習システムの提案,勝俣 加奈子，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/048.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,TalkingHead: ユーザによる音素継続長と高さの制御を前提としたテキスト音声合成インタフェース,近藤 大地（山梨大），森勢 将雅（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/049.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,トランプマジックにおける効果的なエフェクト提示システムの提案,林 達也，高橋 幹，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/050.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,難聴児童の概念化教育のための支援システム,観興寺 悠哉（明治大），石丸 築，掛 晃幸（ワコム），中村 聡史，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/051.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,視線追従と頭部ジェスチャによるオブジェクト選択と操作,樋口 啓太，菅野 裕介，佐藤 洋一（東大）,https://www.wiss.org/WISS2019Proceedings/demo/052.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,OmniLantern: A Portable Omnidirectional Projector-Camera System in the Shape of Lantern,Ruopeng Xu（東工大），佐藤 俊樹（北陆先端大），小池 英樹（東工大）,https://www.wiss.org/WISS2019Proceedings/demo/053.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,半幅帯のための帯結びエディタの提案,坂本 あゆみ，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/054.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,ストリングアートのためのデザイン支援と自動制作経路算出システム,茂木 良介，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/055.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,YearsNotebook: 個々の振り返りを目的としたデジタルノート,越後 宏紀，小林 稔，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/056.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,平面を利用した立体的な木目込み細工のデザイン支援システム,伊藤 謙祐，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/058.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,凹凸面を平面化するピンアレイディスプレイ機構の提案,佐藤 俊樹（北陸先端大），大谷 孟宏，齊藤 典子（電通大）,https://www.wiss.org/WISS2019Proceedings/demo/059.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,適切な距離で依頼可能な研究室実験協力者募集BOTの提案と運用,樋川 一幸，中村 聡史（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/062.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,Bounce Display：膜状ディスプレイ上で物体を弾ませるインタラクティブシステム,西野 俊輝，松浦 昭洋（東京電機大）,https://www.wiss.org/WISS2019Proceedings/demo/063.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,指の曲げおよびタッチに使用した手を検出可能な指輪型デバイスの検討,舩越 南斗，志築 文太郎（筑波大）,https://www.wiss.org/WISS2019Proceedings/demo/064.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,片手操作時の端末背面における人差し指を用いたタッチ入力拡張手法の提案,清 佑輔，舩越 南斗，志築 文太郎（筑波大）,https://www.wiss.org/WISS2019Proceedings/demo/065.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,円筒状の拡縮デバイスの開発とMR応用,瓦谷 佳之（東京電機大），久保 遼太（コムチュア），松浦 昭洋（東京電機大）,https://www.wiss.org/WISS2019Proceedings/demo/066.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,イヤフォン形状を活かしたアンビエントディスプレイの提案,岡田 一志，松村 耕平，野間 春生（立命館大）,https://www.wiss.org/WISS2019Proceedings/demo/067.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,エラ呼吸感覚提示システムGill+Manにおける嚥下感覚提示デバイスの評価,溝口 泉，櫻井 翔，広田 光一，野嶋 琢也（電通大）,https://www.wiss.org/WISS2019Proceedings/demo/068.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,Past Brush: 過去を追体験するために現実世界を塗り替えるブラシ,川島 莉杏，宮下 芳明（明治大）,https://www.wiss.org/WISS2019Proceedings/demo/069.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,レイキャストによる引出しジェスチャを用いた大型ディスプレイ向けの操作手法,藤田 俊，栁原 直貴，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2019Proceedings/demo/070.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,介護施設内での徘徊防止のための頭部認識を利用した軌跡取得システムの提案,橘 優理子，瀬川 典久（京産大）,https://www.wiss.org/WISS2019Proceedings/demo/071.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,家庭用ACアダプタのグラウンド端子を用いた静電摩擦触覚ディスプレイ,加藤 邦拓（東大），石塚 裕己（大阪大）,https://www.wiss.org/WISS2019Proceedings/demo/072.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,DirectionalGuitar: 指向性スピーカーを用いたギター演奏の拡張,滝谷 和希，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2019Proceedings/demo/073.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,無線給電の不安定さを利用した光るアクセサリーの表現の検討,加藤 敬太（電通大），佐藤 俊樹（北陸先端大）,https://www.wiss.org/WISS2019Proceedings/demo/077.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,既存スポーツと既存ビデオゲームを融合させた競技の提案と実装,山田 恭平（電通大），栗原 一貴（津田塾大），野嶋 琢也（電通大）,https://www.wiss.org/WISS2019Proceedings/demo/078.pdf,,,https://www.wiss.org/WISS2019Proceedings/
+,創造活動過程で生成された知識断片を余すことなく活用可能にする継続的創造活動支援システムの提案,生田 泰章（サイボウズ・ラボ）,https://www.wiss.org/WISS2019Proceedings/demo/079.pdf,,,https://www.wiss.org/WISS2019Proceedings/

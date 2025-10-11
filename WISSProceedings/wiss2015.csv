@@ -1,0 +1,84 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,Capacitive Blocks: 静電容量に基づくブロックシステム,吉田 有花，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/oral/01.pdf,https://www.wiss.org/WISS2015Proceedings/oral/01.mp4,https://www.wiss.org/WISS2015Proceedings/oral/01.html,https://www.wiss.org/WISS2015Proceedings/
+,ペイントインタフェースによるボリュームセグメンテーション,五十嵐 健夫，庄野 直之，斉藤 季，金 太一（東大）,https://www.wiss.org/WISS2015Proceedings/oral/02.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/02.html,https://www.wiss.org/WISS2015Proceedings/
+,なでて操作するカードボード HMD,加藤 邦拓，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/oral/03.pdf,https://www.wiss.org/WISS2015Proceedings/oral/03.wmv,https://www.wiss.org/WISS2015Proceedings/oral/03.html,https://www.wiss.org/WISS2015Proceedings/
+,LyriSys: 歌詞の大局的構造に基づいた作詞支援インタフェース,渡邉 研斗，松林 優一郎，乾 健太郎（東北大），中野 倫靖，深山 覚，後藤 真孝（産総研）,https://www.wiss.org/WISS2015Proceedings/oral/04.pdf,https://www.wiss.org/WISS2015Proceedings/oral/04.mp4,https://www.wiss.org/WISS2015Proceedings/oral/04.html,https://www.wiss.org/WISS2015Proceedings/
+,Songrium RelayPlay: リレー再生による同曲異唱コンテンツ視聴支援インタフェース,濱崎 雅弘，中野 倫靖，後藤 真孝（産総研）,https://www.wiss.org/WISS2015Proceedings/oral/05.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/05.html,https://www.wiss.org/WISS2015Proceedings/
+,LyricListPlayer: 歌詞でリアルタイムにザッピングできる音楽再生インタフェース,中野 倫靖，後藤 真孝（産総研）,https://www.wiss.org/WISS2015Proceedings/oral/06.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/06.html,https://www.wiss.org/WISS2015Proceedings/
+,ChameleonMask: 人の存在感を提示する仮面型テレプレゼンスシステム,三澤 加奈（東大），暦本 純一（東大／ソニーCSL）,https://www.wiss.org/WISS2015Proceedings/oral/07.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/07.html,https://www.wiss.org/WISS2015Proceedings/
+,i/k-Contact：ユーザ間の信頼関係を利用したコンテキストアウェア認証,藤田 真浩，有村 汐里（静岡大），可児 潤也（富士通研究所），司波章（富士通研），西垣 正勝（静岡大）,https://www.wiss.org/WISS2015Proceedings/oral/08.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/08.html,https://www.wiss.org/WISS2015Proceedings/
+,遠隔作業支援シナリオにおける注視位置可視化の効果,樋口 啓太，米谷 竜，佐藤 洋一（東大）,https://www.wiss.org/WISS2015Proceedings/oral/09.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/09.html,https://www.wiss.org/WISS2015Proceedings/
+,作業者の身体性に基づく建築の設計及び施工手法,鷹見 洋介，五十嵐 健夫，小渕 祐介，永田 康介，米田 一晃，堀田 憲祐（東大）,https://www.wiss.org/WISS2015Proceedings/oral/10.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/10.html,https://www.wiss.org/WISS2015Proceedings/
+,単純さと高機能性を両立した小規模バージョン管理ツール,三上 裕明，坂本 大介，五十嵐 健夫（東大）,https://www.wiss.org/WISS2015Proceedings/oral/11.pdf,https://www.wiss.org/WISS2015Proceedings/oral/11.mp4,https://www.wiss.org/WISS2015Proceedings/oral/11.html,https://www.wiss.org/WISS2015Proceedings/
+,コメントイン：コメントを先に書くプログラミング手法の提案と実装,薄羽 大樹，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/oral/12.pdf,https://www.wiss.org/WISS2015Proceedings/oral/12.mp4,https://www.wiss.org/WISS2015Proceedings/oral/12.html,https://www.wiss.org/WISS2015Proceedings/
+,Fix and Slide: 文字列全体を操作することによるキャレットの操作手法,鈴木 健司，岡部 和昌，坂本 竜基（ヤフー），坂本 大介（東大）,https://www.wiss.org/WISS2015Proceedings/oral/13.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/13.html,https://www.wiss.org/WISS2015Proceedings/
+,ThumbSlide: 親指スライドジェスチャによるスマートウォッチ操作手法,青山 周平，阿部 哲也，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/oral/14.pdf,https://www.wiss.org/WISS2015Proceedings/oral/14.mp4,https://www.wiss.org/WISS2015Proceedings/oral/14.html,https://www.wiss.org/WISS2015Proceedings/
+,B2B-Swipe：超小型タッチパネル端末のためのベゼルからベゼルへのスワイプジェスチャ,久保 勇貴，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/oral/15.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/15.html,https://www.wiss.org/WISS2015Proceedings/
+,MonoTouch：複数ジェスチャ判別が可能な単一電極タッチセンサ,高田 崚介，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/oral/16.pdf,https://www.wiss.org/WISS2015Proceedings/oral/16.mp4,https://www.wiss.org/WISS2015Proceedings/oral/16.html,https://www.wiss.org/WISS2015Proceedings/
+,球体型自走ロボットを用いたダンスパフォーマンス環境の構築,土田 修平（神戸大），寺田 努（神戸大／JST），塚本 昌彦（神戸大）,https://www.wiss.org/WISS2015Proceedings/oral/17.pdf,https://www.wiss.org/WISS2015Proceedings/oral/17.mp4,https://www.wiss.org/WISS2015Proceedings/oral/17.html,https://www.wiss.org/WISS2015Proceedings/
+,～CyclePet～プロジェクション型ARを利用したサイクリング促進システム,松下 卓矢（中京大），濱川 礼（中京大／東大）,https://www.wiss.org/WISS2015Proceedings/oral/18.pdf,,https://www.wiss.org/WISS2015Proceedings/oral/18.html,https://www.wiss.org/WISS2015Proceedings/
+,いたねこ：人間に痛みを伝える遠隔猫じゃらし,安齊 クレア（お茶の水女子大），的場 やすし（お茶の水女子大学），椎尾 一郎（お茶の水女子大）,https://www.wiss.org/WISS2015Proceedings/oral/19.pdf,https://www.wiss.org/WISS2015Proceedings/oral/19.mp4,https://www.wiss.org/WISS2015Proceedings/oral/19.html,https://www.wiss.org/WISS2015Proceedings/
+,1-R03 FabClock: 柔軟な時間表現を行う壁時計ツールキットの提案,太田 啓介，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R03.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R04 打ち間違えを適度に許容するパスワード認証の提案,宮代 理弘，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R04.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R05 ImageSeed : 思考を即応的に具現化することに特化した会話補強ツール,中屋 裕登，渡邊 恵太（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R05.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R06 サーチエンジンを用いたディクテーション学習における視覚支援,大本 佳奈，吉田 光男，岡部 正幸，梅村 恭司（豊橋技科大），折原 幸治，武並 佳則（住友電工情報システム）,https://www.wiss.org/WISS2015Proceedings/demo/1-R06.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R07 D3: デスクトップ上での作業追従と自動写真撮影,白石 晃一，大島 裕明（京大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R07.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R08 音楽動画視聴時に声援を文字で入力・表示・共有できる声援コメント共有システム,早川 和輝（筑波大／産総研），後藤 真孝（産総研）,https://www.wiss.org/WISS2015Proceedings/demo/1-R08.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R09 Songrium RelayPlay: リレー再生による同曲異唱コンテンツ視聴支援インタフェース,濱崎 雅弘，中野 倫靖，後藤 真孝（産総研）,https://www.wiss.org/WISS2015Proceedings/demo/1-R09.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R10 LyriSys: 歌詞の大局的構造に基づいた作詞支援インタフェース,渡邉 研斗，松林 優一郎，乾 健太郎（東北大），中野 倫靖，深山 覚，後藤 真孝（産総研）,https://www.wiss.org/WISS2015Proceedings/demo/1-R10.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R11 誰でも神プレイできるジャンプアクションゲーム,簗瀬 洋平（ユニティ・テクノロジーズ・ジャパン／慶大），鳴海 拓志（東大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R11.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R12 地域特有の無形文化財を対象に現場の環境音に注目した3D空間再現,高島 景載（東京工科大），佐々木 和郎（Tokyo University of Technology），大淵 康成（東京工科大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R12.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R13 Capacitive Blocks: 静電容量に基づくブロックシステム,吉田 有花，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R13.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R14 なでて操作するカードボード HMD,加藤 邦拓，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R14.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R15 視線計測を利用した動画視聴支援システムの試作,森下 浩平，西田 健志（神戸大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R15.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R16 音声合成技術を用いたアバターへのアイデンティティ投影,高道 慎之介（奈良先端大），樋口 啓太（東大），中村 哲（奈良先端大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R16.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R17 携帯端末の画像処理による微小オブジェクトの追跡,山口 陽介，三浦 元喜（九工大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R17.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R18 閲覧者の関心度に対応できる視覚的情報提示手法に関する研究,渡邊 玲，三末 和男（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R18.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R19 地図制作による地域資源の視覚化 ～函館市西部地区を題材として～,加藤 悠一，迎山 和司，原田 泰（はこだて未来大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R19.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R20 一般化弦楽器に対する調弦を考慮した単旋律楽譜編曲システムの提案,濱中 敬人，坂本 大介，五十嵐 健夫（東大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R20.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R21 多視点映像撮影表示システムの提案と試作,宮下 咲，吉田 光男，岡部 正幸，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R21.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R22 ゲームにおけるプレイヤ戦略の床清掃ロボットへの適用,大場 直史，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R22.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,1-R23 Web技術を活用した柔軟でオープンなディジタルペン筆記共有基盤,三浦 元喜（九工大）,https://www.wiss.org/WISS2015Proceedings/demo/1-R23.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R04 GazeVoting：視線を用いた協調Webブラウジング,古田島 裕斗（筑波大），岩淵 志学，益子 宗（楽天），田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R04.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R05 拡縮操作による柔軟なレーティングインタフェースの提案,若林 裕太（明治大），加藤 淳，濱崎 雅弘，後藤 真孝（産総研），宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R05.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R06 対話型進化計算を利用したネックレスデザインシステム,五十嵐 悠紀，檜山 翼，荒川 薫（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R06.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R07 　Sync ☆ Idol：ライブアイドルとファンを盛り上げるライブ支援装置,堂林 まどか，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R07.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R08 Water-Jet Printer:散水領域が設定可能なスプリンクラーシステム,永渕 玲緒菜，的場 やすし，椎尾 一郎（お茶の水女子大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R08.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R09 3Dプリンタの造形中もモデリング可能なインタラクティブ・ファブリケーション,高橋 治輝，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R09.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R10 ペイントインタフェースによるボリュームセグメンテーション,五十嵐 健夫，庄野 直之，斉藤 季，金 太一（東大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R10.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R11 受講者の能動的視聴による講義映像の生成,稲葉 祥，吉田 光男，岡部 正幸，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R11.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R12 動画特徴量からの印象推定に基づく動画BGMの自動生成,清水 柚里奈，菅野 沙也，伊藤 貴之（お茶の水女子大），嵯峨山 茂樹（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R12.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R13 災害急性期における通信の断絶した被災地での通信手段の提案,森 琢郎，松村 耕平，野間 春生（立命館大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R13.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R14 Fix and Slide: 文字列全体を操作することによるキャレットの操作手法,鈴木 健司，岡部 和昌，坂本 竜基（ヤフー），坂本 大介（東大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R14.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R15 Kinetic手芸の提案,大久保 賢，梅津 周平，薛 馬各，平居 あづさ，野嶋 琢也（電通大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R15.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R16 ファブ時代に適した新たなジョイント機構の提案,新山 大翔，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R16.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R17 コメントイン：コメントを先に書くことによる新形態のAPIリファレンス,薄羽 大樹，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R17.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R19 SomaticBall: 身体とボールの関係を制御するシステムの提案,道貝 駿斗，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R19.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R20 食品消費モニタリングのための切断音を用いた食品認識,小島 嵩道，井尻 敬，片岡 秀公，平林 晃（立命館大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R20.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R21 複数スクリーン環境における講義のためのタンジブルユーザインタフェース,吉田 周平，山根 恵和，吉田 光男，岡部 正幸，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R21.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R22 野球のピッチング動作を定量的に解析するアプリケーション,佐藤 邦彦（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/2-R22.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-R23 高速度カメラを用いた変化球の回転解析とその可視化,井尻 敬，中村 篤志（立命館大），酒井 道（電通大），平林 晃（立命館大），宮嵜 武（電通大），姫野 龍太郎（理化学研）,https://www.wiss.org/WISS2015Proceedings/demo/2-R23.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-S01 プロジェクションマッピングによる箏への奏法提示,土井 麻由佳，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/2-S01.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,2-S02 ドラッグで配線できる基板による電子工作支援,秋山 耀，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/2-S02.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R04 現代的なHMDを用いたデジタル逆さメガネの可能性,加藤 裕也，首藤 一幸（東工大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R04.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R05 距離画像センサを用いたタグシステム,山田 渉，真鍋 宏幸，稲村 浩（NTTドコモ）,https://www.wiss.org/WISS2015Proceedings/demo/3-R05.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R06 巻き戻し機能を有した授業支援システムの提案と評価,山根 恵和，吉田 光男，岡部 正幸，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R06.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R07 Form Follows Function: 形状と機能を単一コードで開発できる統合開発環境,加藤 淳，後藤 真孝（産総研）,https://www.wiss.org/WISS2015Proceedings/demo/3-R07.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R08 ZenTravel: VRヘッドマウントディスプレイを利用した，周辺環境を考慮しやすいホテル検索システム,牟田 将史，益子 宗（楽天）,https://www.wiss.org/WISS2015Proceedings/demo/3-R08.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R09 Openness-adjustable Headset：開放度を調整可能なヘッドセットの開発,栗原 一貴，諸 美咲（津田塾大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R09.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R10 ThumbSlide: 親指スライドジェスチャによるスマートウォッチ操作手法,青山 周平，阿部 哲也，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R10.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R11 IDE的支援を用いた小説執筆のためのアプリケーション構築,西原 将平，三浦 元喜（九工大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R11.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R12 Illustpose: 姿勢データを利用した人物デッサン支援システム,川連 一将，渡邊 恵太（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R12.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R13 B2B-Swipe：超小型タッチパネル端末のためのベゼルからベゼルへのスワイプジェスチャ,久保 勇貴，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R13.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R14 MonoTouch：複数ジェスチャ判別が可能な単一電極タッチセンサ,高田 崚介，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R14.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R15 コード進行・メタ情報・楽曲特徴量に基づく音楽可視化,上原 美咲，伊藤 貴之（お茶の水女子大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R15.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R16 LectureMarker：効果的な復習のために,宮本 美貴，吉田 光男，岡部 正幸，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R16.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R17 いたねこ：人間に痛みを伝える遠隔猫じゃらし,安齊 クレア，的場 やすし，椎尾 一郎（お茶の水女子大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R17.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R18 AttacheCam: センサやクラウドと連携するカメラベースのデバイスツールキットの構築,仲松 聡，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R18.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R19 美味しさを伝えるための食事音に応じた視覚的表現提示システム,中川 慎哉（筑波大），岩淵 志学，益子 宗（楽天），田中 二郎（筑波大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R19.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R20 スマートウォッチにおけるアイズフリー日本語入力手法,下岡 純也，浅井 洋樹（早大），山名 早人（早大／NII）,https://www.wiss.org/WISS2015Proceedings/demo/3-R20.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R21 SensorPipe：スマートフォン側のプログラミングを一切行わないスマートフォン連携プログラミング,鳥山 らいか，宮下 芳明（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R21.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R22 Webmo: WifiとWebAPIをパッケージングしたステッピングモーター,原 健太，渡邊 恵太（明治大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R22.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-R23 ドローンによるインタラクティブサーフェス環境の拡張,栃原 直哉（電通大），田中 恭友（東工大），岸田 聖生（電通大），佐藤 俊樹，小池 英樹（東工大）,https://www.wiss.org/WISS2015Proceedings/demo/3-R23.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-S01 Ballumiere: 高速浮遊物体への実時間追跡投影システム,須ヶ﨑 聖人，宮藤 詩緒，佐藤 俊樹，小池 英樹（東工大）,https://www.wiss.org/WISS2015Proceedings/demo/3-S01.pdf,,,https://www.wiss.org/WISS2015Proceedings/
+,3-S03 食卓インタラクションのためのインタフェースデバイス,甲藤 仁美，椎尾 一郎，的場 やすし（お茶の水女子大）,https://www.wiss.org/WISS2015Proceedings/demo/3-S03.pdf,,,https://www.wiss.org/WISS2015Proceedings/

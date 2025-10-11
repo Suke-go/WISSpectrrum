@@ -1,0 +1,69 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,まえがき: WISS2008について,小池 英樹,https://www.wiss.org/WISS2008Proceedings/preface.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,グループでウェブの探索を効率化する検索共有インタフェース,武田 達弥，五十嵐 健夫 (東京大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0011.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,InPhase: 遠距離ハッピーアイスクリーム,辻田 眸，塚田 浩二，椎尾 一郎 (お茶の水女子大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0027.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,EyeCatcher: 多様な表情を撮るカメラ,塚田 浩二，沖 真帆 (お茶の水女子大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0033.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,流体シミュレーションを統合した対話的な形状設計手法,三谷 純 (筑波大学)，五十嵐 健夫 (東京大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0009.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,Sequential Graphics: 描画時の臨場感を再現するペイントソフト,櫻井 稔 (東京藝術大学)，江渡 浩一郎 (産総研),https://www.wiss.org/WISS2008Proceedings/papers/paper0028.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,法線情報のみを用いたパーティクルシミュレーションのデザイン,大和田 茂 (ソニーCSL)，藤木 淳 (日本学術振興会),https://www.wiss.org/WISS2008Proceedings/papers/paper0034.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,跳ね星: 電子機器を組み込んだデジタルスポーツ用ゴムボールの開発,出田 修，佐藤 俊樹，間宮 暖子，芝崎 郁，中村 潤，児玉 幸子，小池 英樹 (電気通信大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0021.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,電脳化粧鏡: メイクアップを支援する電子鏡台(Long),岩渕 絵里子，椎尾 一郎 (お茶の水女子大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0026.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,装着型無線加速度センサを用いたウェアラブルDJシステム,冨林 豊，竹川 佳成，寺田 努，塚本 昌彦 (神戸大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0037.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,拡張現実食卓における彩りと物語の調理システム,森 麻紀 (お茶の水女子大学)，栗原 一貴 (産総研)，塚田 浩二，椎尾 一郎 (お茶の水女子大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0013.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,液晶型テーブルトップシステム上における透明マーカの実現,小池 英樹，西川 渉 (電気通信大学)，福地 健太郎 (科学技術振興機構),https://www.wiss.org/WISS2008Proceedings/papers/paper0030.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,PhotoelasticTouch: LCDと光弾性効果を応用した透明弾性体インタフェースの提案(Long),佐藤 俊樹，間宮 暖子，小池 英樹 (電気通信大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0019.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,Shadowgraph: ペンの影を用いてOHP 風の指示ができるプレゼンテーションツール,村田 雄一，志築 文太郎，田中 二郎 (筑波大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0010.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,オノマトペン,神原 啓介，塚田 浩二 (お茶の水女子大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0023.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,演奏ルールを用いたウッドベースのための実時間運指取得システムの開発,澤 光映，竹川 佳成，寺田 努，塚本 昌彦 (神戸大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0018.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ExpressiveTyping: 本体内蔵型加速度センサによる打鍵圧センシングとその応用,岩崎 健一郎，味八木 崇，暦本 純一 (東京大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0022.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,2つの加速度センサを用いたポインティング手法,所 洋平，寺田 努，塚本 昌彦 (神戸大学),https://www.wiss.org/WISS2008Proceedings/papers/paper0031.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,Flashと装着型センサを連携させた体感型ゲームの作成支援フレームワーク,田中 宏平(阪大)，岸野 泰恵（NTTコミュニケーション科学基礎研），寺田 努(神戸大)，宮前 雅一（ウエストユニティス），西尾 章治郎(阪大),https://www.wiss.org/WISS2008Proceedings/posters/paper0035.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,VocalFinder: 似た歌声の楽曲を探す音楽検索システム,藤原 弘将，後藤 真孝 (産総研),,,,https://www.wiss.org/WISS2008Proceedings/
+,タグツリーによる個人コンテンツ管理,内藤 一兵衛，赤間 浩樹，谷口 展郎，山室 雅司（NTT サイバースペース研）,https://www.wiss.org/WISS2008Proceedings/posters/paper0005.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,アナログジョイスティックのためのパイメニュー型インタフェース,宮本 雅勝，寺田 努，塚本 昌彦(神戸大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0032.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,Outliner: ３次元世界と２次元世界が融合する表現技法の開発,藤木 淳（学振/九大)，大和田 茂（Sony CSL）,https://www.wiss.org/WISS2008Proceedings/posters/paper0039.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ペン・ペーパーデバイスを用いた帳簿の管理・検索システム,秋田 宣嗣 ，織田 英人，寺田 達也，中川 正樹 (農工大),https://www.wiss.org/WISS2008Proceedings/posters/paper0056.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,加速度センサーを利用した集中度合い推定システムの提案,大久保 雅史，藤村 安耶（同志社大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0038.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,CATの詳細度制御における代表画像の均一化,山澤 舞子，五味 愛，伊藤 貴之(お茶大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0043.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ユーザが柔軟に関与できる「井戸端会議」型インタラクション,倉本 到，新庄 優子（京都工芸繊維大），水口 充(京産大），渋谷 雄，辻野 嘉宏（京都工芸繊維大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0007.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,コンビニにおける気づきのレコメンド効果を用いた新たなインタラクションファサード,山下 真，青山 直樹，古林 沙夜香，林口 円（京都工芸繊維大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0042.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ユビキタスセンサによるインタラクティブな調理支援システム,鈴木 拓央，徳升 彰，中内 靖(筑波大），村上 奨(日立),https://www.wiss.org/WISS2008Proceedings/posters/paper0041.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,MathMLを対象とした数式検索エンジンの実装,橋本 英樹，土方 嘉徳，西田 正吾 (阪大),,,,https://www.wiss.org/WISS2008Proceedings/
+,GutaGuta: 受動的な動画視聴と発見のためのインタフェース,平山 慧，寺田 実(電通大），丸山 一貴(東大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0025.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,CastOven: 日常生活の待ち時間に合わせたコンテンツ提供システム,渡邊 恵太，松田 聖大，安村 通晃 (慶大),https://www.wiss.org/WISS2008Proceedings/posters/paper0064.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ソフトウェア開発における協調支援のためのプロジェクト構造可視化ツール,大蔵 君治，川口 真司（奈良先端大），中道 上（南山大），飯田 元（奈良先端大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0047.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,Pagmo: Webページと連携する共有仮想空間の実現,青山 新，櫻井 稔（東京芸大），江渡 浩一郎(産総研）,https://www.wiss.org/WISS2008Proceedings/posters/paper0048.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,GPS画像マッピングツール,河田 慶三 (日本ユニシス）,,,,https://www.wiss.org/WISS2008Proceedings/
+,ConfShare: 学術会議開催情報共有のためのWebサービス,高田 哲司(産総研)，金井 秀明(北陸先端大)，西村 拓一(産総研),https://www.wiss.org/WISS2008Proceedings/posters/paper0050.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,立つだけインタラクション: 自然に使い方がわかる公共大画面向けインタラクション,佐藤 竜也，村田 雄一 ，志築 文太郎，田中 二郎 (筑波大),https://www.wiss.org/WISS2008Proceedings/posters/paper0054.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,richbiff: 電子メールのリッチな通知,水口 充(京産大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0017.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,Real Life: ライフゲームの一変形,寺田 実(電通大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0045.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,つぶつビュー：カテゴリデータのグラフィカルな可視化インタフェース,白石 宏亮，三末 和男，田中 二郎 (筑波大),https://www.wiss.org/WISS2008Proceedings/posters/paper0049.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,耳を引っ張る歩行誘導デバイスの提案,小島 雄一郎，橋本 悠希，梶本 裕之(電通大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0044.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,IGEL 〜ヒートカッターを模した3次元形状モデリング〜,今泉 仁美，伊藤 貴之(お茶大),https://www.wiss.org/WISS2008Proceedings/posters/paper0046.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,con: 多数の音の集合を彫刻のように操作・演奏できる楽器,谷口 暁彦 (東京芸大)，江渡 浩一郎 (産総研),https://www.wiss.org/WISS2008Proceedings/posters/paper0060.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ビスケットワークショップ,原田 康徳 (NTT),,,,https://www.wiss.org/WISS2008Proceedings/
+,携帯端末上でコンテキスト依存プログラムを記述するためのビジュアルプログラミング環境,西本 裕貴 (筑波大)，志築 文太郎 (筑波大)，田中 二郎 (筑波大),https://www.wiss.org/WISS2008Proceedings/posters/paper0055.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ウェブアクセス時空間情報に応じて変化するブラウザスキン,赤塚 大典，筧 康明 (慶大),https://www.wiss.org/WISS2008Proceedings/posters/paper0058.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ノラ音漏れ,青木 秀憲，篠原 祐樹，宮下 芳明 (明治大),https://www.wiss.org/WISS2008Proceedings/posters/paper0061.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,KnownStyleNoLife.com: 議論活動を利用してアノテーションを行うファッション画像共有サイト,遠山 敏章，小西 克巳(工学院大）,https://www.wiss.org/WISS2008Proceedings/posters/paper0040.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ぐりぐり遠距離マッサージシステム,小林 壮一，林 貴宏 ，尾内 理紀夫 (電通大),,,,https://www.wiss.org/WISS2008Proceedings/
+,タスクをマップ化することで見える化するプロジェクト管理ソフトウェアの提案,高橋 純一 (システムフレンド),,,,https://www.wiss.org/WISS2008Proceedings/
+,オープンソースプレゼンテーションプラットフォーム「ことだま」で研究・開発しよう,栗原 一貴 (産総研)，加藤 公一 (日本ユニシス)，大浦 弘樹 (東大),,,,https://www.wiss.org/WISS2008Proceedings/
+,HybridRecommender: 安心感と意外性を兼ね備えた音楽推薦システム,吉井 和佳，後藤 真孝 (産総研)，奥乃 博 (京大),,,,https://www.wiss.org/WISS2008Proceedings/
+,閉曲線図形の特性に基づいた音色生成の一手法,岩淵 勇樹 ，秋田 純一 ，北川 章夫 (金沢大),https://www.wiss.org/WISS2008Proceedings/posters/paper0057.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,PhotoelasticTouch: 透明弾性体を用いたインタフェース,間宮 暖子，佐藤 俊樹，小池 英樹(電通大)，福地 健太郎 (JST),,,,https://www.wiss.org/WISS2008Proceedings/
+,DashSearch: ダッシュボードウィジェットを用いたメタデータ検索,後藤 孝行 (総研大)，武田 英明 (情報学研)，安村 通晃 (慶大),,,,https://www.wiss.org/WISS2008Proceedings/
+,PhotoLab: ユーザの思考を支援する画像閲覧インタフェースの開発,堀辺 宏美，伊藤 貴之 (お茶大),https://www.wiss.org/WISS2008Proceedings/posters/paper0053.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ピッケの「つくるえほん」,原田 康徳 (NTT)，朝倉 民枝 (グッド・グリーフ！),,,,https://www.wiss.org/WISS2008Proceedings/
+,Comings and Goings: 駅の活動を表示する風ディスプレイ,川上 あゆみ，椎尾 一郎 (お茶大),,,,https://www.wiss.org/WISS2008Proceedings/
+,オノマトペン,神原 啓介，塚田 浩二 (お茶大),,,,https://www.wiss.org/WISS2008Proceedings/
+,大画面上コンテンツの指差し操作を補助するビジュアルフィードバック手法の提案,國保 将則，新井 イスマイル，西尾 信彦 (立命館大),https://www.wiss.org/WISS2008Proceedings/posters/paper0062.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,Webを用いた参加型プレゼンテーション,藤枝 崇史，福本 佳史，黒河 優介，水出 慎平，神前 嘉明，増田 貴徳，服部 隆志，萩野 達也 (慶大),,,,https://www.wiss.org/WISS2008Proceedings/
+,ソーシャルブックマーク上の少数ユーザ観測による流行予測,太田 飛鳥，松澤 智史，武田 正之 (東京理科大),,,,https://www.wiss.org/WISS2008Proceedings/
+,イスの振動を介した遠隔地間気配伝達システム,高井 翔太，三村 充，宮里 勉 (京都工芸繊維大),,,,https://www.wiss.org/WISS2008Proceedings/
+,suGATALOG: ユーザの姿を利用したファッションコーディネート支援システム,佐藤 彩夏，渡邊 恵太，安村 通晃 (慶大),https://www.wiss.org/WISS2008Proceedings/posters/paper0063.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,ウェアラブルな目玉型ロボットインターフェース,青木 俊介 (東華大)，鷺坂 隆志 (東大)，松宮 孝大 (ユカイ工学),https://www.wiss.org/WISS2008Proceedings/posters/paper0052.pdf,,,https://www.wiss.org/WISS2008Proceedings/
+,写真と落書きにもとづいた子供の共同創作支援,小笠原 遼子，中蔵 聡哉，角 康之，西田 豊明 (京大),,,,https://www.wiss.org/WISS2008Proceedings/
+,写真上の仮想会話における会話構造分析,古谷 翔，角 康之，西田 豊明 (京大),,,,https://www.wiss.org/WISS2008Proceedings/
+,NearMe: 簡易な手法による音環境の類似性を用いた会話場の認識,中蔵 聡哉，角 康之 ，西田 豊明 (京大),,,,https://www.wiss.org/WISS2008Proceedings/

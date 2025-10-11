@@ -1,0 +1,61 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,においに基づくコンテキストアウェアシステムの設計と実装,寺田努(神戸大)，小林泰貴(神戸大)，塚本昌彦(神戸大),https://www.wiss.org/WISS2011Proceedings/PDF/01.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,WrinkleSurface: しわを作って入力できる柔らかいマルチタッチインタフェース,坂本侑一郎(筑波大)，吉川拓人(筑波大)，大江龍人(筑波大)，志築文太郎(筑波大)，福本雅朗(NTTドコモ)，田中二郎(筑波大),https://www.wiss.org/WISS2011Proceedings/PDF/02.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,PINOKY：ぬいぐるみを駆動するリング型のデバイス,杉浦裕太(慶応大学 / JST)，LeeCalista(慶大)，尾形正泰(慶大／JST)，牧野泰才(慶大)，坂本大介(東大／JST ERATO)，稲見昌彦(慶應大)，五十嵐健夫(東大),https://www.wiss.org/WISS2011Proceedings/PDF/03.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,ニンジャトラック：形状と柔軟性が変化する構造体をもちいたインタラクション技法,勝本雄一朗(シンガポール国立大学)，徳久悟(慶大)，稲蔭正彦(慶大),https://www.wiss.org/WISS2011Proceedings/PDF/04.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,動画の極限的な高速鑑賞のためのシステムの開発と評価,栗原一貴(産総研),https://www.wiss.org/WISS2011Proceedings/PDF/05.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,物語の要約を支援するインターフェース,田中翔太郎(電通大)，岡部誠(電気通信大学 / JST PRESTO)，尾内理紀夫(電通大),https://www.wiss.org/WISS2011Proceedings/PDF/06.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,ネタバレを見ずにレビュー文を閲覧できるシステムの開発,池田郁(阪大)，土方嘉徳(阪大)，岩井秀成(阪大)，西田正吾(阪大),https://www.wiss.org/WISS2011Proceedings/PDF/07.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,構造を持つ時系列情報に関する3次元可視化フレームワーク,伊藤正彦(東大)，豊田正史(東大)，喜連川優(東大),https://www.wiss.org/WISS2011Proceedings/PDF/08.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,インタラクティブなビーズデザインと制作支援,五十嵐悠紀(筑波大／JSPS)，五十嵐健夫(東大／JST ERATO)，三谷純(筑波大／JST ERATO),https://www.wiss.org/WISS2011Proceedings/PDF/09.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,数式の予測入力インタフェースの開発,堀江圭介(阪大)，土方嘉徳(阪大)，西田正吾(阪大),https://www.wiss.org/WISS2011Proceedings/PDF/10.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,絵楽器の設計段階におけるプロトタイピング支援システムの設計と実装,竹川佳成(神大)，福司謙一郎(東工大)，Machover Tod(MIT Media Lab)，寺田努(神戸大)，塚本昌彦(神戸大),https://www.wiss.org/WISS2011Proceedings/PDF/11.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,スイッチバックカーソル：重なりあったウィンドウ間を移動可能なマウスカーソル操作手法,山中祥太(明治大)，宮下芳明(明治大／JST),https://www.wiss.org/WISS2011Proceedings/PDF/12.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Gorotte:情報の消費者ではなく生産者になるための試み,大坪五郎(（株）ネクスト),https://www.wiss.org/WISS2011Proceedings/PDF/13.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,視聴者の反応に基づく動画検索および推薦システムの提案,佃洸摂(京大)，中村聡史(京都大学)，田中克己(京大),https://www.wiss.org/WISS2011Proceedings/PDF/14.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,smoon: Webの実体化による行動支援とその試作,渡邊恵太(JST)，佐藤彩夏(お茶の水女子大)，松田聖大(JST)，稲見昌彦(慶應大)，五十嵐健夫(東大),https://www.wiss.org/WISS2011Proceedings/PDF/15.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,DataWikiを活用した社会的アプリケーションの構築,江渡浩一郎(産総研)，濱崎雅弘(産総研)，沢田洋平(産総研),https://www.wiss.org/WISS2011Proceedings/PDF/16.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,笑顔は人を幸せにするのか？笑顔促進支援システム,辻田眸(東京大学)，暦本純一(東京大学／ソニーCSL),https://www.wiss.org/WISS2011Proceedings/PDF/17.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Sharedo: To-doリストによる人-ロボット間のタスク共有,加藤淳(東大／JSPS)，坂本大介(東大／JST ERATO)，五十嵐健夫(東大),https://www.wiss.org/WISS2011Proceedings/PDF/18.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,身体性を考慮した着ぐるみ装着者支援システム,岡崎辰彦(神戸大)，寺田努(神戸大)，塚本昌彦(神戸大),https://www.wiss.org/WISS2011Proceedings/PDF/19.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,文の構造を明示的に指定・表示することによる異言語間コミュニケーション,五十嵐健夫(東大),https://www.wiss.org/WISS2011Proceedings/PDF/20.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Colorscore : クラシック音楽における音楽構造の俯瞰と縮約の可視化手法,林 亜紀 ，伊藤 貴之 (お茶大)，松原 正樹 (慶大),https://www.wiss.org/WISS2011Proceedings/PDF/055.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,周辺スポットのリアルタイム情報を音で提示するガイドブックの開発,内山 琢海，川本 公章，羽田 亜美，米谷 健吾 (京都工繊大),https://www.wiss.org/WISS2011Proceedings/PDF/056.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,人物の共起性を配置に反映した大量個人写真ブラウザ,安田 理紗，五味 愛，伊藤 貴之 (お茶大),https://www.wiss.org/WISS2011Proceedings/PDF/057.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,JewelryStudio：多視点からのアクセサリ写真撮影・閲覧システム,渡辺 千穂 (お茶大)，塚田 浩二 (お茶大／さきがけ)，椎尾 一郎 (お茶大),https://www.wiss.org/WISS2011Proceedings/PDF/058.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,サイレントハミング：呼気音と咽頭運動を利用した鼻歌再現システム,安 謙太郎，竹内 祐太，稲見 昌彦 (慶應大),https://www.wiss.org/WISS2011Proceedings/PDF/059.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,RefrigeMeter: 冷蔵庫における保存状況の手軽な検出／提示システム,三久保 莉也，塚田 浩二，椎尾 一郎 (お茶大),https://www.wiss.org/WISS2011Proceedings/PDF/061.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,指先への電気刺激による感触提示を組み合わせたタッチディスプレイ技術,衛藤 春菜 (明治大)，的場 やすし，佐藤 俊樹 (電通大)，福地 健太郎 (明治大)，小池 英樹，梶本 裕之 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/062.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Moe Cafeteria:イラストキャラクタと味覚データの対応付けシステム,徳永 清詩，林 貴宏 (新潟大),https://www.wiss.org/WISS2011Proceedings/PDF/063.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Tap Your Headphones: 手持ちのヘッドホンでタップ入力,真鍋 宏幸，福本 雅朗 (NTTドコモ),https://www.wiss.org/WISS2011Proceedings/PDF/064.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Chrome Debugger API を用いたLive Edit 開発環境の実装技法,吉永 卓矢，脇田 建 (東工大),https://www.wiss.org/WISS2011Proceedings/PDF/065.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,構文マクロ定義を利用した動的拡張可能なエディタ,甫水 佳奈子，脇田 建 (東工大),https://www.wiss.org/WISS2011Proceedings/PDF/066.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,落書き彫刻:3 軸自由曲線の例示予測により3 次元モデルの生成を行うインターフェース,蛭間 宏明，武田 正之 (東理大),https://www.wiss.org/WISS2011Proceedings/PDF/067.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Contextual Photo Browser: 写真参与者と周辺状況に基づく写真ビューア,徳網 亮輔，河野 恭之 (関学)，中村 聡史 (京大),https://www.wiss.org/WISS2011Proceedings/PDF/068.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,レクピ：時間/重量情報を保持するレシピの自動記録システム,佐藤 彩夏，塚田 浩二（お茶大/JST），椎尾 一郎 (お茶大),https://www.wiss.org/WISS2011Proceedings/PDF/069.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,SmileSnail：ユーザの感情を反映する写し鏡ロボット,中川 真紀，塚田 浩二，椎尾 一郎 (お茶大),https://www.wiss.org/WISS2011Proceedings/PDF/070.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,直感的で効率のよい空の画像生成システム,三谷 隆暢，藤代 一成 (慶大),https://www.wiss.org/WISS2011Proceedings/PDF/071.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,ベクション場における新たな呈示手法の提案,吉川 博美，蜂須 拓（電通大），福嶋 政期（電通大/JSPS），古川 正紘（慶大），梶本 裕之（電通大/JST），野嶋 琢也(電通大),https://www.wiss.org/WISS2011Proceedings/PDF/072.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,りもコン: チャンネル権を持ったリモコン,川本 公章，荒木 修，高尾 大地，富加見 美沙都 (京都工繊大),https://www.wiss.org/WISS2011Proceedings/PDF/073.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,MAEDE: スクリーン前でのプレゼンテーションスタイル,前田 晴己，黒澤 祐也（明治大），栗原 一貴（産総研），宮下 芳明 (明治大/JST),https://www.wiss.org/WISS2011Proceedings/PDF/074.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,例示による携帯プログラミングの拡張,瀬戸 優之 (明治大)，宮下 芳明 (明治大／JST),https://www.wiss.org/WISS2011Proceedings/PDF/075.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,作曲特徴を用いた作曲支援システムの実現に向けて,金子 裕司，中川 博之，田原 康之，大須賀 昭彦 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/076.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,自動でスライドを分割・統合して時間を調整するプレゼンテーションツール,矢田 裕基 (明治大)，栗原 一貴 (産総研)，宮下 芳明 (明治大／JST),https://www.wiss.org/WISS2011Proceedings/PDF/077.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,金額を実感する入力手法の提案,中村 美惠子 (明治大)，宮下 芳明 (明治大／JST),https://www.wiss.org/WISS2011Proceedings/PDF/078.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,ウェアラブルコンピューティングのディペンダビリティを確保する入出力デバイス,武田 誠二 (神戸大)，岸野 泰恵，柳沢 豊，須山 敬之 (NTT)，寺田 努，塚本 昌彦 (神戸大),https://www.wiss.org/WISS2011Proceedings/PDF/079.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,公共空間における手のひらへの映像提示システム,高橋 陽一，佐藤 俊樹，小池 英樹 (電通大）,https://www.wiss.org/WISS2011Proceedings/PDF/081.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,片手用キーボードを用いた高速な文字入力手法,片山 拓也，村尾 和哉 (神戸大)，寺田 努 (神戸大／JST)，塚本 昌彦 (神戸大),https://www.wiss.org/WISS2011Proceedings/PDF/082.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,形状・軟らかさが可変なディスプレイシステム,佐藤 俊樹，的場 やすし，高橋 宣裕，小池 英樹 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/083.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,えあわせ:テーブルに並べたスマートフォンによる動画編集,嶋本 諒太 (明治大)，宮下 芳明 (明治大／JST),https://www.wiss.org/WISS2011Proceedings/PDF/084.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,LED 信号機の点滅を利用した携帯型信号機情報提示装置の開発,的場 やすし，佐藤 俊樹，小池 英樹 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/085.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,スマートフォンによるボールの動作認識と動作に合わせたフィードバックの提示,堀田 高大，佐藤 俊樹(電通大)，木谷 クリス (CMU)，小池 英樹 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/086.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,楽曲への方向情報付加によるモバイルナビゲーションシステム,山野 真吾，濱條 貴光 (金工大)，樋口 啓太 (東大),https://www.wiss.org/WISS2011Proceedings/PDF/087.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,発泡ビーズによるテーブルトップのシューティングゲームのエフェクトの拡張,岡田 勇作，的場 やすし，佐藤 俊樹，小池 英樹 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/088.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Multi-tiles: 部分回転が可能なプロジェクタスクリーン,磯山 直也，寺田 努，塚本 昌彦 (神戸大),https://www.wiss.org/WISS2011Proceedings/PDF/089.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,学習機能をもったアイコン整理システム,大河原 昭，坂本 大介 (東大／JST)，五十嵐 健夫 (東大),https://www.wiss.org/WISS2011Proceedings/PDF/092.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,人について行くことで迷子を無くすリアルタイムナビゲーションの検証,長坂 瑛 (電通大)，岡部 誠 (電通大/JST)，尾内 理紀夫 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/094.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,レビュアの信頼性を説明付けするシステム,田中 祐也，中村 伸子，土方 嘉徳，西田 正吾 (阪大),https://www.wiss.org/WISS2011Proceedings/PDF/095.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Ficon：テーブルトップシステム向けの光ファイバを用いた映像提示可能な操作デバイス,中林 隆介 (明治大)，佐藤 俊樹 (電通大)，福地 健太郎，高田 悠太 (明治大),https://www.wiss.org/WISS2011Proceedings/PDF/097.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,TubTouch: 湯水の影響や自由形状への適用を考慮した浴槽タッチ UI 環境,榊原 吉伸，平井 重行 (京産大),https://www.wiss.org/WISS2011Proceedings/PDF/098.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,Kinect センサを用いた物探し支援システムの試作,栗原 竜矢 (電通大)，岡部 誠 (電通大/JST)，尾内 理紀夫 (電通大),https://www.wiss.org/WISS2011Proceedings/PDF/099.pdf,,,https://www.wiss.org/WISS2011Proceedings/
+,チームプレゼン！,永瀬 翔 (明治大)，栗原 一貴 (産総研)，宮下 芳明 (明治大／JST),https://www.wiss.org/WISS2011Proceedings/PDF/100.pdf,,,https://www.wiss.org/WISS2011Proceedings/

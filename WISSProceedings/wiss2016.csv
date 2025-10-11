@@ -1,0 +1,95 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,MimiSense: 外耳道内の気圧変化を利用した下顎運動認識システム,安藤 宗孝，久保 勇貴，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2016Proceedings/oral/01.pdf,https://www.wiss.org/WISS2016Proceedings/oral/01.mp4,https://www.wiss.org/WISS2016Proceedings/oral/01.html,https://www.wiss.org/WISS2016Proceedings/
+,BaroTouch：防水タッチパネル端末に内蔵された気圧センサを用いた押下圧力取得手法,高田 崚介，林 威，安藤 宗孝，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2016Proceedings/oral/02.pdf,https://www.wiss.org/WISS2016Proceedings/oral/02.mp4,https://www.wiss.org/WISS2016Proceedings/oral/02.html,https://www.wiss.org/WISS2016Proceedings/
+,FistPointer：モバイルVR環境のための空中操作を用いたターゲット選択手法,石井 晃，阿達 拓也，島 佳吾，中前 秀太，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2016Proceedings/oral/03.pdf,https://www.wiss.org/WISS2016Proceedings/oral/03.mp4,https://www.wiss.org/WISS2016Proceedings/oral/03.html,https://www.wiss.org/WISS2016Proceedings/
+,物体を操作する映像におけるHalf-Diminished Realityの実現,奥本 隼，吉田 光男，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2016Proceedings/oral/04.pdf,https://www.wiss.org/WISS2016Proceedings/oral/04.m4v,https://www.wiss.org/WISS2016Proceedings/oral/04.html,https://www.wiss.org/WISS2016Proceedings/
+,マイクロ生体認証：人間の微細生体領域を利用した生体認証,藤田 真浩，眞野 勇人，村松 弘明（静岡大），高橋 健太（日立製作所），西垣 正勝（静岡大）,https://www.wiss.org/WISS2016Proceedings/oral/05.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/05.html,https://www.wiss.org/WISS2016Proceedings/
+,図形描画とテキスト入力を用いた力学に関する質問応答システム,五十嵐 健夫（東大），横野 光，岩根 秀直（富士通研）,https://www.wiss.org/WISS2016Proceedings/oral/06.pdf,https://www.wiss.org/WISS2016Proceedings/oral/06.mp4,https://www.wiss.org/WISS2016Proceedings/oral/06.html,https://www.wiss.org/WISS2016Proceedings/
+,STICK TRACK: 運手情報を付加したドラム譜面作成システム,菅家 浩之（神戸大），寺田 努（神戸大／JST），塚本 昌彦（神戸大）,https://www.wiss.org/WISS2016Proceedings/oral/07.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/07.html,https://www.wiss.org/WISS2016Proceedings/
+,Mojivator: 手書き文字の自動融合により書きたくなる練習支援システム,久保田 夏美，新納 真次郎，中村 聡史，鈴木 正明（明治大）,https://www.wiss.org/WISS2016Proceedings/oral/08.pdf,https://www.wiss.org/WISS2016Proceedings/oral/08.mov,https://www.wiss.org/WISS2016Proceedings/oral/08.html,https://www.wiss.org/WISS2016Proceedings/
+,着ぐるみ未装着時の着ぐるみポージング練習システム,中山 遼（神戸大），寺田 努（神戸大／JST），塚本 昌彦（神戸大）,https://www.wiss.org/WISS2016Proceedings/oral/09.pdf,https://www.wiss.org/WISS2016Proceedings/oral/09.mp4,https://www.wiss.org/WISS2016Proceedings/oral/09.html,https://www.wiss.org/WISS2016Proceedings/
+,物理ベースサウンドデザインのための例示ベースインタフェース,山本 和彦（東大／ヤマハ），五十嵐 健夫（東大）,https://www.wiss.org/WISS2016Proceedings/oral/10.pdf,https://www.wiss.org/WISS2016Proceedings/oral/10.mov,https://www.wiss.org/WISS2016Proceedings/oral/10.html,https://www.wiss.org/WISS2016Proceedings/
+,トレーシングとデータベースを併用する2Dアニメーション作成支援システム,福里 司，森島 繁生（早大）,https://www.wiss.org/WISS2016Proceedings/oral/11.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/11.html,https://www.wiss.org/WISS2016Proceedings/
+,srt.js: 映像コンテンツへのIoT指向拡張プログラム埋め込みフレームワーク,栗原 一貴（津田塾大／Diverse技術研），橋本 美香（津田塾大）,https://www.wiss.org/WISS2016Proceedings/oral/12.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/12.html,https://www.wiss.org/WISS2016Proceedings/
+,ポケレポ GO: ワンマンライブレポートシステム,竹川 佳成（はこだて未来大），松村 耕平（立命館大），西村 陽菜（はこだて未来大）,https://www.wiss.org/WISS2016Proceedings/oral/13.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/13.html,https://www.wiss.org/WISS2016Proceedings/
+,Deconaby:ウェブ上の画像に対する解説アニメーション付与システム,樋川 一幸，松田 滉平，中村 聡史（明治大）,https://www.wiss.org/WISS2016Proceedings/oral/14.pdf,https://www.wiss.org/WISS2016Proceedings/oral/14.mp4,https://www.wiss.org/WISS2016Proceedings/oral/14.html,https://www.wiss.org/WISS2016Proceedings/
+,チーム対戦型の貢献度提示によりバランスのよい参加を促すチャットシステム,西田 健志（神戸大）,https://www.wiss.org/WISS2016Proceedings/oral/15.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/15.html,https://www.wiss.org/WISS2016Proceedings/
+,貼るだけ探索：RFIDタグの検出履歴を利用した物探し支援システムの提案,笹川 真奈，池松 香，椎尾 一郎（お茶の水女子大）,https://www.wiss.org/WISS2016Proceedings/oral/16.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/16.html,https://www.wiss.org/WISS2016Proceedings/
+,AssisTag: 画像内容に基づく閲覧と単語に基づく閲覧を統合した画像探索システム,水野 加寿代，坂本 大介，五十嵐 健夫（東大）,https://www.wiss.org/WISS2016Proceedings/oral/17.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/17.html,https://www.wiss.org/WISS2016Proceedings/
+,考えるための検索インタフェース Genko,大坪 五郎（ネクスト）,https://www.wiss.org/WISS2016Proceedings/oral/18.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/18.html,https://www.wiss.org/WISS2016Proceedings/
+,AquaCAVE : 水泳体験を向上させる水中バーチャルリアリティ環境,山下 聖悟，張 鑫磊（東大），暦本 純一（東大／Sony CSL）,https://www.wiss.org/WISS2016Proceedings/oral/19.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/19.html,https://www.wiss.org/WISS2016Proceedings/
+,Qoom: 球体型インタラクティブディスプレイ,宮藤 詩緒，LI ZHENGQING，佐藤 俊樹，小池 英樹（東工大）,https://www.wiss.org/WISS2016Proceedings/oral/20.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/20.html,https://www.wiss.org/WISS2016Proceedings/
+,全天球ボールカメラによる撮影動画の視点固定手法の提案,中澤 正和，小池 英樹（東工大）,https://www.wiss.org/WISS2016Proceedings/oral/21.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/21.html,https://www.wiss.org/WISS2016Proceedings/
+,Anamorphicons を用いたパノラマビューシステムの提案と実装,池松 香，笹川 真奈，椎尾 一郎（お茶の水女子大）,https://www.wiss.org/WISS2016Proceedings/oral/22.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/22.html,https://www.wiss.org/WISS2016Proceedings/
+,Behind-the-Mask: 顔映像が取得可能な頭部搭載型ディスプレイ,暦本 純一（東大／Sony CSL），浦垣 啓志郎（東工大），山田 献二朗（名大）,https://www.wiss.org/WISS2016Proceedings/oral/23.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/23.html,https://www.wiss.org/WISS2016Proceedings/
+,自由形状の竹とんぼのインタラクティブデザインシステム,中村 守宏，小山 裕己，坂本 大介，五十嵐 健夫（東大）,https://www.wiss.org/WISS2016Proceedings/oral/24.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/24.html,https://www.wiss.org/WISS2016Proceedings/
+,3DプリンタのためのPaper User Interface,秋山 耀，宮下 芳明（明治大）,https://www.wiss.org/WISS2016Proceedings/oral/25.pdf,https://www.wiss.org/WISS2016Proceedings/oral/25.mp4,https://www.wiss.org/WISS2016Proceedings/oral/25.html,https://www.wiss.org/WISS2016Proceedings/
+,造形高さと樹脂量の設定による熱溶解積層方式3Dプリンタの表現力拡張,高橋 治輝，宮下 芳明（明治大）,https://www.wiss.org/WISS2016Proceedings/oral/26.pdf,,https://www.wiss.org/WISS2016Proceedings/oral/26.html,https://www.wiss.org/WISS2016Proceedings/
+,1-A01 複合現実空間における前腕を用いたメニューウィジェット,浅井 拓己，小川 修平（立命館大），大槻 麻衣（筑波大），柴田 史久，木村 朝子（立命館大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A01.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A02 Dance DJ: ライブパフォーマンスのためのダンス動作ミックスシステム,岩本 尚也，加藤 卓哉（早大），原 健太（明治大），柿塚 亮（早稲田大学），森島 繁生（早大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A02.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A03 MimiSense: 外耳道内の気圧変化を利用した下顎運動認識システム,安藤 宗孝，久保 勇貴，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A03.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A04 BaroTouch：防水タッチパネル端末に内蔵された気圧センサを用いた押下圧力取得手法,高田 崚介，林 威，安藤 宗孝，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A04.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A05 FistPointer：モバイルVR環境のための空中操作を用いたターゲット選択手法,石井 晃，阿達 拓也，島 佳吾，中前 秀太，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A05.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A06 物体を操作する映像におけるHalf-Diminished Realityの実現,奥本 隼，吉田 光男，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A06.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A07 Mojivator: 手書き文字の自動融合により書きたくなる練習支援システム,久保田 夏美，新納 真次郎，中村 聡史，鈴木 正明（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A07.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A08 コンテキストに基づくスマートウォッチ及びスマートフォンを用いたクロスデバイスインタラクション,久保 勇貴，高田 崚介，志築 文太郎，高橋 伸（筑波大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A08.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A09 撮影画像評価に基づく複数カメラ制御手法,藤田 俊貴，首藤 一幸（東工大），西川 武志（(財) 計算科学振興財団），大西 真晶（東工大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A09.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A10 視線情報と話者情報とを組み合わせた動画への動的字幕配置手法,赤堀 渉（早大），平井 辰典（駒澤大），森島 繁生（早大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A10.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A12 Average Painter：平均化による描画支援手法,新納 真次郎，萩原 奈苗，中村 聡史，鈴木 正明，小松 孝徳（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A12.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A13 人物シルエットをペンライトアート風に表現するインタラクティブシステム,土屋 桃子，伊藤 貴之（お茶の水女子大），新田 善久（津田塾大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A13.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A14 LectureMarker+：効率的な講義復習のためのシステムの実装と評価,砂田 弦，吉田 光男，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A14.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A15 Web 上の BADUI をユーザの手で改善可能とするシステムの提案,田島 一樹，中村 聡史（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A15.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A16 通行客の閲覧可能性を考慮したファッションサイネージの配信,中澤 満，徐 玖，益子 宗（楽天）,https://www.wiss.org/WISS2016Proceedings/demo/1-A16.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A17 足音遅延フィードバックが歩行におよぼす影響の分析,松尾 良馬，宮下 芳明（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A17.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A18 フリーハンドジェスチャーによるTV入力における新ジェスチャー手法の提案,白木 俊成，Xiangshi Ren（高知工科大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A18.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A19 歩行習慣獲得を支援するシステムの開発に向けた ユーザの行動解析,大槻 涼，鈴木 真生，松村 耕平（立命館大），杉山 治（京大），多田 昌裕（近畿大），野間 春生（立命館大），黒田 知宏（京大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A19.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A20 Word2Belt: テキスト空間を表現するベルトによる通知システム,大島 裕明，加藤 誠，山本 岳洋（京大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A20.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A21 俯瞰視点と体験者視点の差異を考慮したVR空間誘導システム,若林 裕太，宮下 芳明（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A21.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A22 REWindow: 車窓からPOIを再現するユーザインタフェース,日下部 眞太郎，米澤 拓郎，中澤 仁，徳田 英幸（慶大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A22.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A23 SyncRope：連動する入出力一体型のロープによる長さの直接伝達システム,幸野 朋美，渡邊 恵太（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A23.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-A24 AssisTag: 画像内容に基づく閲覧と単語に基づく閲覧を統合した画像探索システム,水野 加寿代，坂本 大介，五十嵐 健夫（東大）,https://www.wiss.org/WISS2016Proceedings/demo/1-A24.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-B01 生体情報を呈示する婚活イベント支援システムAnemoneの開発,絵空 摩耶（Diverse），岩本 拓也（Diverse／北陸先端大）,https://www.wiss.org/WISS2016Proceedings/demo/1-B01.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,1-B02 GraffitiGrass：芝生をパブリックディスプレイにする手法,杉浦 裕太（慶大），戸田 光紀（無所属），菊地 高史（慶大），星 貴之（東大），神山 洋一（慶大），五十嵐 健夫，稲見 昌彦（東大）,https://www.wiss.org/WISS2016Proceedings/demo/1-B02.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A01 リアルタイム実況中継システムにおけるロンバード効果を利用した発話声量の安定化の試み,矢萩 智史，内藤 拓海，松村 耕平，野間 春生（立命館大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A01.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A02 偶然のエンタテインメント性を高めるARダイスタワー,佐々木 菜摘（京産大），平田 晃暉（内田洋行ITソリューションズ），森野 広大（I2C），水口 充（京産大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A02.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A03 ポケレポ GO: ワンマンライブレポートシステム,竹川 佳成（はこだて未来大），松村 耕平（立命館大），西村 陽菜（はこだて未来大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A03.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A04 全天球ボールカメラによる撮影動画の視点固定手法の提案,中澤 正和，小池 英樹（東工大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A04.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A05 伸縮タイムラインによる一人称視点映像の高速閲覧支援,樋口 啓太，米谷 竜，佐藤 洋一（東大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A05.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A06 motebi〜文字を手書きで美しく書くための支援ツール〜,中村 優文，山口 周悟，森島 繁生（早大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A06.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A07 デジタル鬼ごっこ: 走力差を軽減させるスポーツの提案,森島 哲也，磯山 直也，ロペズ ギヨーム（青山学院大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A07.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A08 視野特性を考慮したヘッドマウントディスプレイの広視野角化手法,山田 渉，真鍋 宏幸（NTTドコモ）,https://www.wiss.org/WISS2016Proceedings/demo/2-A08.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A09 登場人物に注目した動画内のシーン探索支援システム,楢原 雅広，松村 耕平，野間 春生（立命館大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A09.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A10 ファッションアイテムの位置を設定できるコーディネート支援手法の提案,浅井 理紗，水口 充（京産大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A10.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A11 MoviePerformer: 映像提示デバイスを把持して行うライブパフォーマンスのための映像編集ツール,河野 将一朗，橋本 直（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A11.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A14 家族間でのスマートグラスを用いた空中落書きシステムの提案,岡本 悠希，瀬川 典久（京産大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A14.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A15 WireMolding：針金を用いた型取りによる3Dモデリング手法,吉村 佳純，渡邊 恵太（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A15.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A17 llumiFrame: 錯視図形を用いた額縁型音楽動画体験拡張システム,福地 翼，又吉 康綱，松井 啓司，中村 聡史（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A17.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A18 srt.js: 映像コンテンツへのIoT指向拡張プログラム埋め込みフレームワーク,栗原 一貴（津田塾大／Diverse技術研），橋本 美香（津田塾大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A18.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A19 ポスター画像中のイベント情報抽出システム,柳井 美保，河野 恭之（関西学院大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A19.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A20 貼るだけ探索：RFIDタグの検出履歴を利用した物探し支援システムの提案,笹川 真奈，池松 香，椎尾 一郎（お茶の水女子大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A20.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A21 勉強会の｛運営・参加｝を支援するシステム,中村 雄哉，松村 耕平，野間 春生（立命館大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A21.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A22 災害時における救助者同士の情報共有を支援するSNSの拡張の提案,神原 春香，河合 俊樹，松村 耕平，野間 春生（立命館大），杉山 治，下戸 学，大鶴 繁，黒田 知宏（京大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A22.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A23 Deconaby:ウェブ上の画像に対する解説アニメーション付与システム,樋川 一幸，松田 滉平，中村 聡史（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A23.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-A24 Loops : プログラミング初学者支援のためのカードゲームの提案,吉元 佑太，水口 充（京産大）,https://www.wiss.org/WISS2016Proceedings/demo/2-A24.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-B01 高速度カメラを用いた素振り練習の支援システム,木坂 綺花，井尻 敬，平林 晃（立命館大）,https://www.wiss.org/WISS2016Proceedings/demo/2-B01.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-B02 ドアコム W:遠隔地間を 2 つの枠でつなぐビデオチャットシステム,濱上 宏樹，吉野 孝（和歌山大）,https://www.wiss.org/WISS2016Proceedings/demo/2-B02.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,2-B03 RealitySphere: VRコンテンツのための球体型ARインタフェース,内山 夏子，橋本 直（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/2-B03.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A01 大量写真群からバランスのとれた代表写真群を選出するための一手法,塩谷 祥加，伊藤 貴之，萩田 真理子（お茶の水女子大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A01.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A02 プロフィール写真の理想と現実の乖離を緩和させるDating Serviceの検討,岩本 拓也（Diverse／北陸先端大），栗原 一貴（津田塾大／Diverse技術研），絵空 摩耶（Diverse），西本 一志（北陸先端大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A02.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A03 生体情報とスマートフォンを連携した画像撮影システムの開発,大下 隼人，瀬川 典久（京産大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A03.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A04 自由形状の竹とんぼのインタラクティブデザインシステム,中村 守宏，小山 裕己，坂本 大介，五十嵐 健夫（東大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A04.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A05 指ジェスチャ認識によるユーザの行為を予測して変化するスイッチ,横溝 有希子，小手川 誠也，Paul Haimes，馬場 哲晃（首都大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A05.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A06 MOOD ILLUMI：場の空気に合わせて変化するイルミネーションデザイン自動制御システム,大和 香穂，小山 智絵，五十嵐 悠紀（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A06.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A07 AffordanceLight: ファブ施設におけるHow-toの誘導,白石 晃一，平塚 晃美，大島 裕明，山本 岳洋（京大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A07.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A08 Dating Serviceにおけるプロフィール写真による顔のカテゴリ分類,明畠 利樹（Diverse），岩本 拓也（Diverse／北陸先端大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A08.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A09 SlipWatcher: スマートウォッチを利用した行動確認装置,蛯名 真紀，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A09.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A10 抵抗被膜方式を用いたテキスタイルインタフェース,小野 圭介，馬場 哲晃（首都大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A10.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A16 拡張性のある多視点映像配信システムとその受講システム,金子 冴，吉田 光男，梅村 恭司（豊橋技科大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A16.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A17 TapTapSearch: スマートフォンにおける検索候補語の表示手法の提案,安部 文紀，寺田 実（電通大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A17.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A18 被写通知：アドホックネットワークを利用した被写検知による写真共有,高田 一真，渡邊 恵太（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A18.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A19 Bluetooth Low Energy を用いた屋内における簡易位置情報探索システムの構築,宮川 祐太，瀬川 典久（京産大），矢澤 正人（数理設計研）,https://www.wiss.org/WISS2016Proceedings/demo/3-A19.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A20 わかるらんど: IoT時代の共有情報視覚化,山田 尚昭，増井 俊之（慶大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A20.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A21 StandOuter： 第三者の視点を考慮した姿勢改善手法の提案,西田 樹，沖 真帆，塚田 浩二（はこだて未来大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A21.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A22 高解像度壁面ディスプレイを用いた情報可視化のためのズーミングユーザインタフェースフレームワークChipとその応用,豊田 正史（東大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A22.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A23 熱溶解積層方式3Dプリンタにおけるエクストルーダ内での相溶性を利用した硬軟制御手法,上野 新葉，宮下 芳明（明治大）,https://www.wiss.org/WISS2016Proceedings/demo/3-A23.pdf,,,https://www.wiss.org/WISS2016Proceedings/
+,3-A24 zapzap: 書籍の内容をあいまいに提示して購買意欲を高めるテーブルトップ型デバイスの試作,牟田 将史，益子 宗（楽天）,https://www.wiss.org/WISS2016Proceedings/demo/3-A24.pdf,,,https://www.wiss.org/WISS2016Proceedings/
