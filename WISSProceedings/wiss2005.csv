@@ -1,0 +1,49 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,まえがき: WISS2005について,椎尾 一郎,https://www.wiss.org/WISS2005Proceedings/preface.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,物体の堅さを表現した2 次元形状の操作手法 (要旨),"五十嵐健夫, Tomer Moscovich , John F. Hughes",https://www.wiss.org/WISS2005Proceedings/papers/As-Rigid-As-Possible_Shape_Manipulation/rigid-color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Active CyberCode: 直接操作できる二次元コード,"綾塚 祐二, 暦本 純一",https://www.wiss.org/WISS2005Proceedings/papers/Active_CyberCode_a_2D_Code_Enabling/acc-wiss2005color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,広角カメラを用いた光学式シースルー型HMDにおける情報提示手法,"田中 宏平, 岸野 泰恵, 宮前 雅一, 寺田 努, 西尾章治郎",https://www.wiss.org/WISS2005Proceedings/papers/An_Information_layout_Method_for/wiss2005_color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,ライブカメラ画像を用いたプレゼンス情報の表示手法,"高橋伸, 岩淵志学, Yann Jacquinot, 山田徹, 久松孝臣, 中村卓, 土持幸久, 金春明, 田中二郎",https://www.wiss.org/WISS2005Proceedings/papers/Showing_Presence_Information_on_a/finalwiss-color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,ぱらぱらアニメによる体験データの要約・編集支援システム,"小関 悠, 角 康之, 西田 豊明, 間瀬 健二",https://www.wiss.org/WISS2005Proceedings/papers/System_Of_Summarization_And_Edit/2005_wiss_comic.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,IKESU: 「旬」な音楽を聴くための収集型ミュージックプレーヤー,"石井　隆昭, 望月　有人, 星野　剛史, 堀井　洋一",https://www.wiss.org/WISS2005Proceedings/papers/IKESU_Music_player_for_listening/IKESU_color_final.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Gards-変化し続ける興味に対応する情報推薦,大坪五郎,https://www.wiss.org/WISS2005Proceedings/papers/Gards_-_Information_recommendation/gards-final2.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,SmartWrite:紙のシンプルさを追求した手書きメモツールの開発,"美崎 薫, 加藤 直樹",https://www.wiss.org/WISS2005Proceedings/papers/SmartWrite_Peperlike_pen-based_memo/smartwrite.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,バイクレース支援のためのイベント駆動型ウェアラブルシステムの実運用,"宮前 雅一, 岸野 泰恵, 寺田 努, 塚本 昌彦, 平岡 圭介, 福田 登仁, 西尾章治郎",https://www.wiss.org/WISS2005Proceedings/papers/Practical_Use_of_Event-driven_Wearable/WISSCameraColor.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,コンピュータ強化キッチンによるインタラクティブ調理支援,"浜田 玲子, 宮澤 寛, 鈴木 幸敏, 岡部 淳, 佐藤 真一, 坂井 修一, 椎尾 一郎",https://www.wiss.org/WISS2005Proceedings/papers/Interactive_Cooking_Navigation_System/hamada_wiss05.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,ゼリープリンター,大和田 茂,https://www.wiss.org/WISS2005Proceedings/papers/Jello_Printer/JelloPrinter.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,PhantomParasol:なめらかな粒度の情報を伝える傘型情報提示機構,"塚田浩二, 増井俊之",https://www.wiss.org/WISS2005Proceedings/papers/PhantomParasolParasol-type_display/phantomparasol-color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Information Fishing: 即応的な情報検索と持続的な情報提示の統合,"小林 正朋, 五十嵐 健夫",https://www.wiss.org/WISS2005Proceedings/papers/Information_Fishing_Combining_Immediate/CR-final.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,もぶろげっと: 画像情報を含むblog記事検索システム,"井原 伸介, 林 貴宏, 尾内 理紀夫",https://www.wiss.org/WISS2005Proceedings/papers/Mobloget_A_Retrieval_System_for_Texts/ihara_wiss2005.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Bubble Clusters: アイコンの空間的なまとまりを利用した情報管理機構,"渡辺 奈夕子, 五十嵐 健夫",,,,https://www.wiss.org/WISS2005Proceedings/
+,注視を利用した協調フィルタリングによる興味のある情報の推薦,"脇山孝貴, 吉高淳夫, 平嶋宗",https://www.wiss.org/WISS2005Proceedings/papers/Information_Recommendation_by_collaborative/wissver.10.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Openism: 旋律補正に基づく演奏支援機能付き遠隔地セッションシステム,"三澤由宇, 細野裕, 仁科章史, 石田克久, 北原鉄朗, 後藤真孝, 武田正之",https://www.wiss.org/WISS2005Proceedings/papers/Openism_An_Open-to-the-public_Distributed/Openism.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,鍵盤奏者のための実時間運指取得システムの設計と実装,"竹川 佳成, 寺田 努, 西尾 章治郎",https://www.wiss.org/WISS2005Proceedings/papers/Design_and_Implementation_of_a_Real-Time/Fingering.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,μ-Script System : 楽曲データへのスクリプト埋め込みによる同期の実現,"阿部　秀彦, 五十嵐　健夫",https://www.wiss.org/WISS2005Proceedings/papers/Script_System_Realization_of_Script-Embedding/muscript2.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,音声ペン：音声認識結果を手書き文字入力で利用できる新たなペン入力インタフェース,"栗原　一貴, 後藤　真孝, 緒方　淳, 五十嵐　健夫",https://www.wiss.org/WISS2005Proceedings/papers/Speech_Pen_New_Pen_Input_Interface/wiss05kurihara_color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Enzin: 情報の公開範囲を手軽に変更できるコミュニケーションツール,"永田周一, 安村通晃",https://www.wiss.org/WISS2005Proceedings/papers/Enzin_A_Communication_Tool_with_Instant/enzin_wiss2005_color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Lock-on-Chat: 複数の話題に分散した会話を促進するチャットシステム,"西田健志, 五十嵐健夫",https://www.wiss.org/WISS2005Proceedings/papers/Lock-on-Chat_Boosting_Anchored_Conversation/wiss2005_lockonchat_cr.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Modulobe: 物理シミュレーションによる仮想生物構築インタフェース,"江渡 浩一郎, 川崎 禎紀, 渡辺 訓章, 前川 峻志, 櫻井 稔",https://www.wiss.org/WISS2005Proceedings/demos/Modulobe_Constructing_Virtual_Creatures/modulobe_wiss2005-color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,形状生成と構造定義を分離した花のモデリングインタフェース,"井尻敬, 大和田茂, 岡部誠, 五十嵐健夫",https://www.wiss.org/WISS2005Proceedings/demos/Flower_modeling_interface_separating/WissDemoIjiri_Color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,閲覧履歴共有のためのブラウザ拡張,"高須賀清隆, 八木原勇太, 白井雄一郎, 丸山一貴, 寺田実",https://www.wiss.org/WISS2005Proceedings/demos/The_browser_extension_for_browsing/wiss.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,姿勢入力を有するモバイル端末のための触覚提示,"竹原 裕輔, 木村 朝子, 佐藤 宏介",https://www.wiss.org/WISS2005Proceedings/demos/Haptic_Feedback_for_Mobile_Device/takehara1.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,二次元チャットシステムを用いた作曲インタフェース,"味方 秀嘉, 魚井 宏高",https://www.wiss.org/WISS2005Proceedings/demos/Composing_Music_Interface_with_2D/wiss2005-5color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,計算機上での活動履歴を利用する記憶の拡張システムの評価,"近藤秀樹, 三宅芳雄",https://www.wiss.org/WISS2005Proceedings/demos/Evaluation_of_humans_memory_extension/wiss2005u-color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,レーザポインタと単眼カメラを利用した3次元情報入力装置,"飯尾 淳, 新井 健生",https://www.wiss.org/WISS2005Proceedings/demos/A_Three-dimensional_Information_Input/iiojun_c.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,入力をやわらかく支援する布キーボード,"大塚 理恵子, 星野 剛史 , 堀井 洋一",https://www.wiss.org/WISS2005Proceedings/demos/An_Assistive_Input_Device_with_Soft/ClothKeyboard.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,ページの表示領域を考慮したWeb履歴の拡張,"三浦元喜, 國藤進, 佐藤省吾, 田中二郎",https://www.wiss.org/WISS2005Proceedings/demos/Enhanced_Web_History_with_Page_Appearance/wiss2005demo-miura.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Willustrator: Web上での協同イラストレーション,"神原 啓介, 安村 通晃",https://www.wiss.org/WISS2005Proceedings/demos/Willustrator_Cooperative_Illustration/wiss2005_kambara.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Flog：浴室における記憶想起支援システムの提案と試作,"久保 美那子, 児玉 哲彦, 安村 通晃",https://www.wiss.org/WISS2005Proceedings/demos/Flog_Memory_Reminding_Support_System/kubo_color.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,統計的手法を用いたテクスチャパターン生成手法の提案,"福本麻子, 塚田浩二, 蔡東生, 安村通晃,",https://www.wiss.org/WISS2005Proceedings/demos/Creating_texture_pattern_applying/manuscript_colour.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,カプセル自動販売機とRFIDタグ/センサを組み合わせた物語性のある玩具販売機,"榎本 香織, 福地 健太郎, 楠 房子, 鍛冶秀紀",https://www.wiss.org/WISS2005Proceedings/demos/Narrative_toy_vending_machine_with/wiss2005-web.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,発言権を考慮した盲ろう者向け会議システム,"宮城愛美, 西田昌史, 堀内靖雄, 市川熹",https://www.wiss.org/WISS2005Proceedings/demos/Conference_System_for_Supporting/WISS2005_Miyagi.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,スケッチL-System: ストロークによるフラクタル形状生成インタフェース,"井尻敬, 五十嵐健夫",https://www.wiss.org/WISS2005Proceedings/demos/Sketching_L-System_interface_for/WissDemoIjiriLSystem.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,対称性に着目した手書きズーミング方式の提案,"寺田 実, 武井 英人",https://www.wiss.org/WISS2005Proceedings/demos/Symmetric_Zooming_a_Zooming_Method/demo.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,ふらっと:実空間をブラウジングするためのレーダー型情報提示の提案と試作,"児玉哲彦, 安村通晃",https://www.wiss.org/WISS2005Proceedings/demos/Flat_A_Proposal_of_a_Radar_Style/kodama-flat-color5.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,携帯電話上におけるビジュアルプログラミング環境,"瀬古俊一, 高木佑輔, 服部隆志, 萩野達也",https://www.wiss.org/WISS2005Proceedings/demos/Visual_Programming_on_Cellular_Phone/ViPOC.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Invisible Assistant: ユーザ定義のルールに基づく機器間連携支援,"根岸 佑也, 河口 信夫",https://www.wiss.org/WISS2005Proceedings/demos/Rule-based_Invisible_Assistant_for/demo-019_negishiyuya_color_2nd.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,Face-Connect:顔の動きに基づいたサービス推薦・選択手法,"駒木 亮伯, 岩井 将行, 神武 直彦, 高汐 一紀, 徳田 英幸",https://www.wiss.org/WISS2005Proceedings/demos/Face-ConnectRecommendation_and_Selection/akinori.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,実用的なスケッチベース図形エディタの実現へ向けて,"中嶋海介, 五十嵐健夫",https://www.wiss.org/WISS2005Proceedings/demos/Towards_a_Practical_Sketch-Based/nakajima_wiss2005.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,携帯電話向け三次元仮想都市システムのエージェント機能と観光案内への応用,"松原 和也, 西本 昇司, 鶴身 悠子, 横尾 佳余, 林 勇輔, 水久保 勇記, 吉田 誠, 金 尚泰, 垂水 浩幸, 原田 泰, 楠 房子",https://www.wiss.org/WISS2005Proceedings/demos/Agent_Functions_of_a_3D_Virtual_City/wiss2005.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,同期情報提示を利用したセンシングデータの常時活用の提案とその試作,"渡邊恵太, 安村通晃",https://www.wiss.org/WISS2005Proceedings/demos/ReflectivePresentation_sychronous/KeitaWatanabe.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,身体の動きを音楽と映像に変える『神楽-KaGuRa-』,中村俊介,https://www.wiss.org/WISS2005Proceedings/demos/Interactive_art_KaGuRa_that_changes/Kagura_NakamuraShunsuke.pdf,,,https://www.wiss.org/WISS2005Proceedings/
+,作業意欲を維持向上するエンタテインメントシステムの実現,"倉本到, 植村友美, 渋谷雄, 辻野嘉宏",https://www.wiss.org/WISS2005Proceedings/demos/An_Entertainment_System_for_Improving/wiss.pdf,,,https://www.wiss.org/WISS2005Proceedings/

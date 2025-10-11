@@ -1,0 +1,61 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,AirSketcher: 風を使いやすくする手法の提案とその実装,渡邊 恵太（JST ERATO）， 松田 聖大（Matsuda Design Laboratory）， 稲見 昌彦， 五十嵐 健夫（JST ERATO）,https://www.wiss.org/WISS2010Proceedings/PDF/P01.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Foldy：GUI操作によるロボットへの服の畳み方の教示,杉浦 裕太（慶応大/JST ERATO）， 坂本 大介（JST ERATO）， Tabare Gowon（ハーバード大/JST ERATO）， 高橋 大樹， 稲見 昌彦（慶応大/JST ERATO）， 五十嵐 健夫（東大/JST ERATO）,https://www.wiss.org/WISS2010Proceedings/PDF/P02.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,PotPet: ペットのような植木鉢型ロボット,川上 あゆみ， 塚田 浩二， 神原 啓介， 椎尾 一郎（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/P03.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,エンドユーザによる椅子デザインシステム,Greg Saul， Manfred Lau， 三谷 純， 五十嵐 健夫（JST ERATO）,https://www.wiss.org/WISS2010Proceedings/PDF/P04.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,プレゼンとプレゼンの場をマンガ表現するインタラクティブシステム,藤本 雄太， 宮下 芳明（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/P05.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,BandNavi: バンドメンバーの変遷情報を辿るアーティスト発見システム,吉谷 幹人， 宇佐美 敦志， 浜中 雅俊（筑波大）,https://www.wiss.org/WISS2010Proceedings/PDF/P06.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,ご近所知るえっと―身近な他人との緩やかなコミュニケーション支援―,中森 玲奈， 青木 貴司， 椎尾 一郎（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/P07.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,ネタバレ防止ブラウザの実現,中村 聡史（京大）,https://www.wiss.org/WISS2010Proceedings/PDF/P08.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,写真の上にスケッチと制約を記入していくことによるモデリングシステム,Manfred Lau， 大河原 昭， 三谷 純， 五十嵐 健夫（JST ERATO）,https://www.wiss.org/WISS2010Proceedings/PDF/P09.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,形状設計システムに物理シミュレーションを統合したキネティックアート・デザインシステム,古田 陽介（JST ERATO）， 三谷 純（筑波大）， 五十嵐 健夫（東大）， 福井 幸男（筑波大）,https://www.wiss.org/WISS2010Proceedings/PDF/P10.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,インタラクティブなラインストーンデザイン,五十嵐 悠紀（日本学術振興会/筑波大）,https://www.wiss.org/WISS2010Proceedings/PDF/P11.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,実時間固有値解析による対話的な鉄琴のデザイン,梅谷 信行， 高山 健志(JST ERATO/東大）， 三谷 純（JST ERATO/筑波大）， 五十嵐 健夫（JST ERATO/東大）,https://www.wiss.org/WISS2010Proceedings/PDF/P12.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Z-touch: 指先姿勢インタラクション可能なマルチタッチシステム,竹岡 義樹， 味八木 崇（東大）， 暦本 純一（東大/ソニーCSL）,https://www.wiss.org/WISS2010Proceedings/PDF/P13.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,SpeechJammer:聴覚遅延フィードバックを利用した発話阻害の応用システム,栗原 一貴（産総研）， 塚田 浩二（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/P14.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,matereal: インタラクティブなロボットアプリケーションのプロトタイピング用ツールキット,加藤 淳（東大/JST ERATO）， 坂本 大介（JST ERATO）， 五十嵐 健夫（東大/JST ERATO）,https://www.wiss.org/WISS2010Proceedings/PDF/P15.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,綿を内包した柔物体を用いた日常生活に溶け込むインタフェース,筧 豪太， 杉浦 裕太， 杉本 麻樹， 稲見 昌彦（慶応大）,https://www.wiss.org/WISS2010Proceedings/PDF/P16.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,CoupLog：ライフログを用いたカップルのコミュニケーション支援,中川 真紀， 塚田 浩二， 椎尾 一郎（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/P17.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,物語テキストから進行状況に応じて登場人物の存在状態と関係を推定する手法,縣 啓治， 伊藤 雄一， 高嶋 和毅（阪大）， 北村 喜文（東北大）， 岸野 文郎（関西学院大）,https://www.wiss.org/WISS2010Proceedings/PDF/P18.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,60万人の感情実況,青島 さやか， 青木 惇季， 宮下 芳明（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/P19.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Snappy: 写真を用いたロボットへの物体配置の指示手法,橋本 直（JST ERATO）， Andrei Ostanin（Univ. of Utah）， 稲見 昌彦（慶応大）， 五十嵐 健夫（東大）,https://www.wiss.org/WISS2010Proceedings/PDF/P20.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,EmotionTuner -演奏におけるコミュニケーションを支援する楽器システム-,土谷幹， 河瀬裕志， 柳英克（未来大）,https://www.wiss.org/WISS2010Proceedings/PDF/D33.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,ブログアーカイブに対する係り受け解析を用いた3次元話題探索システム,伊藤正彦， 吉永直樹， 豊田正史， 喜連川優（東大）,https://www.wiss.org/WISS2010Proceedings/PDF/D05.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,リアプロジェクト方式の柔らかいテーブルトップ,久慈拓也， 佐藤俊樹， 徳井太郎， 小池英樹（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D28.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,俳句に適合する画像を合成するシステムの試作,湊匡平， 岡部誠， 尾内理紀夫（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D37.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Hakalau Media: ユーザ参加型アーカイブを創発するWeb アプリケーションプラットフォーム,橋田 朋子（東大）， 赤塚 大典（慶応大）,https://www.wiss.org/WISS2010Proceedings/PDF/D22-2.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,高速指先トラッキングによる三次元入力／操作システム,松谷淳史， 新倉雄大， 廣部祐樹， 渡辺義浩， 小室孝， 石川正俊（東大）,https://www.wiss.org/WISS2010Proceedings/PDF/D08.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,衝撃を利用したデバイスの考案,今岡翼， 岡部誠， 尾内理紀夫（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D19.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Book's Marking：場所をきっかけに本と出会うためのシステム,吉原建， 安村通晃（慶応大）,https://www.wiss.org/WISS2010Proceedings/PDF/D30.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Bar-code Based Community: ソフト/ハードの区別なく同じツールのユーザ同士を繋げる仕組み,清水和晃， 宮下芳明（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/D29.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,飲食物 ＋ 電気味覚,中村裕美， 宮下芳明（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/D36.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,聴衆参加型プレゼンテーションにおける発表構造獲得手法,梶克彦（名大）， 平田圭二（NTTコミュニケーション科学基礎研究所）， 河口信夫（名大）,https://www.wiss.org/WISS2010Proceedings/PDF/D14.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,作業の継続と振る舞いの矯正の両立を目的とした通知手法,菊川真理子， 金井秀明（北陸先端大）,https://www.wiss.org/WISS2010Proceedings/PDF/D25.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,くちびるによるゲームインタフェース,竹山峻平， 佐藤俊樹， 野嶋琢也（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D10.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Ceiling Bots:ロボットを用いた天井上のオブジェクト移動システム,ロボットを用いた天井上のオブジェクト移動システム: 小林大将， 佐藤俊樹， 小池英樹（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D12.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,PatchworkVision:視覚的コンテキストを用いた検索結果の提示,井桁正人（電通大）， 丸山一貴（東大）， 寺田実（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D21.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,バスケットボールの戦術デザインの支援を目的とした戦術自動図示化システム,澁谷智志（電機大）， 木村健一（未来大）,https://www.wiss.org/WISS2010Proceedings/PDF/D06.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,FeliCa の利用履歴を用いた認証システム,松村智彰， 清野祥之， 国友一生， 小池英樹（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D09.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,建前のあとに,吉永珠里， 宮下芳明（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/D23.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,時間感覚の錯覚を用いた意思決定支援システムの提案,堀内公平(電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D27.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,予感テーブル:著名人との出会い支援システム,元良龍太郎， 藤沢和哉， 安村通晃（慶応大）,https://www.wiss.org/WISS2010Proceedings/PDF/D26.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,ビーズロボット,辰田恵美， 塚田浩二， 椎尾一郎（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/D17.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,ImageCube: 多次元データ可視化手法としての画像ブラウザ,鄭雲珠， 五味愛， 伊藤貴之（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/D02.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,PLUM: 地図配置型の写真ブラウザの一手法,白鳥佳奈， 伊藤貴之（お茶大）， 中村聡史（京大）,https://www.wiss.org/WISS2010Proceedings/PDF/D03.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,キーワードの共通性を配置結果に反映した大量画像の一覧可視化手法,安田理紗， 五味愛， 伊藤貴之（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/D04.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,eXLoop: 楽しさの再帰による体験の強化システムの提案,秋山博紀， 渡邊恵太， 稲見昌彦， 五十嵐健夫（JST ERATO）,https://www.wiss.org/WISS2010Proceedings/PDF/D38.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,SyncFeel-身体感覚を用いた親密なコミュニケーション支援システム-,河瀬裕志， 土谷幹， 柳英克（未来大）,https://www.wiss.org/WISS2010Proceedings/PDF/D34.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,コマを拡張した新しい遊具の開発,的場やすし， 佐藤俊樹， 小池英樹（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D16.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,GummiPIANO-マルチタッチオーディオインタフェース-,吉田愛美， 吉田翼， 佐藤俊樹， 小池英樹（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D13.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,腕輪型デバイスを用いたテーブルトップエンタテインメントシステム,高田圭佑， 石田紀之， 梶原直喜， 野本佳希， 佐藤俊樹（電通大）,https://www.wiss.org/WISS2010Proceedings/PDF/D18.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,スマートフォンを用いた触覚UGCに関する研究,橋本悠希（阪大）， 雨宮智浩（NTTコミュニケーション）， 米村朋子， 飯塚博幸， 安藤英由樹， 前田太郎（阪大）,https://www.wiss.org/WISS2010Proceedings/PDF/D15.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,EdgeSonic:視覚障がい者のための画像特徴の可聴化,吉田翼， 木谷クリス真実（電通大）， ベロンジー・サージ（Univ. Califolnia， San Diego）， シュレイ・ケビン（Univ. Wisconsin-Milwaukee),https://www.wiss.org/WISS2010Proceedings/PDF/D07.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,直感的で正確な自由視点映像撮影インタフェースの開発,渡邊哲哉， 北原格， 亀田能成， 大田友一（筑波大）,https://www.wiss.org/WISS2010Proceedings/PDF/D11.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,運動視差を再現した鏡の中の仮想世界と現実世界の融合提示,佐藤秀昭， 北原格， 大田友一（筑波大）,https://www.wiss.org/WISS2010Proceedings/PDF/D32.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Desktop Soundscape: タスクに応じた音環境をデスクトップ上に構築して仕事の効率を高める試み,福地健太郎（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/D20.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Balloon Chat: 発言されないコメントも浮かばれるチャット,山中祥太， 宮下芳明（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/D31.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,切り取って燃やして返品する能動的読書,太田佳敬， 中村裕美， 宮下芳明（明治大）,https://www.wiss.org/WISS2010Proceedings/PDF/D35.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,DrawerFinder:収納箱用物探し支援システム,小松崎瑞穂， 塚田浩二， 椎尾一郎（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/D39.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,名所カム：撮影スポットを探し出すカメラ,渡辺千穂（お茶大）， 後藤孝行（総研大）， 塚田浩二， 椎尾一郎（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/D24.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,Lyricon:複数アイコンによるビジュアルな音楽選択インタフェース,町田和嘉子， 伊藤貴之(お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/D22.pdf,,,https://www.wiss.org/WISS2010Proceedings/
+,MusiCube:特徴量空間における対話型進化計算を用いた楽曲提示インタフェース,斉藤優理， 伊藤貴之（お茶大）,https://www.wiss.org/WISS2010Proceedings/PDF/D01.pdf,,,https://www.wiss.org/WISS2010Proceedings/

@@ -1,0 +1,78 @@
+﻿id,title,authors,pdf_url,mp4_url,review_url,source_page
+,VocaRefiner: 歌を歌って歌い直して統合できる新しい歌声生成インタフェース,中野倫靖，後藤真孝(産総研),https://www.wiss.org/WISS2012Proceedings/oral/S1_001.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Songrium: 関係性に基づいて音楽星図を渡り歩く音楽視聴支援サービス,濱崎 雅弘，後藤 真孝（産総研）,https://www.wiss.org/WISS2012Proceedings/oral/S1_002.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,TimeFiller:生活を無理なくコンテンツで満たすメディアプラットフォーム,渡邊 恵太(JST ERATO)，石川 直樹(農工大)，栗原 一貴(産総研)，稲見昌彦(慶大／JST ERATO)，五十嵐健夫(東大／JST ERATO),https://www.wiss.org/WISS2012Proceedings/oral/S1_003.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,ギターのための触弦認識システム,飛世 速光（神戸大），竹川 佳成（はこだて未来大），寺田 努（神戸大／JST さきがけ），塚本 昌彦（神戸大）,https://www.wiss.org/WISS2012Proceedings/oral/S1_004.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Lighty: ロボティック照明のためのペインティングインタフェース,"""橋本 直（JST ERATO），盧 承鐸，山中 太記（東大／JST ERATO），神山 洋一（JST ERATO），稲見 昌彦（慶大／JST ERATO），五十嵐 健夫（東大／JST ERATO）",https://www.wiss.org/WISS2012Proceedings/oral/S2_005.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Squama: プログラマブルな建築のための構成要素,暦本 純一（東大／ソニーCSL）,https://www.wiss.org/WISS2012Proceedings/oral/S2_006.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Pebbles: 自律ロボットの移動経路をデザインするタンジブルデバイス,石井 健太郎，米 海鵬，馬 雷，Natsuda Laokulrat（東大／JST ERATO），稲見 昌彦（慶大／JST ERATO），五十嵐 健夫（東大／JST ERATO）,https://www.wiss.org/WISS2012Proceedings/oral/S2_007.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Kadecot:スマートハウスのいじれる化プラットフォーム,大和田 茂（ソニーCSL），徳久 文彬（東工大），市岡 陽子（お茶の水女子大），島崎 聡（東工大）,https://www.wiss.org/WISS2012Proceedings/oral/S2_008.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,面を基本要素とした３次元モデリング,五十嵐 健夫，佐々木 直，坂本 大介（東大／JST ERATO）,https://www.wiss.org/WISS2012Proceedings/oral/S3_009.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,効率的な地図ナビゲーションのための階層的ルートマップの生成,王 方舟（東大），Li Yang（Google），五十嵐 健夫（東大／JST ERATO）,https://www.wiss.org/WISS2012Proceedings/oral/S3_010.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,モザイク画像を利用した遠近画像の同時提示手法,鈴木 裕太，小池 英樹（電通大）,https://www.wiss.org/WISS2012Proceedings/oral/S3_011.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,冠動脈シェーマに基づいた心臓カテーテル検査所見入力のための電子カルテ・インタフェース,五十嵐 悠紀（筑波大／JSPS），五十嵐 健夫（東大／JST ERATO），原口 亮，中沢 一雄（国循）,https://www.wiss.org/WISS2012Proceedings/oral/S3_012.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Swimoid: 伴泳ロボットを用いた水泳支援システム,鵜飼 佑（東大），暦本 純一（東大／ソニーCSL）,https://www.wiss.org/WISS2012Proceedings/oral/S4_013.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,ダンスパフォーマンスにおける自走型スクリーンを用いた隊形練習支援,土田 修平（神戸大），寺田 努（神戸大／JST さきがけ），塚本 昌彦（神戸大）,https://www.wiss.org/WISS2012Proceedings/oral/S4_014.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,KikuNavi: 集合知に基づいた歩行者用リアルタイムナビゲーションシステム,長坂 瑛（電通大），岡部 誠（電通大／JST PRESTO），尾内 理紀夫（電通大）,https://www.wiss.org/WISS2012Proceedings/oral/S4_015.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Flying Eyes: 飛翔型撮影プラットフォームによる自律撮影の提案,樋口 啓太，石黒 祥生（東大），暦本 純一（東大／ソニーCSL）,https://www.wiss.org/WISS2012Proceedings/oral/S4_016.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Gozen:プレゼン用「ビジュアル・エイド」のあるべき姿,大坪 五郎（ネクスト）,https://www.wiss.org/WISS2012Proceedings/oral/S5_017.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,超消極的な人でも安心して使える学会での交流促進システム,西田 健志（神戸大），濱崎 雅弘，栗原 一貴（産総研）,https://www.wiss.org/WISS2012Proceedings/oral/S5_018.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,学習の敷居の低さとシステムからの離脱の容易さを両立した学習支援システムの実現に向けて,竹川 佳成（はこだて未来大），寺田 努（神戸大／JST さきがけ），塚本 昌彦（神戸大）,https://www.wiss.org/WISS2012Proceedings/oral/S5_019.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Roboko: ソースコードに写真を貼り込める統合開発環境,加藤 淳（東大／JSPS），坂本 大介，五十嵐 健夫（東大／JST ERATO）,https://www.wiss.org/WISS2012Proceedings/oral/S5_020.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,シナリオ順応型UI設計ツール,草野 孔希，中谷 桃子，大野 健彦（NTT）,https://www.wiss.org/WISS2012Proceedings/oral/S6_021.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,注視していないことを利用したマウスカーソル高速化手法,山中 祥太（明治大），栗原 一貴（産総研），宮下 芳明（明治大）,https://www.wiss.org/WISS2012Proceedings/oral/S6_022.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,No-look Flick：携帯情報端末のタッチパネルにおけるアイズフリーな片手かな文字入力システム,深津 佳智，志築 文太郎，田中 二郎（筑波大）,https://www.wiss.org/WISS2012Proceedings/oral/S6_023.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,ClaytricSurface: 硬度可変ディスプレイの提案とアプリケーションの開発,ジェフェルソン パルドムアン，佐藤 俊樹，的場 やすし，小池 英樹（電通大）,https://www.wiss.org/WISS2012Proceedings/oral/S6_024.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Communication Wall 公共空間における身近な他者との出会い支援システムの構築,仙道航(岩手県立大)，瀬川典久(岩手県立大)，澤本潤(岩手県立大)， 杉野栄二(岩手県立大),https://www.wiss.org/WISS2012Proceedings/demo/074.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,TeaTheremin：食事体験を豊かにするインタラクティブな茶器の提案,門村 亜珠沙(お茶大)，塚田浩二(JST)，椎尾一郎(お茶大),https://www.wiss.org/WISS2012Proceedings/demo/076.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Kinectセンサを用いた空中手書き文字入力システムの検討,西田好宏(福井工大)，吉田大志(福井工大)，入江臣知(福井工大),https://www.wiss.org/WISS2012Proceedings/demo/077.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Coretex-M4F と MAD-SS を使用した長距離センサーノードの開発,澤田直哉 (岩手県立大学)，瀬川典久(岩手県立大)，澤本潤(岩手県立大)，杉野栄二(岩 手県立大)，玉置晴朗(数理設計研究所)，矢澤正人(数理設計研究所)，後閑政昭(数理設計研究所),https://www.wiss.org/WISS2012Proceedings/demo/078R.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,ECHOES: 歌い方をライブラリ化するシステムの検討,小川真(電通大)，岡部誠(電通大／JST)，尾内理紀夫(電通大),https://www.wiss.org/WISS2012Proceedings/demo/079.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,記憶の石：マルチタッチを利用した複数計算機環境Copy-and-Paste,池松香 (お茶大)，椎尾一郎(お茶大),https://www.wiss.org/WISS2012Proceedings/demo/080.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,障害物があるテーブルトップ用の離散的要素操作インタフェースの提案,古見元気(東大)，坂本大介(東大)，五十嵐健夫(東大／JST),https://www.wiss.org/WISS2012Proceedings/demo/081.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,協調作業に基づいた2 次元アニメーション3 次元化システムの検討,小川直記(電通大)，岡部誠(電通大／JST)，尾内理紀夫(電通大),https://www.wiss.org/WISS2012Proceedings/demo/083.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,coremo: トレンドと併せた関連情報を提示するユーザー参加型システム,中村将達(神戸大)，西田健志(神戸大),https://www.wiss.org/WISS2012Proceedings/demo/084.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,大量の時刻情報付きデータを分析するための可視化ツール,白井智子(筑波大)，三末和男(筑波大)，田中二郎(筑波大),https://www.wiss.org/WISS2012Proceedings/demo/085.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,GRAPE : グラデーション画像によるポータブルビジュアルプレイリスト,魚田知美(お茶大)，伊藤貴之(お茶大),https://www.wiss.org/WISS2012Proceedings/demo/086.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,無音動画に対する効果音貼り付けシステムの検討,鈴木喜也(電通大)，岡部誠(電通大／JST)，尾内理紀夫(電通大),https://www.wiss.org/WISS2012Proceedings/demo/088.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,KinectKuroko : 話者の深度画像を活用するプレゼンテーションツール,若松翔(豊橋技科大)，梅村恭司(豊橋技科大)，岡部正幸(豊橋技科大),https://www.wiss.org/WISS2012Proceedings/demo/089.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Universal Earphones: イヤフォンとのバックグラウンドインタラクション,松村耕平(はこだて未来大)，坂本大介(東大)，角康之(はこだて未来大)， 稲見昌彦(慶大／JST)，五十嵐健夫(東大／JST),https://www.wiss.org/WISS2012Proceedings/demo/090.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,一覧性を重視した女性向け商品検索支援システム,小池恵里子(お茶大)，伊藤貴之(お茶大),https://www.wiss.org/WISS2012Proceedings/demo/091.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,モーションコミック製作のための統合絵コンテツール,中嶋誠(東大)，五十嵐健夫(東大),https://www.wiss.org/WISS2012Proceedings/demo/092.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,LengthPrinter: 実寸の長さを実体化する1次元プリンタ,渡邊恵太(JST)，稲見昌彦(慶大／JST)，五十嵐健夫(東大／JST),https://www.wiss.org/WISS2012Proceedings/demo/093R.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,色付きMosaic Matrixによる高次元データの可視化,小林弘明(筑波大)，三末和男(筑波大)，田中二郎(筑波大),https://www.wiss.org/WISS2012Proceedings/demo/094.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,表現を和らげてネガティブ感情伝染を防止するブラウザ,大家眸美(明治大)，宮下芳明(明治大),https://www.wiss.org/WISS2012Proceedings/demo/095.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,過去の状態をちょっと覗き見る時間の窓,大島裕樹(明治大)，宮下芳明(明治大),https://www.wiss.org/WISS2012Proceedings/demo/096.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,路面上への二点投影による歩行速度ナビゲーション,馬場さおり(明治大)，宮下芳明(明治大),https://www.wiss.org/WISS2012Proceedings/demo/097.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,視聴者の動きに応じてエフェクトを加える動画サービス,吉田有花(明治大)，宮下芳明(明治大),https://www.wiss.org/WISS2012Proceedings/demo/098.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,紙製タッチ入力インタフェース作成システム,金子将大(筑波大)，田中二郎(筑波大),https://www.wiss.org/WISS2012Proceedings/demo/099.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,動画内オブジェクトを容易に編集可能な2.5 次元動画編集システムの検討,栗原竜矢(電通大)，岡部誠(電通大／JST)，尾内理紀夫(電通大),https://www.wiss.org/WISS2012Proceedings/demo/100.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,家事を楽しくするための家電装着型ロボット,大野敬子(お茶大)，塚田浩二 (JST)，椎尾一郎(お茶大),https://www.wiss.org/WISS2012Proceedings/demo/101R.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Sinkpad：マウスを沈み込ませて入力できる柔らかいマウスパット,栗原拓郎(筑波大)，志築文太郎(筑波大)，田中二郎(筑波大),https://www.wiss.org/WISS2012Proceedings/demo/102.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,MALL:ライフログに基づく推薦機能を備えたポータブル音楽プレイヤー,宇野愛(お茶大)，伊藤貴之(お茶大),https://www.wiss.org/WISS2012Proceedings/demo/103R.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,他人の技を再利用できるリドゥインタフェース,太田佳敬(明治大)，中橋雅弘(明治大)，宮下芳明(明治大),https://www.wiss.org/WISS2012Proceedings/demo/104.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,物語の内容想起支援インタフェースの検討,田中翔太郎(電通大)，岡部誠(電通大／JST)，尾内理紀夫(電通大),https://www.wiss.org/WISS2012Proceedings/demo/105.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Text Level Of Detail：ズーム動作と階層構造による新しい読書体験の為の3D文章システム及びコンテンツの提案,武田港(立命館大)，望月茂徳(立命館大)，川村健一郎(立命館大),https://www.wiss.org/WISS2012Proceedings/demo/106.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,メディア分析のための時系列画像群の3次元可視化,伊藤正彦(東大)，豊田正史(東大)，喜連川優(東大),https://www.wiss.org/WISS2012Proceedings/demo/107.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Interlock surfaces: 動的構成が可能な複数情報端末の入出力連携,加茂浩之(筑波大)，田中二郎(筑波大),https://www.wiss.org/WISS2012Proceedings/demo/108.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,移動データを利用した行動マップ,横井逸人(はこだて未来大)，角康之(はこだて未来大)，松村耕平(はこだて未来大),https://www.wiss.org/WISS2012Proceedings/demo/110R.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,SNS利用者がプライバシ露出度を意識するための効果的なインターフェースの考察,吉國綺乃(お茶大)，石澤恵(お茶大)，渡辺知恵美(お茶大),https://www.wiss.org/WISS2012Proceedings/demo/111.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,戸口通信の統合による気疲れしないSNSの提案,住吉健太(岩手県立大)，齊藤義仰(岩手県立大)，村山優子(岩手県立大),https://www.wiss.org/WISS2012Proceedings/demo/112.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,動的な軌道変化が可能なボール型デバイスの開発,太田智也(電通大)，山川隼平(電通大)，野嶋琢也(電通大),https://www.wiss.org/WISS2012Proceedings/demo/113.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Ding-Dong：ソーシャルな婚活支援システム,吉椿薫(慶大)，片倉弘貴(慶大)，増井俊之(慶大)，安村通晃(慶大),https://www.wiss.org/WISS2012Proceedings/demo/115R.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Hairlytop Interface: 光駆動型毛状インタフェース,大出慶晴(電通大)，川口紘樹(電通大)，野嶋琢也(電通大),https://www.wiss.org/WISS2012Proceedings/demo/116.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,SHelectiveを用いた対面的画面共有の活用シナリオ,伏木秀樹(東大)，苗村健(東大),https://www.wiss.org/WISS2012Proceedings/demo/117.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,節電ボリューム : つまみを回して節電する電気の蛇口,堤富士雄(電中研)，伊藤憲彦(電中研)，三浦輝久(電中研)，中島慶人(電中研)，廣瀬文子(電中研),https://www.wiss.org/WISS2012Proceedings/demo/118.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,部分影を利用した太陽電池モジュールにおけるタッチ検出,真鍋宏幸(NTTドコモ)，福本雅朗(NTTドコモ),https://www.wiss.org/WISS2012Proceedings/demo/119.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Highly Deformable Interactive 3D Surface Display,合原範行(電通大)，ジェフェルソンパルドムアン(電通大)，佐藤俊樹(電通大)，小池英樹(電通大),https://www.wiss.org/WISS2012Proceedings/demo/120.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,顔検出とエッジ抽出を利用した携帯端末による自撮り支援システムの提案,芝星帆(電通大)，入江英嗣(電通大)，吉永努(電通大),https://www.wiss.org/WISS2012Proceedings/demo/122.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,色彩環境下での心拍変動との作業能率の相関に関する検討,神田尚子(電通大)，佐久間大輝(電通大)，吉永努(電通大)，入江英嗣(電通大),https://www.wiss.org/WISS2012Proceedings/demo/123.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,Action-assisted interface: 動作指示を受け同調するインタフェース,古山善将(情報科学芸術大)，坂本大介(東大)，鈴木宣也(情報科学芸術大)，五十嵐健夫(東大／JST),https://www.wiss.org/WISS2012Proceedings/demo/124.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,MultiCollab: 相互理解のための議論補助システム,山野真吾(電通大)，佐藤俊樹(電通大)，小池英樹(電通大),https://www.wiss.org/WISS2012Proceedings/demo/125.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,人型ロボットの遠隔操縦における移動指示インタフェースに関する検討,丹羽真隆(NICT)，飯塚博幸(阪大)，安藤英由樹(阪大)，鈴木隆文(NICT)，大山英 明(産総研)，前田太郎(阪大／NICT),https://www.wiss.org/WISS2012Proceedings/demo/126.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,お風呂ディスプレイ：浴槽型没入映像体験システム,的場やすし(電通大)，高橋陽一(電通大)，徳井太郎(電通大)，小池英樹(電通大),https://www.wiss.org/WISS2012Proceedings/demo/127R.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,録画画像とコード片の対応関係可視化によるゲーム開発支援,深堀孔明(東大)，加藤淳(東京大学／JSPS)，坂本大介(東大／JST ERATO)，五十嵐健夫(東大 ／JST ERATO),https://www.wiss.org/WISS2012Proceedings/demo/128.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,センサネットワーク情報のためのテーブルトップインタフェースの提案,羽澤秀和(岩手県立大)，瀬川典久(岩手県立大)，Oky Dicky Ardiansyah Prima(岩手県立大)，杉野栄二(岩手県立大)，澤本潤(岩手県立大),https://www.wiss.org/WISS2012Proceedings/demo/129.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,"""異種データベースの仮想化技術（NoSQLデータベース""""Cassandra""""の仮想化）""",杉山暢彦(岩手県立大)，澤本潤(岩手県立大)，杉野栄二(岩手県立大)， 瀬川典久(岩手県立大),https://www.wiss.org/WISS2012Proceedings/demo/130.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,音声フィードバックを用いたカメラ撮影ための動体追跡支援システム,瀬古圭一(明治大)，福地健太郎(明治大),https://www.wiss.org/WISS2012Proceedings/demo/131.pdf,,,https://www.wiss.org/WISS2012Proceedings/
+,叩くコミュニケーションを用いたインタラクションロボット,足立麻衣子(奈良先端大)，杉山治(ATR)，神原誠之(奈良先端大)，萩田紀博(ATR／奈良先端大),https://www.wiss.org/WISS2012Proceedings/demo/132.pdf,,,https://www.wiss.org/WISS2012Proceedings/
