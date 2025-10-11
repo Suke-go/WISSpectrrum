@@ -17,6 +17,11 @@ import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence
 
+from embeddings import (
+    maybe_compute_embeddings_local,
+    maybe_compute_embeddings_vertex_ai,
+)
+
 JAPANESE_HEADINGS: Dict[str, str] = {
     "overview": "\u6982\u8981",
     "positioning": "\u7814\u7a76\u306e\u4f4d\u7f6e\u3065\u3051\uff0f\u76ee\u7684",
@@ -313,43 +318,6 @@ def synthesize_record(
     return parse_json_response(raw)
 
 
-def maybe_compute_embeddings(
-    sections: Dict[str, str],
-    *,
-    model_name: str,
-    normalize: bool,
-) -> Dict[str, object]:
-    try:
-        from sentence_transformers import SentenceTransformer  # type: ignore
-        import numpy as np  # type: ignore  # noqa: F401
-    except ImportError as exc:  # pragma: no cover - dependency guard
-        raise SystemExit(
-            "Embedding generation requires \"sentence-transformers\". Install it with \"pip install sentence-transformers\"."
-        ) from exc
-
-    texts: List[str] = []
-    keys: List[str] = []
-    for key in ("purpose", "method", "evaluation"):
-        text = sections.get(key)
-        if text and text != "":
-            keys.append(key)
-            texts.append(text)
-    if not texts:
-        return {}
-
-    embedder = SentenceTransformer(model_name)
-    vectors = embedder.encode(texts, normalize_embeddings=normalize)
-
-    result: Dict[str, object] = {}
-    for key, vector in zip(keys, vectors):
-        result[key] = [float(x) for x in vector]
-    dimension = len(vectors[0])
-    result["model"] = model_name
-    result["dim"] = dimension
-    result["normed"] = normalize
-    return result
-
-
 def prefer_cli(cli_value, extracted_value):
     return cli_value if cli_value not in (None, "", [], {}) else extracted_value
 
@@ -376,6 +344,11 @@ def summarise_pdf(
     compute_embeddings: bool,
     embedding_model: str,
     embedding_normalize: bool,
+    embedding_provider: str,
+    vertex_project: Optional[str],
+    vertex_location: Optional[str],
+    vertex_embedding_model: str,
+    vertex_embedding_dim: Optional[int],
 ) -> Dict[str, object]:
     text = read_pdf_text(pdf_path)
     client = load_openai_client()
@@ -465,16 +438,40 @@ def summarise_pdf(
     }
 
     if compute_embeddings:
+        resolved_project = vertex_project or os.getenv("VERTEX_AI_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        resolved_location = vertex_location or os.getenv("VERTEX_AI_LOCATION") or "us-central1"
+        resolved_model = vertex_embedding_model or os.getenv("VERTEX_AI_EMBEDDING_MODEL") or "text-embedding-004"
+        resolved_dim = vertex_embedding_dim
+        if resolved_dim is None:
+            env_dim = os.getenv("VERTEX_AI_EMBEDDING_DIM")
+            if env_dim:
+                try:
+                    resolved_dim = int(env_dim)
+                except ValueError:
+                    print(f"[WARN] Ignoring invalid VERTEX_AI_EMBEDDING_DIM value: {env_dim}", file=sys.stderr)
+
         sections = {
             "purpose": record.get("purpose_summary"),
             "method": record.get("method_summary"),
             "evaluation": record.get("evaluation_summary"),
         }
-        embeddings = maybe_compute_embeddings(
-            sections,
-            model_name=embedding_model,
-            normalize=embedding_normalize,
-        )
+        if embedding_provider == "local":
+            embeddings = maybe_compute_embeddings_local(
+                sections,
+                model_name=embedding_model,
+                normalize=embedding_normalize,
+            )
+        elif embedding_provider == "vertex-ai":
+            embeddings = maybe_compute_embeddings_vertex_ai(
+                sections,
+                project=resolved_project,
+                location=resolved_location,
+                model_name=resolved_model,
+                dimensionality=resolved_dim,
+                normalize=embedding_normalize,
+            )
+        else:  # pragma: no cover - defensive
+            raise ValueError(f"Unsupported embedding provider: {embedding_provider}")
         if embeddings:
             record["embeddings"] = embeddings
 
@@ -507,9 +504,40 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--ccs-path", dest="ccs_paths", action="append", help="Add a CCS path classification.")
     parser.add_argument("--ccs-id", dest="ccs_ids", action="append", help="Add a CCS identifier.")
 
-    parser.add_argument("--embeddings", action="store_true", help="Compute sentence-transformer embeddings for purpose/method/evaluation summaries.")
-    parser.add_argument("--embedding-model", default="intfloat/multilingual-e5-large-instruct", help="SentenceTransformer model for embeddings.")
+    parser.add_argument(
+        "--embeddings",
+        action="store_true",
+        help="Compute embeddings for purpose/method/evaluation summaries.",
+    )
+    parser.add_argument(
+        "--embedding-provider",
+        choices=["local", "vertex-ai"],
+        default="local",
+        help="Embedding backend to use when --embeddings is enabled.",
+    )
+    parser.add_argument(
+        "--embedding-model",
+        default="intfloat/multilingual-e5-large-instruct",
+        help="SentenceTransformer model to use when --embedding-provider=local.",
+    )
     parser.add_argument("--no-embedding-normalize", action="store_false", dest="embedding_normalize", help="Disable L2 normalisation of embeddings.")
+    parser.add_argument(
+        "--vertex-project",
+        help="Google Cloud project ID for Vertex AI embeddings (defaults to VERTEX_AI_PROJECT or GOOGLE_CLOUD_PROJECT env vars).",
+    )
+    parser.add_argument(
+        "--vertex-location",
+        help="Vertex AI location/region (e.g. 'us-central1', defaults to VERTEX_AI_LOCATION or 'us-central1').",
+    )
+    parser.add_argument(
+        "--vertex-embedding-model",
+        help="Vertex AI text embedding model name (e.g. 'text-embedding-004', defaults to VERTEX_AI_EMBEDDING_MODEL or 'text-embedding-004').",
+    )
+    parser.add_argument(
+        "--vertex-embedding-dim",
+        type=int,
+        help="Optional output dimensionality when using Vertex AI embeddings.",
+    )
     parser.set_defaults(embedding_normalize=True)
 
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output.")
@@ -547,6 +575,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             compute_embeddings=args.embeddings,
             embedding_model=args.embedding_model,
             embedding_normalize=args.embedding_normalize,
+            embedding_provider=args.embedding_provider,
+            vertex_project=args.vertex_project,
+            vertex_location=args.vertex_location,
+            vertex_embedding_model=args.vertex_embedding_model,
+            vertex_embedding_dim=args.vertex_embedding_dim,
         )
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
