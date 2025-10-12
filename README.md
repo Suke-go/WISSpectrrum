@@ -24,6 +24,19 @@
 - Optional: Docker with enough RAM (≥4 GB) to host GROBID.
 
 ### 1. Collect WISS PDFs
+- If you still need the proceedings CSV, use the scrapers under `Pre-Processing/scraipingpdf/`. Recent sites work with:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping2.py \
+      https://www.wiss.org/WISS2024Proceedings/ \
+      -o WISSProceedings/wiss2024.csv
+  ```
+  For older layouts (e.g. 2004–2020) you can pass multiple URLs or a text file to `scraiping.py`:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping.py \
+      -f urls.txt \
+      -o WISSProceedings/wiss2004-2009.csv
+```
+  Install scraper dependencies inside the virtualenv if needed (`pip install requests beautifulsoup4 lxml`). The CSV rows include `id`, `title`, `authors`, and absolute links for PDF/video/review assets.
 - Use the helper script to resolve CSV rows to files:
   ```bash
   .venv/bin/python Pre-Processing/pdfdownloader/download_wiss_pdfs.py \
@@ -46,6 +59,7 @@
 - Do not bypass paywalls or authentication flows; obtain consent when in doubt and keep scraped data private if licensing requires it.
 
 ### 2. Stand up GROBID (recommended extractor)
+- [GROBID](https://grobid.readthedocs.io/) is an open-source service that converts research PDFs into structured TEI XML, providing cleaner text and metadata than lightweight extractors.
 - Pull and run the service with container JVM tweaks so it boots under cgroup v2:
   ```bash
   docker pull lfoppiano/grobid:0.7.2
@@ -139,6 +153,19 @@
 - 任意: GROBID を動かす Docker (メモリ 4GB 以上を推奨)。
 
 ### 1. WISS PDF の取得
+- まだ proceedings の CSV が無い場合は `Pre-Processing/scraipingpdf/` にあるスクレイパーを利用します。最近のページは次のコマンドで取得できます:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping2.py \
+      https://www.wiss.org/WISS2024Proceedings/ \
+      -o WISSProceedings/wiss2024.csv
+  ```
+  古いレイアウト（2004〜2020 年頃）は `scraiping.py` に複数 URL や URL 一覧ファイル（1 行 1 URL）を与えて対応します:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping.py \
+      -f urls.txt \
+      -o WISSProceedings/wiss2004-2009.csv
+  ```
+  必要に応じて `pip install requests beautifulsoup4 lxml` を仮想環境にインストールしてください。出力 CSV には `id`, `title`, `authors` に加え、PDF / 動画 / 査読コメントなどの絶対 URL が含まれます。
 - CSV に基づいて論文 PDF を保存する場合の例:
   ```bash
   .venv/bin/python Pre-Processing/pdfdownloader/download_wiss_pdfs.py \
@@ -161,6 +188,7 @@
 - 有料ページや認証が必要な領域を回避したり回避策を講じたりしないでください。判断が難しい場合は必ず許可を取り、取得した資料の扱い（共有可否など）にも注意してください。
 
 ### 2. GROBID の起動（推奨）
+- [GROBID](https://grobid.readthedocs.io/) は学術 PDF を TEI XML 構造に変換するオープンソースの解析サービスで、PyPDF より高品質な本文テキストとメタデータを取得できます。
 - Docker での起動例:
   ```bash
   docker pull lfoppiano/grobid:0.7.2
