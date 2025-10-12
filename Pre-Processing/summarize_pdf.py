@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence
@@ -21,6 +22,7 @@ from embeddings import (
     maybe_compute_embeddings_local,
     maybe_compute_embeddings_vertex_ai,
 )
+from pdf_extractors import PdfExtractionError, PdfExtractionResult, TeiSection, build_extractor
 
 JAPANESE_HEADINGS: Dict[str, str] = {
     "overview": "\u6982\u8981",
@@ -38,6 +40,63 @@ ENGLISH_HEADINGS: Dict[str, str] = {
 
 JAPANESE_MISSING = "\u8a18\u8ff0\u306a\u3057"
 ENGLISH_MISSING = "Not specified"
+
+SECTION_CATEGORY_KEYWORDS = {
+    "overview": [
+        "overview",
+        "introduction",
+        "background",
+        "motivation",
+        "summary",
+        "はじめに",
+        "序論",
+        "概要",
+        "背景",
+    ],
+    "positioning": [
+        "purpose",
+        "goal",
+        "motivation",
+        "related work",
+        "positioning",
+        "objective",
+        "目的",
+        "狙い",
+        "課題",
+        "位置づけ",
+        "関連研究",
+        "先行研究",
+        "問題設定",
+    ],
+    "solution": [
+        "method",
+        "approach",
+        "proposed",
+        "system",
+        "implementation",
+        "architecture",
+        "手法",
+        "方法",
+        "提案",
+        "システム",
+        "設計",
+        "仕組み",
+    ],
+    "evaluation": [
+        "evaluation",
+        "experiment",
+        "results",
+        "discussion",
+        "user study",
+        "考察",
+        "評価",
+        "実験",
+        "結果",
+        "検証",
+        "ユーザ",
+        "調査",
+    ],
+}
 
 
 def load_env_file(path: Path) -> None:
@@ -84,37 +143,6 @@ def load_openai_client() -> "OpenAI":  # type: ignore[name-defined]
     return OpenAI(api_key=api_key)
 
 
-def read_pdf_text(path: Path) -> str:
-    pdf_path = path.expanduser()
-    if not pdf_path.exists():
-        raise FileNotFoundError(f"PDF not found: {pdf_path}")
-
-    try:
-        from pypdf import PdfReader  # type: ignore
-    except ImportError:
-        try:
-            from PyPDF2 import PdfReader  # type: ignore
-        except ImportError as exc:
-            raise SystemExit(
-                "Neither \"pypdf\" nor \"PyPDF2\" is available. Install one with \"pip install pypdf\"."
-            ) from exc
-
-    reader = PdfReader(str(pdf_path))
-    pages: List[str] = []
-    for idx, page in enumerate(reader.pages, start=1):
-        try:
-            text = page.extract_text() or ""
-        except Exception as exc:  # pragma: no cover - defensive
-            print(f"[WARN] Failed to extract text from page {idx}: {exc}", file=sys.stderr)
-            text = ""
-        stripped = text.strip()
-        if stripped:
-            pages.append(stripped)
-    if not pages:
-        raise ValueError("No extractable text found in the PDF.")
-    return "\n\n".join(pages)
-
-
 def chunk_text(text: str, chunk_size: int, overlap: int) -> Iterable[str]:
     if chunk_size <= 0:
         raise ValueError("chunk_size must be positive.")
@@ -144,6 +172,51 @@ def chunk_text(text: str, chunk_size: int, overlap: int) -> Iterable[str]:
         if end == length:
             break
         start = max(0, end - overlap)
+
+
+def chunk_sections(
+    sections: Sequence[TeiSection],
+    *,
+    chunk_size: int,
+    overlap: int,
+) -> Iterable[str]:
+    def classify_heading(heading: Optional[str], depth: int) -> Optional[str]:
+        if not heading:
+            return None
+        normalized = heading.lower()
+        for category, keywords in SECTION_CATEGORY_KEYWORDS.items():
+            for keyword in keywords:
+                if keyword in heading or keyword in normalized:
+                    return category
+        if depth > 0:
+            return None
+        return None
+
+    def format_chunk(heading: Optional[str], body: str, depth: int) -> str:
+        title = heading.strip() if heading else ""
+        category = classify_heading(heading, depth)
+        prefix_lines: List[str] = []
+        if title:
+            prefix_lines.append(f"[Section] {title}")
+        if category:
+            prefix_lines.append(f"[Category] {category}")
+        prefix = "\n".join(prefix_lines)
+        if prefix:
+            return f"{prefix}\n\n{body.strip()}"
+        return body.strip()
+
+    for section in sections:
+        heading = section.heading
+        body = section.text.strip()
+        if not body:
+            continue
+        if len(body) <= chunk_size:
+            yield format_chunk(heading, body, section.depth)
+            continue
+        for chunk in chunk_text(body, chunk_size=chunk_size, overlap=overlap):
+            if not chunk:
+                continue
+            yield format_chunk(heading, chunk, section.depth)
 
 
 def section_labels_for(language: str) -> Dict[str, str]:
@@ -229,15 +302,32 @@ def summarize_chunk(
     system_prompt = (
         "You are a research assistant who writes clear, literal notes without metaphors."
     )
+
+    overview_label = headings["overview"]
+    positioning_label = headings["positioning"]
+    solution_label = headings["solution"]
+    evaluation_label = headings["evaluation"]
+
     heading_lines = "\n".join(
-        f"- {label}:" for label in (headings["overview"], headings["positioning"], headings["solution"], headings["evaluation"])
+        f"- {label}:" for label in (overview_label, positioning_label, solution_label, evaluation_label)
+    )
+    guidance_lines = "\n".join(
+        [
+            f"- {overview_label}: Summarise the domain context and why the topic matters in 1-2 sentences.",
+            f"- {positioning_label}: Describe the concrete problem, gap, or objective the work targets and who is affected.",
+            f"- {solution_label}: Outline the proposed approach or system, highlighting the novel engineering or research contribution.",
+            f"- {evaluation_label}: Explain how the work was evaluated (methodology, participants, measures) and note the key outcomes or insights.",
+        ]
     )
     user_prompt = (
         f"You will get a portion of a research paper. Using only that portion, "
         f"write concise bullet notes in {language}. Group the notes under the headings listed below. "
-        f"Each heading should have 1-3 bullets. If the excerpt lacks information for a heading, write '{missing_token}'."
+        f"Each heading should have 1-2 bullets, and each bullet should contain 1-2 sentences with concrete details. "
+        f"If the excerpt lacks information for a heading, write '{missing_token}'."
         "\n\nHeadings:\n"
         f"{heading_lines}\n\n"
+        "Guidance:\n"
+        f"{guidance_lines}\n\n"
         "Excerpt:\n"
         f"{content}"
     )
@@ -299,6 +389,8 @@ def synthesize_record(
     user_prompt = (
         f"Generate a JSON object that follows the schema below. "
         f"Write all textual fields in {language} with clear, literal sentences. Avoid metaphors and excessive jargon. "
+        f"For each *_summary field, write 2 sentences (maximum 3). The first sentence should restate the central idea, and the second sentence should mention specific details such as targets, mechanisms, participants, or quantitative outcomes when available. "
+        f"For {headings['evaluation']} specifically, ensure the sentences cover both the evaluation methodology and the observed results. "
         f"If information is unavailable, output '{missing_token}' for summaries and null/[] for other fields as appropriate."
         "\n\nSchema:\n"
         f"{schema_description}\n\n"
@@ -322,9 +414,43 @@ def prefer_cli(cli_value, extracted_value):
     return cli_value if cli_value not in (None, "", [], {}) else extracted_value
 
 
+YEAR_PATTERN = re.compile(r"\b(19|20)\d{2}\b")
+
+
+def coerce_year(value: object) -> Optional[int]:
+    if value is None:
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        match = YEAR_PATTERN.search(value)
+        if match:
+            return int(match.group())
+        return None
+    if isinstance(value, Iterable):
+        for item in value:
+            parsed = coerce_year(item)
+            if parsed:
+                return parsed
+    return None
+
+
+def ensure_list(value: object) -> List[str]:
+    if value in (None, "", [], {}):
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    return [str(value).strip()]
+
+
 def summarise_pdf(
     pdf_path: Path,
     *,
+    extractor: str,
+    grobid_url: Optional[str],
+    grobid_timeout: float,
     model: str,
     language: str,
     chunk_size: int,
@@ -350,11 +476,27 @@ def summarise_pdf(
     vertex_embedding_model: str,
     vertex_embedding_dim: Optional[int],
 ) -> Dict[str, object]:
-    text = read_pdf_text(pdf_path)
+    try:
+        extractor_backend = build_extractor(
+            extractor,
+            grobid_url=grobid_url,
+            grobid_timeout=grobid_timeout,
+        )
+    except PdfExtractionError as exc:
+        raise ValueError(str(exc)) from exc
+
+    try:
+        extraction: PdfExtractionResult = extractor_backend.extract(pdf_path)
+    except PdfExtractionError as exc:
+        raise ValueError(str(exc)) from exc
+
+    text = extraction.text
+    sections = extraction.sections or []
+    extraction_metadata: Dict[str, object] = dict(extraction.metadata or {})
     client = load_openai_client()
 
     excerpt = text[:metadata_chars]
-    metadata = extract_metadata(
+    metadata_llm = extract_metadata(
         client,
         model=model,
         excerpt=excerpt,
@@ -365,7 +507,16 @@ def summarise_pdf(
     headings = section_labels_for(language)
     missing_token = missing_text_token(language)
 
-    chunks = list(chunk_text(text, chunk_size=chunk_size, overlap=overlap))
+    if sections:
+        chunks = list(
+            chunk_sections(
+                sections,
+                chunk_size=chunk_size,
+                overlap=overlap,
+            )
+        )
+    else:
+        chunks = list(chunk_text(text, chunk_size=chunk_size, overlap=overlap))
     if not chunks:
         raise ValueError("Failed to create text chunks for summarisation.")
 
@@ -386,10 +537,10 @@ def summarise_pdf(
 
     metadata_hints: Dict[str, object] = {
         "id": paper_id,
-        "title_hint": title or metadata.get("title"),
-        "authors_hint": authors or metadata.get("authors"),
-        "doi": metadata.get("doi"),
-        "year_hint": year or metadata.get("year"),
+        "title_hint": title or extraction_metadata.get("title") or metadata_llm.get("title"),
+        "authors_hint": authors or extraction_metadata.get("authors") or metadata_llm.get("authors"),
+        "doi": extraction_metadata.get("doi") or metadata_llm.get("doi"),
+        "year_hint": year or extraction_metadata.get("year") or metadata_llm.get("year"),
         "pdf_link": pdf_link,
         "code_link": code_link,
         "ccs_paths_hint": ccs_paths_cli,
@@ -409,32 +560,43 @@ def summarise_pdf(
     )
 
     record: Dict[str, object] = {}
-    record["id"] = paper_id or structured.get("doi") or metadata.get("doi")
-    record["title"] = prefer_cli(title, structured.get("title") or metadata.get("title"))
+    record["id"] = paper_id or structured.get("doi") or extraction_metadata.get("doi") or metadata_llm.get("doi")
+    record["title"] = prefer_cli(
+        title,
+        structured.get("title") or extraction_metadata.get("title") or metadata_llm.get("title"),
+    )
 
-    authors_value = prefer_cli(authors, structured.get("authors") or metadata.get("authors"))
+    authors_value = prefer_cli(
+        authors,
+        structured.get("authors") or extraction_metadata.get("authors") or metadata_llm.get("authors"),
+    )
     if isinstance(authors_value, str):
         authors_list = [a.strip() for a in authors_value.split(",") if a.strip()]
     else:
         authors_list = list(authors_value or [])
     record["authors"] = authors_list
 
-    record["abstract"] = structured.get("abstract") or metadata.get("abstract") or missing_token
+    record["abstract"] = (
+        structured.get("abstract") or extraction_metadata.get("abstract") or metadata_llm.get("abstract") or missing_token
+    )
     record["positioning_summary"] = structured.get("positioning_summary") or missing_token
     record["purpose_summary"] = structured.get("purpose_summary") or missing_token
     record["method_summary"] = structured.get("method_summary") or missing_token
     record["evaluation_summary"] = structured.get("evaluation_summary") or missing_token
 
-    chosen_year = prefer_cli(year, structured.get("year") or metadata.get("year"))
-    record["year"] = int(chosen_year) if chosen_year else None
+    chosen_year = prefer_cli(
+        year,
+        structured.get("year") or extraction_metadata.get("year") or metadata_llm.get("year"),
+    )
+    record["year"] = coerce_year(chosen_year)
 
-    ccs_paths = prefer_cli(ccs_paths_cli, structured.get("ccs_paths")) or []
-    ccs_ids = prefer_cli(ccs_ids_cli, structured.get("ccs_ids")) or []
-    record["ccs"] = {"paths": list(ccs_paths), "ids": list(ccs_ids)}
+    ccs_paths = ensure_list(prefer_cli(ccs_paths_cli, structured.get("ccs_paths")))
+    ccs_ids = ensure_list(prefer_cli(ccs_ids_cli, structured.get("ccs_ids")))
+    record["ccs"] = {"paths": ccs_paths, "ids": ccs_ids}
 
     record["links"] = {
-        "pdf": pdf_link or structured.get("pdf") or metadata.get("pdf"),
-        "code": code_link or structured.get("code") or metadata.get("code"),
+        "pdf": pdf_link or structured.get("pdf") or extraction_metadata.get("pdf") or metadata_llm.get("pdf"),
+        "code": code_link or structured.get("code") or extraction_metadata.get("code") or metadata_llm.get("code"),
     }
 
     if compute_embeddings:
@@ -487,9 +649,25 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("-o", "--output", type=Path, help="Where to write the JSON output (defaults to stdout).")
     parser.add_argument("--env-file", type=Path, help="Optional .env file with OPENAI_API_KEY.")
     parser.add_argument("--model", default="gpt-4o-mini", help="OpenAI model name to use.")
+    parser.add_argument(
+        "--extractor",
+        choices=["pypdf", "grobid"],
+        default="pypdf",
+        help="PDF extraction backend to use (default: pypdf).",
+    )
+    parser.add_argument(
+        "--grobid-url",
+        help="Base URL for a running GROBID service (used when --extractor=grobid).",
+    )
+    parser.add_argument(
+        "--grobid-timeout",
+        type=float,
+        default=5.0,
+        help="Seconds to wait for the GROBID health check (used when --extractor=grobid).",
+    )
     parser.add_argument("--language", default="Japanese", help="Language for the summaries (e.g. 'Japanese', 'English').")
-    parser.add_argument("--chunk-size", type=int, default=6000, help="Approximate number of characters per chunk.")
-    parser.add_argument("--overlap", type=int, default=500, help="Overlap between chunks in characters.")
+    parser.add_argument("--chunk-size", type=int, default=2500, help="Approximate number of characters per chunk.")
+    parser.add_argument("--overlap", type=int, default=250, help="Overlap between chunks in characters.")
     parser.add_argument("--temperature", type=float, default=0.2, help="Sampling temperature for all LLM calls.")
     parser.add_argument("--chunk-max-output", type=int, default=400, help="Maximum tokens for each chunk summary call.")
     parser.add_argument("--final-max-output", type=int, default=900, help="Maximum tokens for the final synthesis call.")
@@ -556,6 +734,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         record = summarise_pdf(
             args.pdf,
+            extractor=args.extractor,
+            grobid_url=args.grobid_url,
+            grobid_timeout=args.grobid_timeout,
             model=args.model,
             language=args.language,
             chunk_size=args.chunk_size,
