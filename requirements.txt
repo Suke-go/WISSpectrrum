@@ -1,0 +1,8 @@
+# Core dependencies for the PDF summarisation pipeline
+openai>=1.40.0
+requests>=2.31.0
+pypdf>=4.2.0
+sentence-transformers>=2.6.0
+torch>=2.2.0
+# Optional: enable Vertex AI embeddings
+# google-cloud-aiplatform>=1.46.0
