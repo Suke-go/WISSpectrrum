@@ -41,6 +41,9 @@
 - Keep the default one-second delay (or make it longer) to avoid hammering the server, and prefer `--years` to limit requests.
 - Cache the PDFs you fetch—rerun the summariser against local files instead of redownloading.
 - Monitor the logs for HTTP errors; repeated 4xx/5xx responses are a signal to pause and investigate.
+- Check the host’s `robots.txt` and published policies before crawling, and stop immediately if access is disallowed.
+- Identify yourself with a polite user agent if you fork the downloader (add a `urllib.request.Request` header) and avoid parallel downloads.
+- Do not bypass paywalls or authentication flows; obtain consent when in doubt and keep scraped data private if licensing requires it.
 
 ### 2. Stand up GROBID (recommended extractor)
 - Pull and run the service with container JVM tweaks so it boots under cgroup v2:
@@ -74,6 +77,14 @@
   - `--ccs-path`, `--ccs-id` (repeatable)
   - `--chunk-size`, `--overlap` (default 2500/250 chars)
   - `--embeddings --embedding-provider local` (produces vectors for purpose/method/evaluation summaries)
+  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004` (enables Vertex AI embeddings)
+
+### 3.5 Summary style
+- The script sends the cleaned body text to the OpenAI Responses API with a constrained prompt that yields four labelled sections: positioning, purpose, method, and evaluation.
+- Each section is capped at two concise sentences (three at most) so you can skim dozens of papers quickly while keeping core contributions intact.
+- The `--language` flag switches output prose and heading labels between Japanese and English while leaving JSON keys stable for downstream tooling.
+- When the source mentions metrics, datasets, or participant counts, those details are preserved; if something is missing the field falls back to `"Not specified"`.
+- Section detection prefers GROBID-parsed structure; when unavailable it falls back to chunked paragraphs from PyPDF extraction.
 
 ### 4. Output anatomy
 - JSON schema (see `synthesize_record`):
@@ -124,6 +135,7 @@
   ```bash
   export OPENAI_API_KEY="..."
   ```
+- Vertex AI を使う場合は `.env` に `VERTEX_AI_PROJECT` / `VERTEX_AI_LOCATION` / `VERTEX_AI_EMBEDDING_MODEL`（必要なら `VERTEX_AI_EMBEDDING_DIM`）を追加し、Google Cloud の認証情報を環境変数や gcloud auth で用意してください。
 - 任意: GROBID を動かす Docker (メモリ 4GB 以上を推奨)。
 
 ### 1. WISS PDF の取得
@@ -144,6 +156,9 @@
 - デフォルトの 1 秒ディレイ（またはそれ以上）を守り、`--years` で対象を絞り込むと負荷を抑えられます。
 - 取得した PDF はローカルに保存し、再要約時は再ダウンロードせずキャッシュを活用してください。
 - HTTP エラー（4xx/5xx）が続く場合は処理を中断し、原因を確認しましょう。
+- クロール前に `robots.txt` や公開ポリシーを確認し、アクセス禁止の指示がある場合は従ってください。
+- ダウンローダーを改造する際は `urllib.request.Request` などで丁寧な User-Agent を付与し、並列ダウンロードは避けましょう。
+- 有料ページや認証が必要な領域を回避したり回避策を講じたりしないでください。判断が難しい場合は必ず許可を取り、取得した資料の扱い（共有可否など）にも注意してください。
 
 ### 2. GROBID の起動（推奨）
 - Docker での起動例:
@@ -176,7 +191,15 @@
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id`（複数指定可）
   - `--chunk-size` / `--overlap`（既定値 2500 / 250 文字）
-  - `--embeddings`（目的・手法・評価の埋め込みベクトルを出力）
+  - `--embeddings --embedding-provider local`（Sentence Transformers で目的・手法・評価の埋め込みベクトルを生成）
+  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004`（Vertex AI Embeddings を利用）
+
+### 3.5 要約の方針
+- 整形した本文テキストを OpenAI Responses API に投げ、「位置づけ」「目的」「手法」「評価」の 4 セクションで返すようプロンプトを厳密に指定しています。
+- 各セクションは 2 文（最大 3 文）を目安とし、多数の論文を比較しやすい短く筋の通ったまとめを意識しています。
+- `--language` フラグで見出しと言語を日本語・英語で切り替えつつ、JSON のキーは共通なので後続処理の互換性が保たれます。
+- 元資料に評価指標・データセット・参加人数などが記されていればそのまま記載し、欠けている場合は `"Not specified"` / `記載なし` で明示します。
+- セクション検出は GROBID が返す構造を優先し、利用できない場合は PyPDF で抽出した段落を分割して補完します。
 
 ### 4. 出力 JSON
 - 生成される JSON のイメージ:
