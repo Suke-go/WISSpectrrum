@@ -3,22 +3,44 @@
 ## English
 
 ### 0. Prerequisites
-- Python 3.13 virtual environment lives at `.venv/`. Activate it or call `.venv/bin/python` explicitly.
-- Install runtime deps inside the venv:
+- Python 3.10+ is recommended. A ready-made virtual environment lives at `.venv/`; create one with `python3 -m venv .venv` (macOS/Linux) or `py -m venv .venv` (Windows) if it ever goes missing.
+- Activate the environment and install dependencies:
   ```bash
   . .venv/bin/activate
   pip install -r requirements.txt  # or install `openai`, `requests`, `pypdf`, `sentence-transformers` as needed
+  ```
+- Platform notes:
+  - **macOS / Linux:** use the `python3` interpreter that matches the virtualenv. If the activate script complains about execution rights, run `chmod +x .venv/bin/activate`.
+  - **Windows (PowerShell):**
+    ```powershell
+    .\.venv\Scripts\Activate.ps1
+    pip install -r requirements.txt
+    ```
+    Run scripts with `.\.venv\Scripts\python.exe` instead of `.venv/bin/python`.
+- Add your OpenAI (and optional Vertex AI) secrets to `.env` or the shell before invoking the summariser:
+  ```bash
+  export OPENAI_API_KEY="..."
   ```
 - Optional: Docker with enough RAM (≥4 GB) to host GROBID.
 
 ### 1. Collect WISS PDFs
 - Use the helper script to resolve CSV rows to files:
   ```bash
-  .venv/bin/python Pre-Processing/download_wiss_pdfs.py \
+  .venv/bin/python Pre-Processing/pdfdownloader/download_wiss_pdfs.py \
       --input WISSProceedings/wiss2024.csv \
       --output-root thesis/WISS/2024
   ```
 - The summariser expects PDFs at `thesis/<venue>/<year>/<paper>.pdf`. Keep that structure so metadata merges remain deterministic.
+- Tweak options if needed:
+  - `--dry-run` prints planned downloads without touching disk.
+  - `--delay` and `--timeout` control pacing; increase the delay when the host rate-limits you.
+  - `--overwrite` lets you refresh previously downloaded files.
+
+### 1.5 Responsible downloading
+- Respect the WISS proceedings terms of use; download only what you are allowed to process.
+- Keep the default one-second delay (or make it longer) to avoid hammering the server, and prefer `--years` to limit requests.
+- Cache the PDFs you fetch—rerun the summariser against local files instead of redownloading.
+- Monitor the logs for HTTP errors; repeated 4xx/5xx responses are a signal to pause and investigate.
 
 ### 2. Stand up GROBID (recommended extractor)
 - Pull and run the service with container JVM tweaks so it boots under cgroup v2:
@@ -84,22 +106,44 @@
 ## 日本語
 
 ### 0. 事前準備
-- Python仮想環境は `.venv/` にあります。`source .venv/bin/activate` で有効化するか、`.venv/bin/python` を直接使用します。
-- 依存ライブラリをインストール:
+- Python 3.10 以上を推奨します。仮想環境 `.venv/` が無い場合は `python3 -m venv .venv`（macOS/Linux）または `py -m venv .venv`（Windows）で作成してください。
+- 仮想環境を有効化し、依存ライブラリをインストール:
   ```bash
   . .venv/bin/activate
   pip install -r requirements.txt  # ない場合は openai, requests, pypdf などを個別に導入
+  ```
+- 環境ごとのメモ:
+  - **macOS / Linux:** `python3` コマンドが仮想環境のバージョンと一致しているか確認してください。`activate` に実行権限が無い場合は `chmod +x .venv/bin/activate` を実行します。
+  - **Windows (PowerShell):**
+    ```powershell
+    .\.venv\Scripts\Activate.ps1
+    pip install -r requirements.txt
+    ```
+    スクリプト実行時は `.\.venv\Scripts\python.exe` を使用してください。
+- 要約スクリプトを動かす前に `.env` またはシェルで `OPENAI_API_KEY`（必要に応じて Vertex AI の設定）を指定します:
+  ```bash
+  export OPENAI_API_KEY="..."
   ```
 - 任意: GROBID を動かす Docker (メモリ 4GB 以上を推奨)。
 
 ### 1. WISS PDF の取得
 - CSV に基づいて論文 PDF を保存する場合の例:
   ```bash
-  .venv/bin/python Pre-Processing/download_wiss_pdfs.py \
+  .venv/bin/python Pre-Processing/pdfdownloader/download_wiss_pdfs.py \
       --input WISSProceedings/wiss2024.csv \
       --output-root thesis/WISS/2024
   ```
 - `thesis/<学会>/<年度>/<ファイル名>.pdf` という配置に揃えると、要約スクリプト側でメタデータを統合しやすくなります。
+- 主なオプション:
+  - `--dry-run`: 実際に保存せず予定リストのみ表示。
+  - `--delay` / `--timeout`: リクエスト間隔やタイムアウトの調整（混雑時は `--delay` を長めに）。
+  - `--overwrite`: 既存ファイルを上書き。
+
+### 1.5 スクレイピング時の注意
+- WISS の利用規約を遵守し、権限のある資料のみ取得してください。
+- デフォルトの 1 秒ディレイ（またはそれ以上）を守り、`--years` で対象を絞り込むと負荷を抑えられます。
+- 取得した PDF はローカルに保存し、再要約時は再ダウンロードせずキャッシュを活用してください。
+- HTTP エラー（4xx/5xx）が続く場合は処理を中断し、原因を確認しましょう。
 
 ### 2. GROBID の起動（推奨）
 - Docker での起動例:
