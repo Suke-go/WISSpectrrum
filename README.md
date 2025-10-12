@@ -3,24 +3,63 @@
 ## English
 
 ### 0. Prerequisites
-- Python 3.13 virtual environment lives at `.venv/`. Activate it or call `.venv/bin/python` explicitly.
-- Install runtime deps inside the venv:
+- Python 3.10+ is recommended. A ready-made virtual environment lives at `.venv/`; create one with `python3 -m venv .venv` (macOS/Linux) or `py -m venv .venv` (Windows) if it ever goes missing.
+- Activate the environment and install dependencies:
   ```bash
   . .venv/bin/activate
   pip install -r requirements.txt  # or install `openai`, `requests`, `pypdf`, `sentence-transformers` as needed
   ```
+- Platform notes:
+  - **macOS / Linux:** use the `python3` interpreter that matches the virtualenv. If the activate script complains about execution rights, run `chmod +x .venv/bin/activate`.
+  - **Windows (PowerShell):**
+    ```powershell
+    .\.venv\Scripts\Activate.ps1
+    pip install -r requirements.txt
+    ```
+    Run scripts with `.\.venv\Scripts\python.exe` instead of `.venv/bin/python`.
+- Add your OpenAI (and optional Vertex AI) secrets to `.env` or the shell before invoking the summariser:
+  ```bash
+  export OPENAI_API_KEY="..."
+  ```
 - Optional: Docker with enough RAM (≥4 GB) to host GROBID.
 
 ### 1. Collect WISS PDFs
+- If you still need the proceedings CSV, use the scrapers under `Pre-Processing/scraipingpdf/`. Recent sites work with:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping2.py \
+      https://www.wiss.org/WISS2024Proceedings/ \
+      -o WISSProceedings/wiss2024.csv
+  ```
+  For older layouts (e.g. 2004–2020) you can pass multiple URLs or a text file to `scraiping.py`:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping.py \
+      -f urls.txt \
+      -o WISSProceedings/wiss2004-2009.csv
+```
+  Install scraper dependencies inside the virtualenv if needed (`pip install requests beautifulsoup4 lxml`). The CSV rows include `id`, `title`, `authors`, and absolute links for PDF/video/review assets.
 - Use the helper script to resolve CSV rows to files:
   ```bash
-  .venv/bin/python Pre-Processing/download_wiss_pdfs.py \
+  .venv/bin/python Pre-Processing/pdfdownloader/download_wiss_pdfs.py \
       --input WISSProceedings/wiss2024.csv \
       --output-root thesis/WISS/2024
   ```
 - The summariser expects PDFs at `thesis/<venue>/<year>/<paper>.pdf`. Keep that structure so metadata merges remain deterministic.
+- Tweak options if needed:
+  - `--dry-run` prints planned downloads without touching disk.
+  - `--delay` and `--timeout` control pacing; increase the delay when the host rate-limits you.
+  - `--overwrite` lets you refresh previously downloaded files.
+
+### 1.5 Responsible downloading
+- Respect the WISS proceedings terms of use; download only what you are allowed to process.
+- Keep the default one-second delay (or make it longer) to avoid hammering the server, and prefer `--years` to limit requests.
+- Cache the PDFs you fetch—rerun the summariser against local files instead of redownloading.
+- Monitor the logs for HTTP errors; repeated 4xx/5xx responses are a signal to pause and investigate.
+- Check the host’s `robots.txt` and published policies before crawling, and stop immediately if access is disallowed.
+- Identify yourself with a polite user agent if you fork the downloader (add a `urllib.request.Request` header) and avoid parallel downloads.
+- Do not bypass paywalls or authentication flows; obtain consent when in doubt and keep scraped data private if licensing requires it.
 
 ### 2. Stand up GROBID (recommended extractor)
+- [GROBID](https://grobid.readthedocs.io/) is an open-source service that converts research PDFs into structured TEI XML, providing cleaner text and metadata than lightweight extractors.
 - Pull and run the service with container JVM tweaks so it boots under cgroup v2:
   ```bash
   docker pull lfoppiano/grobid:0.7.2
@@ -52,6 +91,14 @@
   - `--ccs-path`, `--ccs-id` (repeatable)
   - `--chunk-size`, `--overlap` (default 2500/250 chars)
   - `--embeddings --embedding-provider local` (produces vectors for purpose/method/evaluation summaries)
+  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004` (enables Vertex AI embeddings)
+
+### 3.5 Summary style
+- The script sends the cleaned body text to the OpenAI Responses API with a constrained prompt that yields four labelled sections: positioning, purpose, method, and evaluation.
+- Each section is capped at two concise sentences (three at most) so you can skim dozens of papers quickly while keeping core contributions intact.
+- The `--language` flag switches output prose and heading labels between Japanese and English while leaving JSON keys stable for downstream tooling.
+- When the source mentions metrics, datasets, or participant counts, those details are preserved; if something is missing the field falls back to `"Not specified"`.
+- Section detection prefers GROBID-parsed structure; when unavailable it falls back to chunked paragraphs from PyPDF extraction.
 
 ### 4. Output anatomy
 - JSON schema (see `synthesize_record`):
@@ -84,24 +131,64 @@
 ## 日本語
 
 ### 0. 事前準備
-- Python仮想環境は `.venv/` にあります。`source .venv/bin/activate` で有効化するか、`.venv/bin/python` を直接使用します。
-- 依存ライブラリをインストール:
+- Python 3.10 以上を推奨します。仮想環境 `.venv/` が無い場合は `python3 -m venv .venv`（macOS/Linux）または `py -m venv .venv`（Windows）で作成してください。
+- 仮想環境を有効化し、依存ライブラリをインストール:
   ```bash
   . .venv/bin/activate
   pip install -r requirements.txt  # ない場合は openai, requests, pypdf などを個別に導入
   ```
+- 環境ごとのメモ:
+  - **macOS / Linux:** `python3` コマンドが仮想環境のバージョンと一致しているか確認してください。`activate` に実行権限が無い場合は `chmod +x .venv/bin/activate` を実行します。
+  - **Windows (PowerShell):**
+    ```powershell
+    .\.venv\Scripts\Activate.ps1
+    pip install -r requirements.txt
+    ```
+    スクリプト実行時は `.\.venv\Scripts\python.exe` を使用してください。
+- 要約スクリプトを動かす前に `.env` またはシェルで `OPENAI_API_KEY`（必要に応じて Vertex AI の設定）を指定します:
+  ```bash
+  export OPENAI_API_KEY="..."
+  ```
+- Vertex AI を使う場合は `.env` に `VERTEX_AI_PROJECT` / `VERTEX_AI_LOCATION` / `VERTEX_AI_EMBEDDING_MODEL`（必要なら `VERTEX_AI_EMBEDDING_DIM`）を追加し、Google Cloud の認証情報を環境変数や gcloud auth で用意してください。
 - 任意: GROBID を動かす Docker (メモリ 4GB 以上を推奨)。
 
 ### 1. WISS PDF の取得
+- まだ proceedings の CSV が無い場合は `Pre-Processing/scraipingpdf/` にあるスクレイパーを利用します。最近のページは次のコマンドで取得できます:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping2.py \
+      https://www.wiss.org/WISS2024Proceedings/ \
+      -o WISSProceedings/wiss2024.csv
+  ```
+  古いレイアウト（2004〜2020 年頃）は `scraiping.py` に複数 URL や URL 一覧ファイル（1 行 1 URL）を与えて対応します:
+  ```bash
+  .venv/bin/python Pre-Processing/scraipingpdf/scraiping.py \
+      -f urls.txt \
+      -o WISSProceedings/wiss2004-2009.csv
+  ```
+  必要に応じて `pip install requests beautifulsoup4 lxml` を仮想環境にインストールしてください。出力 CSV には `id`, `title`, `authors` に加え、PDF / 動画 / 査読コメントなどの絶対 URL が含まれます。
 - CSV に基づいて論文 PDF を保存する場合の例:
   ```bash
-  .venv/bin/python Pre-Processing/download_wiss_pdfs.py \
+  .venv/bin/python Pre-Processing/pdfdownloader/download_wiss_pdfs.py \
       --input WISSProceedings/wiss2024.csv \
       --output-root thesis/WISS/2024
   ```
 - `thesis/<学会>/<年度>/<ファイル名>.pdf` という配置に揃えると、要約スクリプト側でメタデータを統合しやすくなります。
+- 主なオプション:
+  - `--dry-run`: 実際に保存せず予定リストのみ表示。
+  - `--delay` / `--timeout`: リクエスト間隔やタイムアウトの調整（混雑時は `--delay` を長めに）。
+  - `--overwrite`: 既存ファイルを上書き。
+
+### 1.5 スクレイピング時の注意
+- WISS の利用規約を遵守し、権限のある資料のみ取得してください。
+- デフォルトの 1 秒ディレイ（またはそれ以上）を守り、`--years` で対象を絞り込むと負荷を抑えられます。
+- 取得した PDF はローカルに保存し、再要約時は再ダウンロードせずキャッシュを活用してください。
+- HTTP エラー（4xx/5xx）が続く場合は処理を中断し、原因を確認しましょう。
+- クロール前に `robots.txt` や公開ポリシーを確認し、アクセス禁止の指示がある場合は従ってください。
+- ダウンローダーを改造する際は `urllib.request.Request` などで丁寧な User-Agent を付与し、並列ダウンロードは避けましょう。
+- 有料ページや認証が必要な領域を回避したり回避策を講じたりしないでください。判断が難しい場合は必ず許可を取り、取得した資料の扱い（共有可否など）にも注意してください。
 
 ### 2. GROBID の起動（推奨）
+- [GROBID](https://grobid.readthedocs.io/) は学術 PDF を TEI XML 構造に変換するオープンソースの解析サービスで、PyPDF より高品質な本文テキストとメタデータを取得できます。
 - Docker での起動例:
   ```bash
   docker pull lfoppiano/grobid:0.7.2
@@ -132,7 +219,15 @@
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id`（複数指定可）
   - `--chunk-size` / `--overlap`（既定値 2500 / 250 文字）
-  - `--embeddings`（目的・手法・評価の埋め込みベクトルを出力）
+  - `--embeddings --embedding-provider local`（Sentence Transformers で目的・手法・評価の埋め込みベクトルを生成）
+  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004`（Vertex AI Embeddings を利用）
+
+### 3.5 要約の方針
+- 整形した本文テキストを OpenAI Responses API に投げ、「位置づけ」「目的」「手法」「評価」の 4 セクションで返すようプロンプトを厳密に指定しています。
+- 各セクションは 2 文（最大 3 文）を目安とし、多数の論文を比較しやすい短く筋の通ったまとめを意識しています。
+- `--language` フラグで見出しと言語を日本語・英語で切り替えつつ、JSON のキーは共通なので後続処理の互換性が保たれます。
+- 元資料に評価指標・データセット・参加人数などが記されていればそのまま記載し、欠けている場合は `"Not specified"` / `記載なし` で明示します。
+- セクション検出は GROBID が返す構造を優先し、利用できない場合は PyPDF で抽出した段落を分割して補完します。
 
 ### 4. 出力 JSON
 - 生成される JSON のイメージ:
