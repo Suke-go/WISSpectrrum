@@ -612,11 +612,26 @@ def summarise_pdf(
                 except ValueError:
                     print(f"[WARN] Ignoring invalid VERTEX_AI_EMBEDDING_DIM value: {env_dim}", file=sys.stderr)
 
-        sections = {
+        def _usable_section(value: object) -> Optional[str]:
+            if value in (None, "", [], {}):
+                return None
+            text = str(value).strip()
+            if not text or text == missing_token:
+                return None
+            return text
+
+        sections = {}
+        candidates = {
+            "positioning": record.get("positioning_summary"),
             "purpose": record.get("purpose_summary"),
             "method": record.get("method_summary"),
             "evaluation": record.get("evaluation_summary"),
+            "abstract": record.get("abstract"),
         }
+        for key, candidate in candidates.items():
+            normalized = _usable_section(candidate)
+            if normalized:
+                sections[key] = normalized
         if embedding_provider == "local":
             embeddings = maybe_compute_embeddings_local(
                 sections,
@@ -685,7 +700,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--embeddings",
         action="store_true",
-        help="Compute embeddings for purpose/method/evaluation summaries.",
+        help="Compute embeddings for each summary section (positioning/purpose/method/evaluation and abstract when available).",
     )
     parser.add_argument(
         "--embedding-provider",

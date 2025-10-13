@@ -13,12 +13,34 @@ import unicodedata
 import urllib.error
 import urllib.request
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from threading import Lock
 from typing import Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urlsplit
 
 
 CSV_PATTERN = re.compile(r"^wiss(?P<year>\d{4})\.csv$")
+
+
+class RateLimiter:
+    """Serialise outbound requests so we honour the configured pacing even with concurrency."""
+
+    def __init__(self, interval: float) -> None:
+        self._interval = max(0.0, float(interval))
+        self._lock = Lock()
+        self._last_call = 0.0
+
+    def wait(self) -> None:
+        if self._interval <= 0:
+            return
+        with self._lock:
+            now = time.monotonic()
+            wait_time = self._interval - (now - self._last_call)
+            if wait_time > 0:
+                time.sleep(wait_time)
+                now = time.monotonic()
+            self._last_call = now
 
 
 def parse_args() -> argparse.Namespace:
@@ -59,6 +81,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1.0,
         help="Delay in seconds between download requests (default: 1.0).",
+    )
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=1,
+        help="Maximum number of concurrent download workers (default: 1).",
     )
     parser.add_argument(
         "--overwrite",
@@ -134,12 +162,22 @@ def build_filename(row: Dict[str, str], pdf_url: str, used_names: Dict[str, int]
     return filename
 
 
-def download_file(url: str, destination: Path, *, timeout: float, dry_run: bool, overwrite: bool) -> Optional[str]:
+def download_file(
+    url: str,
+    destination: Path,
+    *,
+    timeout: float,
+    dry_run: bool,
+    overwrite: bool,
+    rate_limiter: Optional[RateLimiter],
+) -> Optional[str]:
     if destination.exists() and not overwrite:
         return None
     if dry_run:
         return "dry-run"
     destination.parent.mkdir(parents=True, exist_ok=True)
+    if rate_limiter and not dry_run:
+        rate_limiter.wait()
     try:
         with urllib.request.urlopen(url, timeout=timeout) as response:
             status = getattr(response, "status", 200)
@@ -163,6 +201,7 @@ def process_year(
     delay: float,
     dry_run: bool,
     overwrite: bool,
+    max_workers: int,
 ) -> Tuple[int, int, List[Dict[str, str]]]:
     rows = load_rows(csv_path)
     target_dir = output_root / str(year)
@@ -170,6 +209,7 @@ def process_year(
     successes = 0
     failures: List[Dict[str, str]] = []
     skipped = 0
+    prepared: List[Tuple[Dict[str, str], str, Path]] = []
 
     for row in rows:
         pdf_url = (row.get("pdf_url") or "").strip()
@@ -186,38 +226,57 @@ def process_year(
 
         filename = build_filename(row, pdf_url, used_names)
         destination = target_dir / filename
+        prepared.append((row, pdf_url, destination))
+
+    if not prepared:
+        return successes, len(failures), failures
+
+    rate_limiter = None if dry_run or delay <= 0 else RateLimiter(delay)
+    worker_count = max(1, min(int(max_workers or 1), len(prepared)))
+
+    def _execute(payload: Tuple[Dict[str, str], str, Path]) -> Tuple[Dict[str, str], str, Path, Optional[str]]:
+        row, pdf_url, destination = payload
         outcome = download_file(
             pdf_url,
             destination,
             timeout=timeout,
             dry_run=dry_run,
             overwrite=overwrite,
+            rate_limiter=rate_limiter,
         )
+        return row, pdf_url, destination, outcome
 
+    def _record_result(row: Dict[str, str], pdf_url: str, destination: Path, outcome: Optional[str]) -> None:
+        nonlocal successes, skipped, failures
+        title = (row.get("title") or "").strip()
         if outcome is None:
             successes += 1
             logging.info("[%s] saved %s", year, destination)
-            if delay > 0:
-                time.sleep(delay)
         elif outcome == "dry-run":
             skipped += 1
-            logging.info(
-                "[%s] would save %s from %s", year, destination, pdf_url
-            )
+            logging.info("[%s] would save %s from %s", year, destination, pdf_url)
         else:
             failures.append(
                 {
                     "year": str(year),
-                    "title": (row.get("title") or "").strip(),
+                    "title": title,
                     "pdf_url": pdf_url,
                     "reason": outcome,
                 }
             )
-            logging.warning(
-                "[%s] failed to download %s -> %s", year, pdf_url, outcome
-            )
-            if delay > 0 and not dry_run:
-                time.sleep(delay)
+            logging.warning("[%s] failed to download %s -> %s", year, pdf_url, outcome)
+
+    if worker_count == 1:
+        for payload in prepared:
+            row, pdf_url, destination, outcome = _execute(payload)
+            _record_result(row, pdf_url, destination, outcome)
+    else:
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = {executor.submit(_execute, payload): payload for payload in prepared}
+            for future in as_completed(futures):
+                row, pdf_url, destination, outcome = future.result()
+                _record_result(row, pdf_url, destination, outcome)
+
     total_attempted = successes + skipped
     logging.info(
         "[%s] complete: %s saved, %s planned, %s failures",
@@ -277,6 +336,7 @@ def main() -> int:
             delay=args.delay,
             dry_run=args.dry_run,
             overwrite=args.overwrite,
+            max_workers=args.max_workers,
         )
         total_success += success_count
         collected_failures.extend(failures)
