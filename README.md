@@ -103,6 +103,33 @@
 - When the source mentions metrics, datasets, or participant counts, those details are preserved; if something is missing the field falls back to `"Not specified"`.
 - Section detection prefers GROBID-parsed structure; when unavailable it falls back to chunked paragraphs from PyPDF extraction.
 
+### 3.6 Batch orchestrator (new)
+- Run the full pipeline—extraction, summarisation, embeddings, and ACM CCS classification—with one command. The orchestrator manages retries via a lightweight SQLite queue:
+  ```bash
+  .venv/bin/python Pre-Processing/orchestrator.py run \
+      --pdf-dir thesis/WISS/2024 \
+      --output-dir summaries/wiss2024 \
+      --env-file .env \
+      --pretty
+  ```
+- The script enqueues every PDF it discovers (matching `*.pdf` by default) and writes JSON next to the specified output directory, keeping the source subdirectories (e.g. `summaries/wiss2024/001_parasights-2.json`). Re-run with `--force` to regenerate completed jobs.
+- Use a JSON config to override summariser settings—store it under version control for reproducibility:
+  ```json
+  {
+    "model": "gpt-4.1-mini",
+    "language": "Japanese",
+    "chunk_size": 2800,
+    "embedding_provider": "gemini",
+    "gemini_embedding_model": "models/text-embedding-004",
+    "classify_ccs": true
+  }
+  ```
+  Pass the file with `--config configs/pipeline_wiss2024.json`. CLI flags such as `--model`, `--language`, `--embedding-provider`, `--disable-embeddings`, and `--disable-ccs` override both the defaults and config file.
+- Check queue progress or crash counts at any time:
+  ```bash
+  python Pre-Processing/orchestrator.py status --db data/pipeline_state.db
+  ```
+
 ### 4. Output anatomy
 - JSON schema (see `synthesize_record`):
   ```jsonc
@@ -185,6 +212,21 @@
   ```
   Use `--embedding-model none` if you prefer keyword filtering instead of embeddings, and add `--update` to patch the input JSON files in-place (fields `ccs.ids`, `ccs.paths`, and `ccs.llm_explanations` are populated).
 - Both CLIs assume the ACM CCS XML lives at `ACM CCS/acm_ccs2012-1626988337597.xml`; override the location with `--xml` when needed.
+
+### 4.7 Batch embedding refresher (new)
+- Once summaries exist you can regenerate or backfill embeddings with the dedicated CLI. It supports Gemini, Vertex AI and local Sentence Transformer backends, adds metadata (`embedding_meta`) and honours per-section filters:
+  ```bash
+  GEMINI_API_KEY=... \
+  python Pre-Processing/compute_embeddings.py summaries/*.json \
+      --provider gemini \
+      --model models/text-embedding-004 \
+      --embedding-version v1 \
+      --normalize
+  ```
+  - Add `--force` to overwrite existing vectors. プロバイダやモデルを切り替える際も `--force` を付けて再計算してください。
+  - Use `--output-dir refreshed/` to keep originals untouched; the original subdirectory layout (e.g. `summaries/2024/001.json`) is preserved under the output directory.
+  - Switch backends with `--provider vertex-ai --model text-embedding-005` (remember `--vertex-project` / `--vertex-location`) or `--provider local --model intfloat/multilingual-e5-large-instruct`.
+  - `--sections positioning purpose` restricts embeddings to certain summary fields when needed.
 
 ### 5. Troubleshooting
 - `GROBID service not reachable`: run the container, expose it on a reachable IP, increase `--grobid-timeout`.
@@ -298,6 +340,33 @@
 - 元資料に評価指標・データセット・参加人数などが記されていればそのまま記載し、欠けている場合は `"Not specified"` / `記載なし` で明示します。
 - セクション検出は GROBID が返す構造を優先し、利用できない場合は PyPDF で抽出した段落を分割して補完します。
 
+### 3.6 バッチオーケストレーター（新機能）
+- 抽出 → 要約 → 埋め込み → ACM CCS 分類までを一括実行する CLI です。軽量な SQLite キューでリトライや再開を管理します:
+  ```bash
+  .venv/bin/python Pre-Processing/orchestrator.py run \
+      --pdf-dir thesis/WISS/2024 \
+      --output-dir summaries/wiss2024 \
+      --env-file .env \
+      --pretty
+  ```
+- 既定では `*.pdf` を再帰的に探索し、出力ディレクトリ配下に元の階層構造を保った JSON（例: `summaries/wiss2024/001_parasights-2.json`）を生成します。完了済みジョブを再処理したいときは `--force` を付けてください。
+- サマライザ用の設定を JSON でまとめておくと再現性が高まります。例:
+  ```json
+  {
+    "model": "gpt-4.1-mini",
+    "language": "Japanese",
+    "chunk_size": 2800,
+    "embedding_provider": "gemini",
+    "gemini_embedding_model": "models/text-embedding-004",
+    "classify_ccs": true
+  }
+  ```
+  このファイルを `--config configs/pipeline_wiss2024.json` のように指定し、追加で `--model` や `--language`、`--embedding-provider`、`--disable-embeddings`、`--disable-ccs` などの CLI フラグを上書き用途で利用します。
+- 進捗やエラー件数は次のコマンドで確認できます:
+  ```bash
+  python Pre-Processing/orchestrator.py status --db data/pipeline_state.db
+  ```
+
 ### 4. 出力 JSON
 - 生成される JSON のイメージ:
   ```jsonc
@@ -374,6 +443,23 @@
       --output classification_report.jsonl
   ```
 - タクソノミーの辞書やキーワード探索には `Pre-Processing/ccs/export_taxonomy.py` を利用できます。既定ではリポジトリ内の `ACM CCS/acm_ccs2012-1626988337597.xml` を参照しますが、`--xml` で明示的に切り替えられます。
+
+### 4.7 埋め込み再計算バッチ（新機能）
+- 要約 JSON が揃っている場合、専用 CLI でセクション別埋め込みを再生成できます。Gemini / Vertex AI / Sentence Transformers に対応し、`embedding_meta` にメタ情報を追記します:
+  ```bash
+  GEMINI_API_KEY=... \
+  python Pre-Processing/compute_embeddings.py summaries/*.json \
+      --provider gemini \
+      --model models/text-embedding-004 \
+      --embedding-version v1 \
+      --normalize
+  ```
+- 主な使い方:
+  - `--force`: 既存ベクトルの上書き。プロバイダやモデルを切り替える際は付与してください。
+  - `--output-dir refreshed/`: 元の JSON を残したまま別ディレクトリに書き出します（サブディレクトリ構造は保持）。
+  - `--provider vertex-ai --model text-embedding-005`: Vertex AI へ切り替える例（`--vertex-project` / `--vertex-location` を忘れず指定）。
+  - `--provider local --model intfloat/multilingual-e5-large-instruct`: ローカル Sentence Transformer を利用する例。
+  - `--sections positioning purpose`: 特定セクションだけ埋め込みたい場合に列挙。
 
 ### 5. よくあるトラブル
 - `GROBID service not reachable`: Docker コンテナが起動しているか、IP/ポートがアクセス可能か、`--grobid-timeout` が短すぎないか確認。

@@ -4,13 +4,21 @@
 from __future__ import annotations
 
 import math
+import os
 from functools import lru_cache
 from threading import Lock
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
+
+
+try:
+    import numpy as _np  # type: ignore  # noqa: F401
+except ImportError:  # pragma: no cover - optional dependency guard
+    _np = None  # type: ignore[assignment]
 
 
 _SENTENCE_TRANSFORMER_LOCK = Lock()
 _VERTEX_MODEL_LOCK = Lock()
+_GEMINI_CLIENT_LOCK = Lock()
 
 
 @lru_cache(maxsize=8)
@@ -39,12 +47,13 @@ def maybe_compute_embeddings_local(
     model_name: str,
     normalize: bool,
 ) -> Dict[str, object]:
-    try:
-        import numpy as np  # type: ignore  # noqa: F401
-    except ImportError as exc:  # pragma: no cover - dependency guard
-        raise SystemExit(
-            'Embedding generation requires "sentence-transformers". Install it with "pip install sentence-transformers".'
-        ) from exc
+    if _np is None:
+        try:
+            import numpy as np  # type: ignore  # noqa: F401
+        except ImportError as exc:  # pragma: no cover - dependency guard
+            raise SystemExit(
+                'Embedding generation requires "sentence-transformers". Install it with "pip install sentence-transformers".'
+            ) from exc
 
     texts: List[str] = []
     keys: List[str] = []
@@ -147,6 +156,82 @@ def maybe_compute_embeddings_vertex_ai(
     return result
 
 
+def _batched(items: List[str], batch_size: int) -> Iterable[List[str]]:
+    if batch_size <= 0:
+        batch_size = len(items) or 1
+    for idx in range(0, len(items), batch_size):
+        yield items[idx : idx + batch_size]
+
+
+def maybe_compute_embeddings_gemini(
+    sections: Dict[str, str],
+    *,
+    api_key: Optional[str],
+    model_name: str,
+    task_type: str,
+    normalize: bool,
+    batch_size: int = 32,
+) -> Dict[str, object]:
+    api_key = api_key or os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("Gemini embeddings require GEMINI_API_KEY.")
+
+    prepared: List[tuple[str, str]] = []
+    for key, raw in sections.items():
+        if raw is None:
+            continue
+        text = str(raw).strip()
+        if not text:
+            continue
+        prepared.append((key, text))
+    if not prepared:
+        return {}
+
+    try:
+        import google.generativeai as genai  # type: ignore
+    except ImportError as exc:  # pragma: no cover - dependency guard
+        raise SystemExit(
+            'Gemini embeddings require the "google-generativeai" package. Install it with "pip install google-generativeai".'
+        ) from exc
+
+    with _GEMINI_CLIENT_LOCK:
+        genai.configure(api_key=api_key)
+
+    vectors: List[List[float]] = []
+    collected_keys: List[str] = []
+    keys = [item[0] for item in prepared]
+    values = {key: text for key, text in prepared}
+    for batch_keys in _batched(keys, batch_size):
+        for key in batch_keys:
+            text = values[key]
+            response = genai.embed_content(model=model_name, content=text, task_type=task_type)
+            vector = response.get("embedding")  # type: ignore[assignment]
+            if not isinstance(vector, list):
+                raise RuntimeError("Gemini embedding response did not contain 'embedding'.")
+            numeric = [float(x) for x in vector]
+            if normalize:
+                norm = math.sqrt(sum(x * x for x in numeric))
+                if norm > 0:
+                    numeric = [x / norm for x in numeric]
+            vectors.append(numeric)
+            collected_keys.append(key)
+
+    if not vectors:
+        return {}
+    dimension = len(vectors[0])
+    result: Dict[str, object] = {
+        "sections": {},
+        "provider": "gemini",
+        "model": model_name,
+        "dim": dimension,
+        "normed": normalize,
+    }
+    for key, vector in zip(collected_keys, vectors):
+        result["sections"][key] = vector
+        result[key] = vector
+    return result
+
+
 def clear_embedding_caches() -> None:
     """Reset cached embedding backends (useful for tests)."""
     _lazy_sentence_transformer.cache_clear()
@@ -156,5 +241,6 @@ def clear_embedding_caches() -> None:
 __all__ = [
     "maybe_compute_embeddings_local",
     "maybe_compute_embeddings_vertex_ai",
+    "maybe_compute_embeddings_gemini",
     "clear_embedding_caches",
 ]

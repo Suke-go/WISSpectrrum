@@ -18,11 +18,20 @@ import sys
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence
 
+THIS_DIR = Path(__file__).resolve().parent
+REPO_ROOT = THIS_DIR.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from embeddings import (
+    maybe_compute_embeddings_gemini,
     maybe_compute_embeddings_local,
     maybe_compute_embeddings_vertex_ai,
 )
+from ccs.classifier import CCSClassifier, summary_to_prompt_text
+from ccs.taxonomy import load_taxonomy
 from pdf_extractors import PdfExtractionError, PdfExtractionResult, TeiSection, build_extractor
+from utils.env import load_env
 
 JAPANESE_HEADINGS: Dict[str, str] = {
     "overview": "\u6982\u8981",
@@ -97,34 +106,6 @@ SECTION_CATEGORY_KEYWORDS = {
         "調査",
     ],
 }
-
-
-def load_env_file(path: Path) -> None:
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or "=" not in stripped:
-            continue
-        key, _, value = stripped.partition("=")
-        key = key.strip()
-        value = value.strip().strip("\"").strip("'")
-        os.environ.setdefault(key, value)
-
-
-def find_env_file(start_dir: Path, explicit: Optional[Path]) -> Optional[Path]:
-    if explicit:
-        explicit = explicit.expanduser()
-        if explicit.exists():
-            return explicit
-        print(f"[WARN] .env file not found: {explicit}", file=sys.stderr)
-        return None
-
-    for parent in [start_dir, *start_dir.parents]:
-        candidate = parent / ".env"
-        if candidate.exists():
-            return candidate
-    return None
 
 
 def load_openai_client() -> "OpenAI":  # type: ignore[name-defined]
@@ -475,6 +456,19 @@ def summarise_pdf(
     vertex_location: Optional[str],
     vertex_embedding_model: str,
     vertex_embedding_dim: Optional[int],
+    gemini_api_key: Optional[str],
+    gemini_embedding_model: str,
+    gemini_task_type: str,
+    gemini_batch_size: int,
+    classify_ccs: bool,
+    ccs_taxonomy_path: Path,
+    ccs_model: str,
+    ccs_max_concepts: int,
+    ccs_top_candidates: int,
+    ccs_fallback_candidates: int,
+    ccs_temperature: float,
+    ccs_max_output_tokens: int,
+    ccs_embedding_model: Optional[str],
 ) -> Dict[str, object]:
     try:
         extractor_backend = build_extractor(
@@ -600,18 +594,6 @@ def summarise_pdf(
     }
 
     if compute_embeddings:
-        resolved_project = vertex_project or os.getenv("VERTEX_AI_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
-        resolved_location = vertex_location or os.getenv("VERTEX_AI_LOCATION") or "us-central1"
-        resolved_model = vertex_embedding_model or os.getenv("VERTEX_AI_EMBEDDING_MODEL") or "text-embedding-004"
-        resolved_dim = vertex_embedding_dim
-        if resolved_dim is None:
-            env_dim = os.getenv("VERTEX_AI_EMBEDDING_DIM")
-            if env_dim:
-                try:
-                    resolved_dim = int(env_dim)
-                except ValueError:
-                    print(f"[WARN] Ignoring invalid VERTEX_AI_EMBEDDING_DIM value: {env_dim}", file=sys.stderr)
-
         def _usable_section(value: object) -> Optional[str]:
             if value in (None, "", [], {}):
                 return None
@@ -639,6 +621,17 @@ def summarise_pdf(
                 normalize=embedding_normalize,
             )
         elif embedding_provider == "vertex-ai":
+            resolved_project = vertex_project or os.getenv("VERTEX_AI_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
+            resolved_location = vertex_location or os.getenv("VERTEX_AI_LOCATION") or "us-central1"
+            resolved_model = vertex_embedding_model or os.getenv("VERTEX_AI_EMBEDDING_MODEL") or "text-embedding-004"
+            resolved_dim = vertex_embedding_dim
+            if resolved_dim is None:
+                env_dim = os.getenv("VERTEX_AI_EMBEDDING_DIM")
+                if env_dim:
+                    try:
+                        resolved_dim = int(env_dim)
+                    except ValueError:
+                        print(f"[WARN] Ignoring invalid VERTEX_AI_EMBEDDING_DIM value: {env_dim}", file=sys.stderr)
             embeddings = maybe_compute_embeddings_vertex_ai(
                 sections,
                 project=resolved_project,
@@ -647,10 +640,60 @@ def summarise_pdf(
                 dimensionality=resolved_dim,
                 normalize=embedding_normalize,
             )
+        elif embedding_provider == "gemini":
+            embeddings = maybe_compute_embeddings_gemini(
+                sections,
+                api_key=gemini_api_key,
+                model_name=gemini_embedding_model or "models/text-embedding-004",
+                task_type=gemini_task_type,
+                normalize=embedding_normalize,
+                batch_size=gemini_batch_size,
+            )
         else:  # pragma: no cover - defensive
             raise ValueError(f"Unsupported embedding provider: {embedding_provider}")
         if embeddings:
             record["embeddings"] = embeddings
+
+    if classify_ccs:
+        taxonomy_path = ccs_taxonomy_path
+        if not taxonomy_path.exists():
+            raise ValueError(f"CCS taxonomy XML not found: {taxonomy_path}")
+        taxonomy = load_taxonomy(taxonomy_path)
+        classifier = CCSClassifier(
+            taxonomy,
+            embedding_model=None if ccs_embedding_model in (None, "", "none") else ccs_embedding_model,
+        )
+        summary_context = summary_to_prompt_text(record)
+        if not summary_context.strip():
+            raise ValueError("Cannot classify CCS concepts because the summary is empty.")
+        try:
+            outcome = classifier.classify(
+                record,
+                client,
+                model=ccs_model,
+                max_concepts=ccs_max_concepts,
+                top_candidates=ccs_top_candidates,
+                fallback_candidates=ccs_fallback_candidates,
+                temperature=ccs_temperature,
+                max_output_tokens=ccs_max_output_tokens,
+                summary_text=summary_context,
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            raise ValueError(f"Failed to classify CCS concepts: {exc}") from exc
+        record = outcome.record
+        record.setdefault("ccs_meta", {})
+        record["ccs_meta"]["taxonomy"] = str(taxonomy.source_path or taxonomy_path)
+        record["ccs_meta"]["model"] = ccs_model
+        record["ccs_meta"]["predictions"] = outcome.predictions
+        record["ccs_meta"]["candidates"] = [
+            {
+                "id": candidate.concept.concept_id,
+                "path": candidate.concept.full_path_string(),
+                "score": candidate.score,
+            }
+            for candidate in outcome.candidates
+        ]
+        record["ccs_meta"]["prompt"] = outcome.prompt
 
     return record
 
@@ -704,7 +747,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--embedding-provider",
-        choices=["local", "vertex-ai"],
+        choices=["local", "vertex-ai", "gemini"],
         default="local",
         help="Embedding backend to use when --embeddings is enabled.",
     )
@@ -731,7 +774,64 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         type=int,
         help="Optional output dimensionality when using Vertex AI embeddings.",
     )
+    parser.add_argument(
+        "--gemini-embedding-model",
+        default="models/text-embedding-004",
+        help="Gemini embedding model name (used when --embedding-provider=gemini).",
+    )
+    parser.add_argument(
+        "--gemini-task-type",
+        default="SEMANTIC_SIMILARITY",
+        help="Task type passed to the Gemini embedding API.",
+    )
+    parser.add_argument(
+        "--gemini-api-key",
+        help="Override GEMINI_API_KEY when using Gemini embeddings.",
+    )
+    parser.add_argument(
+        "--gemini-batch-size",
+        type=int,
+        default=32,
+        help="Maximum sections per Gemini embeddings request.",
+    )
     parser.set_defaults(embedding_normalize=True)
+
+    parser.add_argument(
+        "--classify-ccs",
+        action="store_true",
+        help="Run ACM CCS classification on the generated summary.",
+    )
+    parser.add_argument(
+        "--ccs-taxonomy",
+        type=Path,
+        default=REPO_ROOT / "ACM CCS" / "acm_ccs2012-1626988337597.xml",
+        help="Path to the ACM CCS taxonomy XML file.",
+    )
+    parser.add_argument(
+        "--ccs-model",
+        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-4.1-mini"),
+        help="OpenAI model to use for CCS classification.",
+    )
+    parser.add_argument("--ccs-max-concepts", type=int, default=3, help="Maximum CCS concepts to assign.")
+    parser.add_argument("--ccs-top-candidates", type=int, default=15, help="Candidate concepts to surface to the LLM.")
+    parser.add_argument(
+        "--ccs-fallback-candidates",
+        type=int,
+        default=25,
+        help="Candidates to surface when embeddings are unavailable.",
+    )
+    parser.add_argument("--ccs-temperature", type=float, default=0.1, help="Sampling temperature for CCS classification.")
+    parser.add_argument(
+        "--ccs-max-output",
+        type=int,
+        default=600,
+        help="Maximum tokens for the CCS classification response.",
+    )
+    parser.add_argument(
+        "--ccs-embedding-model",
+        default=os.getenv("CCS_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+        help="SentenceTransformer model used for CCS candidate retrieval (use 'none' to disable embeddings).",
+    )
 
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output.")
 
@@ -741,9 +841,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
 
-    env_path = find_env_file(Path.cwd(), args.env_file)
+    try:
+        env_path = load_env(explicit=args.env_file, start=Path.cwd())
+    except FileNotFoundError as exc:
+        print(f"[WARN] {exc}", file=sys.stderr)
+        env_path = None
     if env_path:
-        load_env_file(env_path)
         print(f"[INFO] Loaded environment variables from {env_path}", file=sys.stderr)
 
     try:
@@ -776,6 +879,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             vertex_location=args.vertex_location,
             vertex_embedding_model=args.vertex_embedding_model,
             vertex_embedding_dim=args.vertex_embedding_dim,
+            gemini_api_key=args.gemini_api_key,
+            gemini_embedding_model=args.gemini_embedding_model,
+            gemini_task_type=args.gemini_task_type,
+            gemini_batch_size=args.gemini_batch_size,
+            classify_ccs=args.classify_ccs,
+            ccs_taxonomy_path=args.ccs_taxonomy,
+            ccs_model=args.ccs_model,
+            ccs_max_concepts=args.ccs_max_concepts,
+            ccs_top_candidates=args.ccs_top_candidates,
+            ccs_fallback_candidates=args.ccs_fallback_candidates,
+            ccs_temperature=args.ccs_temperature,
+            ccs_max_output_tokens=args.ccs_max_output,
+            ccs_embedding_model=args.ccs_embedding_model,
         )
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)
