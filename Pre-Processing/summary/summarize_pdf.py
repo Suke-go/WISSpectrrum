@@ -19,9 +19,9 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence
 
 THIS_DIR = Path(__file__).resolve().parent
-REPO_ROOT = THIS_DIR.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+PREPROCESS_ROOT = THIS_DIR.parent
+if str(PREPROCESS_ROOT) not in sys.path:
+    sys.path.insert(0, str(PREPROCESS_ROOT))
 
 from embeddings import (
     maybe_compute_embeddings_gemini,
@@ -32,6 +32,9 @@ from ccs.classifier import CCSClassifier, summary_to_prompt_text
 from ccs.taxonomy import load_taxonomy
 from pdf_extractors import PdfExtractionError, PdfExtractionResult, TeiSection, build_extractor
 from utils.env import load_env
+from utils.paths import ACM_TAXONOMY_PATH, ensure_preprocess_path
+
+ensure_preprocess_path(PREPROCESS_ROOT)
 
 JAPANESE_HEADINGS: Dict[str, str] = {
     "overview": "\u6982\u8981",
@@ -214,14 +217,79 @@ def missing_text_token(language: str) -> str:
     return ENGLISH_MISSING
 
 
+def _model_supports_temperature(model: str) -> bool:
+    lower = (model or "").lower()
+    if lower.startswith("gpt-5"):
+        return False
+    return True
+
+
+def _extract_response_text(response: object) -> str:
+    raw = getattr(response, "output_text", None)
+    if raw is not None:
+        text = str(raw).strip()
+        if text:
+            return text
+
+    fragments: List[str] = []
+    for item in getattr(response, "output", []) or []:
+        content = getattr(item, "content", []) or []
+        for chunk in content:
+            text = getattr(chunk, "text", None)
+            if text:
+                fragments.append(str(text))
+    return "\n".join(fragments).strip()
+
+
 def call_openai(client: "OpenAI", *, model: str, messages: Sequence[Dict[str, str]], temperature: float, max_output_tokens: int) -> str:
-    response = client.responses.create(
-        model=model,
-        input=list(messages),
-        temperature=temperature,
-        max_output_tokens=max_output_tokens,
-    )
-    return response.output_text.strip()
+    attempt_tokens = max_output_tokens
+    max_attempts = 6
+    attempt = 0
+    while attempt < max_attempts:
+        attempt += 1
+        kwargs = {
+            "model": model,
+            "input": list(messages),
+            "max_output_tokens": attempt_tokens,
+        }
+        if _model_supports_temperature(model):
+            kwargs["temperature"] = temperature
+
+        try:
+            response = client.responses.create(**kwargs)
+        except Exception as exc:
+            message = str(exc)
+            if "Unsupported parameter" in message and "temperature" in message and "temperature" in kwargs:
+                kwargs.pop("temperature", None)
+                response = client.responses.create(**kwargs)
+            else:
+                raise
+
+        text = _extract_response_text(response)
+        status = getattr(response, "status", "completed")
+        reason = getattr(getattr(response, "incomplete_details", None), "reason", None)
+
+        if status != "completed" and reason == "max_output_tokens":
+            if attempt_tokens < 2200:
+                attempt_tokens = 2200
+            else:
+                attempt_tokens = min(3000, attempt_tokens + 200)
+            print(
+                f"[WARN] OpenAI response truncated at max_output_tokens; retrying with {attempt_tokens}.",
+                file=sys.stderr,
+            )
+            continue
+
+        if text:
+            if status != "completed":
+                print(f"[WARN] OpenAI response incomplete ({status}); proceeding with available text.", file=sys.stderr)
+            return text
+
+        if attempt < max_attempts:
+            print("[WARN] OpenAI response was empty; retrying request.", file=sys.stderr)
+            continue
+
+        raise ValueError("Received empty response from OpenAI.")
 
 
 def strip_json_fence(text: str) -> str:
@@ -269,6 +337,60 @@ def extract_metadata(client: "OpenAI", *, model: str, excerpt: str, temperature:
         return {}
 
 
+def translate_record_to_english(
+    client: "OpenAI",
+    *,
+    model: str,
+    record: Dict[str, object],
+    missing_token: str,
+    temperature: float,
+    max_output_tokens: int,
+) -> Optional[Dict[str, object]]:
+    payload = {
+        "title": record.get("title"),
+        "authors": record.get("authors"),
+        "abstract": record.get("abstract"),
+        "positioning_summary": record.get("positioning_summary"),
+        "purpose_summary": record.get("purpose_summary"),
+        "method_summary": record.get("method_summary"),
+        "evaluation_summary": record.get("evaluation_summary"),
+        "links": record.get("links"),
+        "metadata": {
+            "year": record.get("year"),
+            "ccs": record.get("ccs"),
+        },
+    }
+    system_prompt = (
+        "You are a precise technical translator. Convert the provided Japanese fields into fluent, concise English while preserving meaning. "
+        "Maintain JSON structure and keep missing fields set to \"Not specified\"."
+    )
+    user_prompt = (
+        "Translate the following JSON values into English. Output JSON with the same keys. "
+        f"If a value is missing or equals \"{missing_token}\", output \"Not specified\" for that field.\n\n"
+        f"{json.dumps(payload, ensure_ascii=False, indent=2)}"
+    )
+    raw = call_openai(
+        client,
+        model=model,
+        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+        temperature=temperature,
+        max_output_tokens=max_output_tokens,
+    )
+    try:
+        translated = parse_json_response(raw)
+    except ValueError:
+        print("[WARN] English translation failed to produce JSON; skipping dual-language output.", file=sys.stderr)
+        return None
+
+    def _normalize(value: object) -> object:
+        if isinstance(value, str) and value.strip() == "":
+            return "Not specified"
+        return value
+
+    normalized = {key: _normalize(value) for key, value in translated.items()}
+    return normalized
+
+
 def summarize_chunk(
     client: "OpenAI",
     *,
@@ -281,7 +403,9 @@ def summarize_chunk(
     temperature: float,
 ) -> str:
     system_prompt = (
-        "You are a research assistant who writes clear, literal notes without metaphors."
+        "You are a research assistant who writes clear, literal notes without metaphors. "
+        "Replace specific proper nouns (systems, organisations, products, datasets, people) with neutral descriptors such as "
+        "\"本研究\", \"本システム\", or language-appropriate equivalents unless the exact name is essential to understand the claim."
     )
 
     overview_label = headings["overview"]
@@ -302,9 +426,10 @@ def summarize_chunk(
     )
     user_prompt = (
         f"You will get a portion of a research paper. Using only that portion, "
-        f"write concise bullet notes in {language}. Group the notes under the headings listed below. "
-        f"Each heading should have 1-2 bullets, and each bullet should contain 1-2 sentences with concrete details. "
-        f"If the excerpt lacks information for a heading, write '{missing_token}'."
+        f"write concise bullet notes in {language}. Provide exactly one bullet under each heading, and keep each bullet to at most two sentences with concrete details. "
+        f"If the excerpt lacks information for a heading, output only '{missing_token}' for that heading. "
+        "Keep every bullet self-contained: restate the focal subject or action within the bullet so it is understandable in isolation. "
+        "Distribute the crucial details across the bullet rather than placing them only at the beginning, and, when possible, repeat key terms near the end to reduce positional bias for embeddings."
         "\n\nHeadings:\n"
         f"{heading_lines}\n\n"
         "Guidance:\n"
@@ -335,7 +460,9 @@ def synthesize_record(
 ) -> Dict[str, object]:
     system_prompt = (
         "You are a research assistant who produces structured JSON summaries. "
-        "Keep the tone literal and avoid metaphors."
+        "Keep the tone literal and avoid metaphors. "
+        "Replace specific proper nouns (systems, organisations, products, datasets, people) with neutral descriptors such as "
+        "\"本研究\", \"本システム\", or language-appropriate equivalents unless the exact name is indispensable for meaning."
     )
     hint_lines = []
     for key, value in metadata_hints.items():
@@ -370,7 +497,11 @@ def synthesize_record(
     user_prompt = (
         f"Generate a JSON object that follows the schema below. "
         f"Write all textual fields in {language} with clear, literal sentences. Avoid metaphors and excessive jargon. "
-        f"For each *_summary field, write 4 sentences (maximum 6). The first sentence should restate the central idea, and the second sentence should mention specific details such as targets, mechanisms, participants, or quantitative outcomes when available. "
+        "When you encounter proper nouns for systems, organisations, datasets, or people, replace them with neutral descriptors such as "
+        "\"本研究\" or language-appropriate equivalents unless the exact name is indispensable. "
+        f"For each *_summary field, write 2 sentences (maximum 3). The first sentence should restate the central idea, and the second sentence should mention specific details such as targets, mechanisms, participants, or quantitative outcomes when available. "
+        "Ensure every sentence is self-contained: restate the subject within the same sentence instead of referring back to earlier sentences, "
+        "and distribute important keywords across the sentence (including towards the end) so the information is not front-loaded. "
         f"For {headings['evaluation']} specifically, ensure the sentences cover both the evaluation methodology and the observed results. "
         f"If information is unavailable, output '{missing_token}' for summaries and null/[] for other fields as appropriate."
         "\n\nSchema:\n"
@@ -381,14 +512,26 @@ def synthesize_record(
         f"{notes_block}\n\n"
         "Return JSON only."
     )
-    raw = call_openai(
-        client,
-        model=model,
-        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
-        temperature=temperature,
-        max_output_tokens=max_output_tokens,
-    )
-    return parse_json_response(raw)
+    attempt_tokens = max_output_tokens
+    for attempt in range(2):
+        raw = call_openai(
+            client,
+            model=model,
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            temperature=temperature,
+            max_output_tokens=attempt_tokens,
+        )
+        try:
+            return parse_json_response(raw)
+        except ValueError:
+            if attempt == 0 and attempt_tokens < 3000:
+                attempt_tokens = min(3000, max(2200, attempt_tokens + 300))
+                print(
+                    f"[WARN] Final synthesis JSON parsing failed; retrying with max_output_tokens={attempt_tokens}.",
+                    file=sys.stderr,
+                )
+                continue
+            raise
 
 
 def prefer_cli(cli_value, extracted_value):
@@ -449,6 +592,7 @@ def summarise_pdf(
     ccs_paths_cli: Optional[List[str]],
     ccs_ids_cli: Optional[List[str]],
     compute_embeddings: bool,
+    section_embeddings: bool = False,
     embedding_model: str,
     embedding_normalize: bool,
     embedding_provider: str,
@@ -469,6 +613,7 @@ def summarise_pdf(
     ccs_temperature: float,
     ccs_max_output_tokens: int,
     ccs_embedding_model: Optional[str],
+    dual_language: bool = False,
 ) -> Dict[str, object]:
     try:
         extractor_backend = build_extractor(
@@ -593,6 +738,21 @@ def summarise_pdf(
         "code": code_link or structured.get("code") or extraction_metadata.get("code") or metadata_llm.get("code"),
     }
 
+    translations: Dict[str, Dict[str, object]] = {}
+    if dual_language:
+        english_translation = translate_record_to_english(
+            client,
+            model=model,
+            record=record,
+            missing_token=missing_token,
+            temperature=max(0.0, min(temperature, 0.5)),
+            max_output_tokens=1200,
+        )
+        if english_translation:
+            translations["en"] = english_translation
+    if translations:
+        record["translations"] = translations
+
     if compute_embeddings:
         def _usable_section(value: object) -> Optional[str]:
             if value in (None, "", [], {}):
@@ -706,7 +866,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("pdf", type=Path, help="Path to the PDF file.")
     parser.add_argument("-o", "--output", type=Path, help="Where to write the JSON output (defaults to stdout).")
     parser.add_argument("--env-file", type=Path, help="Optional .env file with OPENAI_API_KEY.")
-    parser.add_argument("--model", default="gpt-4o-mini", help="OpenAI model name to use.")
+    parser.add_argument(
+        "--model",
+        default="gpt-5-mini",
+        help="OpenAI Responses model to use (e.g. 'gpt-5-mini', 'gpt-5').",
+    )
     parser.add_argument(
         "--extractor",
         choices=["pypdf", "grobid"],
@@ -726,10 +890,25 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--language", default="Japanese", help="Language for the summaries (e.g. 'Japanese', 'English').")
     parser.add_argument("--chunk-size", type=int, default=2500, help="Approximate number of characters per chunk.")
     parser.add_argument("--overlap", type=int, default=250, help="Overlap between chunks in characters.")
-    parser.add_argument("--temperature", type=float, default=0.2, help="Sampling temperature for all LLM calls.")
-    parser.add_argument("--chunk-max-output", type=int, default=400, help="Maximum tokens for each chunk summary call.")
-    parser.add_argument("--final-max-output", type=int, default=900, help="Maximum tokens for the final synthesis call.")
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.2,
+        help="Sampling temperature for all LLM calls (ignored by GPT-5 family models).",
+    )
+    parser.add_argument(
+        "--chunk-max-output",
+        type=int,
+        default=1600,
+        help="Maximum tokens for each chunk summary call (higher default reduces repeated truncation retries).",
+    )
+    parser.add_argument("--final-max-output", type=int, default=1200, help="Maximum tokens for the final synthesis call.")
     parser.add_argument("--metadata-chars", type=int, default=4000, help="Characters from the PDF start used for metadata extraction prompts.")
+    parser.add_argument(
+        "--dual-language",
+        action="store_true",
+        help="Generate English translations for summary fields (stored under translations.en).",
+    )
 
     parser.add_argument("--paper-id", help="Preferred identifier (e.g. DOI) for the output JSON.")
     parser.add_argument("--title", help="Override paper title used in the output JSON.")
@@ -804,12 +983,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--ccs-taxonomy",
         type=Path,
-        default=REPO_ROOT / "ACM CCS" / "acm_ccs2012-1626988337597.xml",
+        default=ACM_TAXONOMY_PATH,
         help="Path to the ACM CCS taxonomy XML file.",
     )
     parser.add_argument(
         "--ccs-model",
-        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-4.1-mini"),
+        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-5"),
         help="OpenAI model to use for CCS classification.",
     )
     parser.add_argument("--ccs-max-concepts", type=int, default=3, help="Maximum CCS concepts to assign.")
@@ -820,11 +999,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=25,
         help="Candidates to surface when embeddings are unavailable.",
     )
-    parser.add_argument("--ccs-temperature", type=float, default=0.1, help="Sampling temperature for CCS classification.")
+    parser.add_argument(
+        "--ccs-temperature",
+        type=float,
+        default=0.1,
+        help="Sampling temperature for CCS classification (ignored by GPT-5 family models).",
+    )
     parser.add_argument(
         "--ccs-max-output",
         type=int,
-        default=600,
+        default=900,
         help="Maximum tokens for the CCS classification response.",
     )
     parser.add_argument(
@@ -892,6 +1076,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             ccs_temperature=args.ccs_temperature,
             ccs_max_output_tokens=args.ccs_max_output,
             ccs_embedding_model=args.ccs_embedding_model,
+            dual_language=args.dual_language,
         )
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)

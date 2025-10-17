@@ -226,6 +226,7 @@ def maybe_compute_embeddings_gemini(
         "dim": dimension,
         "normed": normalize,
     }
+    result["task_type"] = task_type
     for key, vector in zip(collected_keys, vectors):
         result["sections"][key] = vector
         result[key] = vector

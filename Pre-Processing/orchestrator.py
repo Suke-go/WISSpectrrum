@@ -16,12 +16,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
-THIS_DIR = Path(__file__).resolve().parent
-if str(THIS_DIR) not in sys.path:
-    sys.path.insert(0, str(THIS_DIR))
-
-from summary.summarize_pdf import summarise_pdf  # type: ignore  # noqa: E402
 from utils.env import load_env  # noqa: E402
+from utils.paths import (  # noqa: E402
+    ACM_TAXONOMY_PATH,
+    STATE_DB_PATH,
+    SUMMARIES_DIR,
+    ensure_preprocess_path,
+)
 from utils.state import (  # noqa: E402
     PipelineState,
     STATUS_DONE,
@@ -30,10 +31,11 @@ from utils.state import (  # noqa: E402
     STATUS_RUNNING,
 )
 
-REPO_ROOT = THIS_DIR
-DEFAULT_DB_PATH = REPO_ROOT / "data" / "pipeline_state.db"
-DEFAULT_OUTPUT_DIR = REPO_ROOT / "output" / "summaries"
-DEFAULT_TAXONOMY_PATH = REPO_ROOT / "ACM CCS" / "acm_ccs2012-1626988337597.xml"
+ensure_preprocess_path()
+from summary.summarize_pdf import summarise_pdf  # type: ignore  # noqa: E402
+DEFAULT_DB_PATH = STATE_DB_PATH
+DEFAULT_OUTPUT_DIR = SUMMARIES_DIR
+DEFAULT_TAXONOMY_PATH = ACM_TAXONOMY_PATH
 
 
 @dataclass
@@ -41,17 +43,19 @@ class SummariserConfig:
     extractor: str = "pypdf"
     grobid_url: Optional[str] = None
     grobid_timeout: float = 5.0
-    model: str = "gpt-4o-mini"
+    model: str = "gpt-5-mini"
     language: str = "Japanese"
     chunk_size: int = 2500
     overlap: int = 250
     temperature: float = 0.2
-    chunk_max_tokens: int = 400
-    final_max_tokens: int = 900
+    chunk_max_tokens: int = 1600
+    final_max_tokens: int = 1200
     metadata_chars: int = 4000
+    dual_language: bool = True
     compute_embeddings: bool = True
+    section_embeddings: bool = False
     embedding_provider: str = "gemini"
-    embedding_model: str = "intfloat/multilingual-e5-large-instruct"
+    embedding_model: Optional[str] = None
     embedding_normalize: bool = True
     vertex_project: Optional[str] = None
     vertex_location: Optional[str] = None
@@ -63,12 +67,12 @@ class SummariserConfig:
     gemini_batch_size: int = 32
     classify_ccs: bool = True
     ccs_taxonomy_path: Path = field(default_factory=lambda: DEFAULT_TAXONOMY_PATH)
-    ccs_model: str = "gpt-4.1-mini"
+    ccs_model: str = "gpt-5"
     ccs_max_concepts: int = 3
     ccs_top_candidates: int = 15
     ccs_fallback_candidates: int = 25
     ccs_temperature: float = 0.1
-    ccs_max_output_tokens: int = 600
+    ccs_max_output_tokens: int = 900
     ccs_embedding_model: Optional[str] = "sentence-transformers/all-MiniLM-L6-v2"
 
     def apply_overrides(self, overrides: Dict[str, object]) -> None:
@@ -169,6 +173,14 @@ def run_jobs(
             break
         state.mark_running(job.job_id)
         try:
+            embedding_model = config.embedding_model
+            if not embedding_model:
+                if config.embedding_provider == "gemini":
+                    embedding_model = config.gemini_embedding_model
+                elif config.embedding_provider == "local":
+                    embedding_model = "intfloat/multilingual-e5-large-instruct"
+                else:
+                    embedding_model = config.vertex_embedding_model
             record = summarise_pdf(
                 job.pdf_path,
                 extractor=config.extractor,
@@ -191,7 +203,8 @@ def run_jobs(
                 ccs_paths_cli=None,
                 ccs_ids_cli=None,
                 compute_embeddings=config.compute_embeddings,
-                embedding_model=config.embedding_model,
+                section_embeddings=config.section_embeddings,
+                embedding_model=embedding_model,
                 embedding_normalize=config.embedding_normalize,
                 embedding_provider=config.embedding_provider,
                 vertex_project=config.vertex_project,
@@ -199,7 +212,6 @@ def run_jobs(
                 vertex_embedding_model=config.vertex_embedding_model,
                 vertex_embedding_dim=config.vertex_embedding_dim,
                 gemini_api_key=config.gemini_api_key,
-                gemini_embedding_model=config.gemini_embedding_model,
                 gemini_task_type=config.gemini_task_type,
                 gemini_batch_size=config.gemini_batch_size,
                 classify_ccs=config.classify_ccs,
@@ -211,6 +223,7 @@ def run_jobs(
                 ccs_temperature=config.ccs_temperature,
                 ccs_max_output_tokens=config.ccs_max_output_tokens,
                 ccs_embedding_model=config.ccs_embedding_model,
+                dual_language=config.dual_language,
             )
             json_text = json.dumps(record, ensure_ascii=False, indent=2 if pretty else None)
             job.summary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -258,6 +271,8 @@ def handle_run(args: argparse.Namespace) -> int:
             overrides["compute_embeddings"] = False
         if args.disable_ccs:
             overrides["classify_ccs"] = False
+        if args.dual_language:
+            overrides["dual_language"] = True
         if args.chunk_size is not None:
             overrides["chunk_size"] = args.chunk_size
         if args.temperature is not None:
@@ -310,11 +325,16 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output.")
     run_parser.add_argument("--model", help="Override the OpenAI model used for summarisation.")
     run_parser.add_argument("--language", help="Override summary language.")
+    run_parser.add_argument("--dual-language", action="store_true", help="Generate English translations in addition to the primary language.")
     run_parser.add_argument("--embedding-provider", choices=["local", "vertex-ai", "gemini"], help="Override embedding provider.")
     run_parser.add_argument("--disable-embeddings", action="store_true", help="Skip embedding generation.")
     run_parser.add_argument("--disable-ccs", action="store_true", help="Skip ACM CCS classification.")
     run_parser.add_argument("--chunk-size", type=int, help="Override chunk size used for summarisation.")
-    run_parser.add_argument("--temperature", type=float, help="Override sampling temperature.")
+    run_parser.add_argument(
+        "--temperature",
+        type=float,
+        help="Override sampling temperature (ignored by GPT-5 family models).",
+    )
     run_parser.set_defaults(func=handle_run)
 
     status_parser = subparsers.add_parser("status", help="Print counts of jobs by status.")
@@ -332,4 +352,3 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())
-

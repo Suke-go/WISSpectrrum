@@ -13,9 +13,13 @@ from typing import Dict, Iterable, List, Optional
 THIS_DIR = Path(__file__).resolve().parent
 if str(THIS_DIR) not in sys.path:
     sys.path.insert(0, str(THIS_DIR))
+PROJECT_DIR = THIS_DIR.parent
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
 
 from classifier import CCSClassifier, summary_to_prompt_text  # noqa: E402
 from taxonomy import CCSTaxonomy, load_taxonomy  # noqa: E402
+from utils.env import load_env  # type: ignore  # noqa: E402
 
 
 def load_openai_client():
@@ -40,23 +44,44 @@ def load_summary(path: Path) -> Dict[str, object]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("summaries", nargs="+", type=Path, help="Summary JSON files to classify.")
+    parser.add_argument("--env-file", type=Path, help="Optional .env file to load before running.")
     parser.add_argument("--xml", type=Path, default=THIS_DIR.parent.parent / "ACM CCS" / "acm_ccs2012-1626988337597.xml", help="Path to the CCS XML file.")
-    parser.add_argument("--model", default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-4.1-mini"), help="OpenAI Responses model to use.")
+    parser.add_argument(
+        "--model",
+        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-5"),
+        help="OpenAI Responses model to use (e.g. 'gpt-5', 'gpt-5-mini').",
+    )
     parser.add_argument("--max-concepts", type=int, default=3, help="Maximum number of CCS concepts to assign per paper.")
     parser.add_argument("--top-candidates", type=int, default=15, help="Number of candidate concepts to surface to the LLM.")
     parser.add_argument("--fallback-candidates", type=int, default=25, help="Number of candidates when embeddings are unavailable.")
-    parser.add_argument("--embedding-model", default=os.getenv("CCS_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"), help="SentenceTransformer model name. Use 'none' to disable embeddings.")
-    parser.add_argument("--temperature", type=float, default=0.1, help="LLM decoding temperature.")
+    parser.add_argument(
+        "--embedding-model",
+        default=os.getenv("CCS_EMBEDDING_MODEL", "models/text-embedding-004"),
+        help="Embedding model identifier (Gemini or SentenceTransformer). Use 'none' to disable embeddings.",
+    )
+    parser.add_argument(
+        "--embedding-cache",
+        type=Path,
+        default=os.getenv("CCS_EMBEDDING_CACHE"),
+        help="Directory to cache CCS concept embeddings (defaults to a .cache folder next to this script).",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.1,
+        help="LLM decoding temperature (ignored by GPT-5 family models).",
+    )
     parser.add_argument("--max-output-tokens", type=int, default=600, help="Maximum tokens for the LLM response.")
     parser.add_argument("--update", action="store_true", help="Update the input summary files in-place with CCS predictions.")
     parser.add_argument("--output", type=Path, help="Optional JSONL report of classifications.")
     return parser
 
 
-def ensure_classifier(taxonomy: CCSTaxonomy, embedding_model: Optional[str]) -> CCSClassifier:
+def ensure_classifier(taxonomy: CCSTaxonomy, embedding_model: Optional[str], embedding_cache: Optional[Path]) -> CCSClassifier:
     classifier = CCSClassifier(
         taxonomy,
         embedding_model=embedding_model,
+        embedding_cache_dir=embedding_cache,
     )
     return classifier
 
@@ -65,9 +90,14 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    env_path = load_env(explicit=args.env_file, start=Path.cwd())
+    if env_path:
+        print(f"[INFO] Loaded environment variables from {env_path}", file=sys.stderr)
+
     taxonomy = load_taxonomy(args.xml)
     embedding_model = None if args.embedding_model == "none" else args.embedding_model
-    classifier = ensure_classifier(taxonomy, embedding_model)
+    embedding_cache = Path(args.embedding_cache).expanduser() if args.embedding_cache else None
+    classifier = ensure_classifier(taxonomy, embedding_model, embedding_cache)
     client = load_openai_client()
 
     results: List[Dict[str, object]] = []

@@ -78,8 +78,32 @@ class PyPdfExtractor(PdfExtractor):
             if stripped:
                 pages.append(stripped)
         if not pages:
+            fallback_text = self._extract_with_pdfminer(pdf_path)
+            if fallback_text:
+                print("[INFO] Falling back to pdfminer for text extraction.", file=sys.stderr)
+                return PdfExtractionResult(text=fallback_text)
             raise PdfExtractionError("No extractable text found in the PDF.")
         return PdfExtractionResult(text="\n\n".join(pages))
+
+    def _extract_with_pdfminer(self, pdf_path: Path) -> Optional[str]:
+        try:
+            from pdfminer.high_level import extract_text  # type: ignore
+        except ImportError:
+            print("[WARN] pdfminer.six is not installed; skipping fallback extraction.", file=sys.stderr)
+            return None
+
+        try:
+            text = extract_text(str(pdf_path))
+        except Exception as exc:  # pragma: no cover - defensive
+            print(f"[WARN] pdfminer failed to extract text: {exc}", file=sys.stderr)
+            return None
+
+        stripped = text.strip()
+        if not stripped:
+            return None
+        # Collapse consecutive blank lines to keep output manageable.
+        lines = [line.strip() for line in stripped.splitlines() if line.strip()]
+        return "\n\n".join(lines)
 
 
 class GrobidExtractor(PdfExtractor):

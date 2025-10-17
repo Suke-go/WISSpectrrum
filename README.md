@@ -91,6 +91,7 @@
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id` (repeatable)
   - `--chunk-size`, `--overlap` (default 2500/250 chars)
+  - `--temperature` to tune sampling (ignored when the selected model is in the GPT-5 family)
   - `--max-concurrency` to parallelise chunk summaries when your API quota supports it
   - `--embeddings --embedding-provider local` (produces vectors for each summary section — positioning/purpose/method/evaluation and the abstract when available)
   - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004` (uses the same section-wise output backed by Vertex AI embeddings)
@@ -116,7 +117,7 @@
 - Use a JSON config to override summariser settings—store it under version control for reproducibility:
   ```json
   {
-    "model": "gpt-4.1-mini",
+    "model": "gpt-5-mini",
     "language": "Japanese",
     "chunk_size": 2800,
     "embedding_provider": "gemini",
@@ -204,7 +205,7 @@
   ```bash
   OPENAI_API_KEY=... \
   python Pre-Processing/ccs/classify_ccs.py summaries/*.json \
-      --model gpt-4.1-mini \
+      --model gpt-5 \
       --embedding-model sentence-transformers/all-MiniLM-L6-v2 \
       --top-candidates 15 \
       --max-concepts 3 \
@@ -328,6 +329,7 @@
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id`（複数指定可）
   - `--chunk-size` / `--overlap`（既定値 2500 / 250 文字）
+  - `--temperature`（サンプリング温度の調整。GPT-5 ファミリーを選ぶと無視されます）
   - `--max-concurrency`: API 制限に余裕がある場合にチャンク要約を並列化
   - `--embeddings --embedding-provider local`（Sentence Transformers でサマリー各セクション：位置づけ／目的／手法／評価（可能なら概要）を個別に埋め込み化）
   - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004`（同じセクション構造で Vertex AI Embeddings を利用）
@@ -353,7 +355,7 @@
 - サマライザ用の設定を JSON でまとめておくと再現性が高まります。例:
   ```json
   {
-    "model": "gpt-4.1-mini",
+    "model": "gpt-5-mini",
     "language": "Japanese",
     "chunk_size": 2800,
     "embedding_provider": "gemini",
@@ -436,7 +438,7 @@
   ```bash
   OPENAI_API_KEY=... \
   python Pre-Processing/ccs/classify_ccs.py summaries/*.json \
-      --model gpt-4.1-mini \
+      --model gpt-5 \
       --embedding-model sentence-transformers/all-MiniLM-L6-v2 \
       --top-candidates 15 \
       --max-concepts 3 \
