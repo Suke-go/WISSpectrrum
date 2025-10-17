@@ -614,6 +614,7 @@ def summarise_pdf(
     ccs_max_output_tokens: int,
     ccs_embedding_model: Optional[str],
     dual_language: bool = False,
+    flatten_translations: bool = False,
 ) -> Dict[str, object]:
     try:
         extractor_backend = build_extractor(
@@ -752,6 +753,24 @@ def summarise_pdf(
             translations["en"] = english_translation
     if translations:
         record["translations"] = translations
+
+    # Optionally flatten English translations into top-level *_en fields
+    if flatten_translations and record.get("translations") and isinstance(record["translations"], dict):
+        en = record["translations"].get("en")  # type: ignore[index]
+        if isinstance(en, dict):
+            def _copy_en(src_key: str, dest_key: str) -> None:
+                if dest_key in record:
+                    return
+                if src_key in en:
+                    record[dest_key] = en[src_key]
+
+            _copy_en("title", "title_en")
+            _copy_en("authors", "authors_en")
+            _copy_en("abstract", "abstract_en")
+            _copy_en("positioning_summary", "positioning_summary_en")
+            _copy_en("purpose_summary", "purpose_summary_en")
+            _copy_en("method_summary", "method_summary_en")
+            _copy_en("evaluation_summary", "evaluation_summary_en")
 
     if compute_embeddings:
         def _usable_section(value: object) -> Optional[str]:
@@ -908,6 +927,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--dual-language",
         action="store_true",
         help="Generate English translations for summary fields (stored under translations.en).",
+    )
+    parser.add_argument(
+        "--flatten-translations",
+        action="store_true",
+        help="Copy English translation fields into top-level *_en keys (e.g., title_en, abstract_en, method_summary_en).",
     )
 
     parser.add_argument("--paper-id", help="Preferred identifier (e.g. DOI) for the output JSON.")
@@ -1077,6 +1101,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             ccs_max_output_tokens=args.ccs_max_output,
             ccs_embedding_model=args.ccs_embedding_model,
             dual_language=args.dual_language,
+            flatten_translations=args.flatten_translations,
         )
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)

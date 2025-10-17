@@ -52,6 +52,7 @@ class SummariserConfig:
     final_max_tokens: int = 1200
     metadata_chars: int = 4000
     dual_language: bool = True
+    flatten_translations: bool = False
     compute_embeddings: bool = True
     section_embeddings: bool = False
     embedding_provider: str = "gemini"
@@ -224,6 +225,7 @@ def run_jobs(
                 ccs_max_output_tokens=config.ccs_max_output_tokens,
                 ccs_embedding_model=config.ccs_embedding_model,
                 dual_language=config.dual_language,
+                flatten_translations=config.flatten_translations,
             )
             json_text = json.dumps(record, ensure_ascii=False, indent=2 if pretty else None)
             job.summary_path.parent.mkdir(parents=True, exist_ok=True)
@@ -273,6 +275,8 @@ def handle_run(args: argparse.Namespace) -> int:
             overrides["classify_ccs"] = False
         if args.dual_language:
             overrides["dual_language"] = True
+        if getattr(args, "flatten_translations", False):
+            overrides["flatten_translations"] = True
         if args.chunk_size is not None:
             overrides["chunk_size"] = args.chunk_size
         if args.temperature is not None:
@@ -326,6 +330,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--model", help="Override the OpenAI model used for summarisation.")
     run_parser.add_argument("--language", help="Override summary language.")
     run_parser.add_argument("--dual-language", action="store_true", help="Generate English translations in addition to the primary language.")
+    run_parser.add_argument(
+        "--flatten-translations",
+        action="store_true",
+        help="Copy English translation fields into top-level *_en keys (e.g., title_en, abstract_en).",
+    )
     run_parser.add_argument("--embedding-provider", choices=["local", "vertex-ai", "gemini"], help="Override embedding provider.")
     run_parser.add_argument("--disable-embeddings", action="store_true", help="Skip embedding generation.")
     run_parser.add_argument("--disable-ccs", action="store_true", help="Skip ACM CCS classification.")
