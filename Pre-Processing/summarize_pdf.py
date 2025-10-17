@@ -15,8 +15,10 @@ import json
 import os
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from embeddings import (
     maybe_compute_embeddings_local,
@@ -97,6 +99,21 @@ SECTION_CATEGORY_KEYWORDS = {
         "調査",
     ],
 }
+
+
+@lru_cache(maxsize=1)
+def load_ccs_support() -> Tuple[object, Callable[[Dict[str, object]], str], Callable[[Path], object]]:
+    ccs_dir = Path(__file__).resolve().parent / "ccs"
+    if not ccs_dir.exists():
+        raise RuntimeError(f"CCS utilities not found at {ccs_dir}")
+    if str(ccs_dir) not in sys.path:
+        sys.path.append(str(ccs_dir))
+    try:
+        from classifier import CCSClassifier, summary_to_prompt_text  # type: ignore
+        from taxonomy import load_taxonomy  # type: ignore
+    except ImportError as exc:  # pragma: no cover - defensive
+        raise RuntimeError(f"Failed to import CCS helpers: {exc}") from exc
+    return CCSClassifier, summary_to_prompt_text, load_taxonomy
 
 
 def load_env_file(path: Path) -> None:
@@ -475,6 +492,16 @@ def summarise_pdf(
     vertex_location: Optional[str],
     vertex_embedding_model: str,
     vertex_embedding_dim: Optional[int],
+    classify_ccs: bool,
+    ccs_model: Optional[str],
+    ccs_embedding_model: Optional[str],
+    ccs_top_candidates: int,
+    ccs_fallback_candidates: int,
+    ccs_max_concepts: int,
+    ccs_temperature: float,
+    ccs_max_output_tokens: int,
+    ccs_xml_path: Optional[Path],
+    max_concurrency: int,
 ) -> Dict[str, object]:
     try:
         extractor_backend = build_extractor(
@@ -520,20 +547,40 @@ def summarise_pdf(
     if not chunks:
         raise ValueError("Failed to create text chunks for summarisation.")
 
-    chunk_notes: List[str] = []
-    for idx, chunk in enumerate(chunks, start=1):
-        print(f"[INFO] Summarising chunk {idx}/{len(chunks)} ({len(chunk)} chars)...", file=sys.stderr)
-        note = summarize_chunk(
+    max_workers = max(1, min(int(max_concurrency or 1), len(chunks)))
+    chunk_notes: List[str] = ["" for _ in chunks]
+
+    def _summarise_single(indexed_chunk: Tuple[int, str]) -> Tuple[int, str]:
+        idx, chunk_text_value = indexed_chunk
+        print(
+            f"[INFO] Summarising chunk {idx}/{len(chunks)} ({len(chunk_text_value)} chars)...",
+            file=sys.stderr,
+        )
+        note_value = summarize_chunk(
             client,
             model=model,
             language=language,
-            content=chunk,
+            content=chunk_text_value,
             headings=headings,
             missing_token=missing_token,
             max_output_tokens=chunk_max_tokens,
             temperature=temperature,
         )
-        chunk_notes.append(note)
+        return idx - 1, note_value
+
+    indexed_chunks = list(enumerate(chunks, start=1))
+    if max_workers == 1:
+        for idx, chunk in indexed_chunks:
+            position, note = _summarise_single((idx, chunk))
+            chunk_notes[position] = note
+    else:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(_summarise_single, payload): payload[0] for payload in indexed_chunks
+            }
+            for future in as_completed(futures):
+                position, note = future.result()
+                chunk_notes[position] = note
 
     metadata_hints: Dict[str, object] = {
         "id": paper_id,
@@ -598,6 +645,47 @@ def summarise_pdf(
         "pdf": pdf_link or structured.get("pdf") or extraction_metadata.get("pdf") or metadata_llm.get("pdf"),
         "code": code_link or structured.get("code") or extraction_metadata.get("code") or metadata_llm.get("code"),
     }
+
+    if classify_ccs:
+        if ccs_paths_cli or ccs_ids_cli:
+            print("[INFO] Skipping automatic CCS classification because manual labels were supplied.", file=sys.stderr)
+        else:
+            try:
+                CCSClassifier, ccs_summary_builder, load_taxonomy = load_ccs_support()
+            except RuntimeError as exc:
+                print(f"[WARN] CCS support unavailable: {exc}", file=sys.stderr)
+            else:
+                default_ccs_xml = Path(__file__).resolve().parent.parent / "ACM CCS" / "acm_ccs2012-1626988337597.xml"
+                taxonomy_path = ccs_xml_path or default_ccs_xml
+                if not taxonomy_path.exists():
+                    print(f"[WARN] CCS XML not found at {taxonomy_path}. Skipping classification.", file=sys.stderr)
+                else:
+                    try:
+                        taxonomy = load_taxonomy(taxonomy_path)
+                        embedding_model = ccs_embedding_model if ccs_embedding_model != "none" else None
+                        classifier = CCSClassifier(taxonomy, embedding_model=embedding_model)
+                        summary_text = ccs_summary_builder(record)
+                        outcome = classifier.classify(
+                            record,
+                            client,
+                            model=ccs_model or model,
+                            max_concepts=ccs_max_concepts,
+                            top_candidates=ccs_top_candidates,
+                            fallback_candidates=ccs_fallback_candidates,
+                            temperature=ccs_temperature,
+                            max_output_tokens=ccs_max_output_tokens,
+                            summary_text=summary_text,
+                        )
+                    except ValueError as exc:
+                        print(f"[WARN] CCS classification failed: {exc}", file=sys.stderr)
+                    except SystemExit as exc:  # propagated from SentenceTransformer load
+                        print(f"[WARN] {exc}", file=sys.stderr)
+                    else:
+                        record = outcome.record
+                        assigned_ids = record.get("ccs", {}).get("ids") or []
+                        if assigned_ids:
+                            id_list = ", ".join(assigned_ids)
+                            print(f"[INFO] Classified CCS IDs: {id_list}", file=sys.stderr)
 
     if compute_embeddings:
         resolved_project = vertex_project or os.getenv("VERTEX_AI_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -672,6 +760,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--chunk-max-output", type=int, default=400, help="Maximum tokens for each chunk summary call.")
     parser.add_argument("--final-max-output", type=int, default=900, help="Maximum tokens for the final synthesis call.")
     parser.add_argument("--metadata-chars", type=int, default=4000, help="Characters from the PDF start used for metadata extraction prompts.")
+    parser.add_argument(
+        "--max-concurrency",
+        type=int,
+        default=1,
+        help="Maximum number of chunk summaries to request in parallel (increase cautiously to respect rate limits).",
+    )
 
     parser.add_argument("--paper-id", help="Preferred identifier (e.g. DOI) for the output JSON.")
     parser.add_argument("--title", help="Override paper title used in the output JSON.")
@@ -681,6 +775,26 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--code-link", help="Override code link for the output JSON.")
     parser.add_argument("--ccs-path", dest="ccs_paths", action="append", help="Add a CCS path classification.")
     parser.add_argument("--ccs-id", dest="ccs_ids", action="append", help="Add a CCS identifier.")
+    parser.add_argument(
+        "--classify-ccs",
+        action="store_true",
+        help="Automatically assign ACM CCS concepts using the generated summary (skips when manual CCS labels are provided).",
+    )
+    parser.add_argument(
+        "--ccs-model",
+        help="Override the OpenAI Responses model used for CCS classification (defaults to the summary model).",
+    )
+    parser.add_argument(
+        "--ccs-embedding-model",
+        default=os.getenv("CCS_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+        help="SentenceTransformer model for CCS candidate search. Use 'none' to fall back to keyword matching.",
+    )
+    parser.add_argument("--ccs-top-candidates", type=int, default=15, help="Candidate concepts presented to the CCS classifier.")
+    parser.add_argument("--ccs-fallback-candidates", type=int, default=25, help="Candidate pool when embeddings are disabled or unavailable.")
+    parser.add_argument("--ccs-max-concepts", type=int, default=3, help="Maximum CCS concepts to attach automatically.")
+    parser.add_argument("--ccs-temperature", type=float, default=0.1, help="Temperature for the CCS classification LLM call.")
+    parser.add_argument("--ccs-max-output", type=int, default=600, help="Maximum tokens for the CCS classification LLM response.")
+    parser.add_argument("--ccs-xml", type=Path, help="Optional path to the ACM CCS XML (defaults to the repository copy).")
 
     parser.add_argument(
         "--embeddings",
@@ -761,6 +875,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             vertex_location=args.vertex_location,
             vertex_embedding_model=args.vertex_embedding_model,
             vertex_embedding_dim=args.vertex_embedding_dim,
+            classify_ccs=args.classify_ccs,
+            ccs_model=args.ccs_model,
+            ccs_embedding_model=args.ccs_embedding_model,
+            ccs_top_candidates=args.ccs_top_candidates,
+            ccs_fallback_candidates=args.ccs_fallback_candidates,
+            ccs_max_concepts=args.ccs_max_concepts,
+            ccs_temperature=args.ccs_temperature,
+            ccs_max_output_tokens=args.ccs_max_output,
+            ccs_xml_path=args.ccs_xml,
+            max_concurrency=args.max_concurrency,
         )
     except Exception as exc:
         print(f"[ERROR] {exc}", file=sys.stderr)

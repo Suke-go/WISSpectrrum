@@ -47,6 +47,7 @@
 - Tweak options if needed:
   - `--dry-run` prints planned downloads without touching disk.
   - `--delay` and `--timeout` control pacing; increase the delay when the host rate-limits you.
+  - `--max-workers` enables parallel downloads with a shared rate limiter—raise it only when the source permits concurrent access.
   - `--overwrite` lets you refresh previously downloaded files.
 
 ### 1.5 Responsible downloading
@@ -55,7 +56,7 @@
 - Cache the PDFs you fetch—rerun the summariser against local files instead of redownloading.
 - Monitor the logs for HTTP errors; repeated 4xx/5xx responses are a signal to pause and investigate.
 - Check the host’s `robots.txt` and published policies before crawling, and stop immediately if access is disallowed.
-- Identify yourself with a polite user agent if you fork the downloader (add a `urllib.request.Request` header) and avoid parallel downloads.
+- Identify yourself with a polite user agent if you fork the downloader (add a `urllib.request.Request` header); the CLI defaults to one worker, so only raise `--max-workers` when the host explicitly allows parallel requests.
 - Do not bypass paywalls or authentication flows; obtain consent when in doubt and keep scraped data private if licensing requires it.
 
 ### 2. Stand up GROBID (recommended extractor)
@@ -90,13 +91,15 @@
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id` (repeatable)
   - `--chunk-size`, `--overlap` (default 2500/250 chars)
-  - `--embeddings --embedding-provider local` (produces vectors for purpose/method/evaluation summaries)
-  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004` (enables Vertex AI embeddings)
+  - `--max-concurrency` to parallelise chunk summaries when your API quota supports it
+  - `--embeddings --embedding-provider local` (produces vectors for each summary section — positioning/purpose/method/evaluation and the abstract when available)
+  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004` (uses the same section-wise output backed by Vertex AI embeddings)
 
 ### 3.5 Summary style
 - The script sends the cleaned body text to the OpenAI Responses API with a constrained prompt that yields four labelled sections: positioning, purpose, method, and evaluation.
 - Each section is capped at two concise sentences (three at most) so you can skim dozens of papers quickly while keeping core contributions intact.
 - The `--language` flag switches output prose and heading labels between Japanese and English while leaving JSON keys stable for downstream tooling.
+- Japanese output swaps the headings for `概要`, `研究の位置づけ／目的`, `ソリューション／エンジニアリング`, and `評価`, matching the `JAPANESE_HEADINGS` map.
 - When the source mentions metrics, datasets, or participant counts, those details are preserved; if something is missing the field falls back to `"Not specified"`.
 - Section detection prefers GROBID-parsed structure; when unavailable it falls back to chunked paragraphs from PyPDF extraction.
 
@@ -115,10 +118,73 @@
     "year": 2024,
     "ccs": {"paths": ["..."], "ids": ["..."]},
     "links": {"pdf": "...", "code": "..."},
-    "embeddings": {...}              // optional vectors if requested
+    "embeddings": {                   // optional; section-wise vectors & metadata when requested
+      "provider": "...",
+      "model": "...",
+      "dim": 768,
+      "normed": true,
+      "sections": {
+        "positioning": [...],
+        "purpose": [...],
+        "method": [...],
+        "evaluation": [...],
+        "abstract": [...]
+      }
+    }
   }
   ```
 - Summaries are two sentences each (max three), tuned for quick comparison across papers.
+
+### 4.5 Semantic search (optional)
+- Turn a directory of summaries into a per-section embedding index:
+  ```bash
+  .venv/bin/python Pre-Processing/search/build_embedding_index.py \
+      summaries/*.json \
+      -o search/embedding_index.jsonl
+  ```
+  The script keeps only sections with meaningful text (≥40 characters by default) and records their metadata alongside the embedding vector.
+- Query the index with a free-form prompt. By default it picks the provider/model stored in the index; override them when multiple combinations exist:
+  ```bash
+  .venv/bin/python Pre-Processing/search/search_embeddings.py \
+      search/embedding_index.jsonl \
+      --query "shared AR experiences for elderly care" \
+      --top-k 5 \
+      --provider vertex-ai \
+      --vertex-project YOUR_GCP_PROJECT \
+      --vertex-location us-central1
+  ```
+- If you omit `--vertex-project`/`--vertex-location`, the CLI falls back to `VERTEX_AI_PROJECT`, `GOOGLE_CLOUD_PROJECT`, and `VERTEX_AI_LOCATION` environment variables (default location: `us-central1`).
+- When you built embeddings with the local Sentence Transformer backend, drop the Vertex flags—the CLI will reuse the same model automatically.
+- To reuse an existing summary as the query, point `--query-json` at a summariser output; each section (positioning/purpose/method/evaluation/abstract) is compared independently and the top matches are displayed per section.
+- Pass `--exclude-paper PAPER_ID` to drop specific records (the query JSON's `id` is skipped automatically so you don’t just rediscover the source paper).
+- Use the JSONL index as input for downstream dashboards or plug it into vector stores (Pinecone, Weaviate) without re-running the summariser.
+
+### 4.6 ACM CCS classification (LLM-assisted)
+- Export (or inspect) the CCM taxonomy from the official SKOS XML. The helper CLI works without network access and provides fuzzy lookup for prompt crafting:
+  ```bash
+  python Pre-Processing/ccs/export_taxonomy.py --prompt-catalog > ccs_catalog.txt
+  python Pre-Processing/ccs/export_taxonomy.py --search "virtual reality haptics" --top-k 5
+  ```
+- Trigger classification immediately after summarisation with the built-in flag (skips when `--ccs-id/--ccs-path` are supplied):
+  ```bash
+  OPENAI_API_KEY=... \
+  python Pre-Processing/summarize_pdf.py thesis/WISS/2024/001_parasights-2.pdf \
+      --extractor grobid \
+      --classify-ccs \
+      --output summaries/wiss2024_001.json
+  ```
+- Classify existing summary JSON files (up to 3 labels per paper by default). The script narrows candidates via local embeddings (Sentence Transformers) before delegating the final choice to the OpenAI Responses API:
+  ```bash
+  OPENAI_API_KEY=... \
+  python Pre-Processing/ccs/classify_ccs.py summaries/*.json \
+      --model gpt-4.1-mini \
+      --embedding-model sentence-transformers/all-MiniLM-L6-v2 \
+      --top-candidates 15 \
+      --max-concepts 3 \
+      --output classification_report.jsonl
+  ```
+  Use `--embedding-model none` if you prefer keyword filtering instead of embeddings, and add `--update` to patch the input JSON files in-place (fields `ccs.ids`, `ccs.paths`, and `ccs.llm_explanations` are populated).
+- Both CLIs assume the ACM CCS XML lives at `ACM CCS/acm_ccs2012-1626988337597.xml`; override the location with `--xml` when needed.
 
 ### 5. Troubleshooting
 - `GROBID service not reachable`: run the container, expose it on a reachable IP, increase `--grobid-timeout`.
@@ -176,6 +242,7 @@
 - 主なオプション:
   - `--dry-run`: 実際に保存せず予定リストのみ表示。
   - `--delay` / `--timeout`: リクエスト間隔やタイムアウトの調整（混雑時は `--delay` を長めに）。
+  - `--max-workers`: レートリミッター付きで並列ダウンロードする場合に設定（許可がある場合のみ増やしてください）。
   - `--overwrite`: 既存ファイルを上書き。
 
 ### 1.5 スクレイピング時の注意
@@ -184,7 +251,7 @@
 - 取得した PDF はローカルに保存し、再要約時は再ダウンロードせずキャッシュを活用してください。
 - HTTP エラー（4xx/5xx）が続く場合は処理を中断し、原因を確認しましょう。
 - クロール前に `robots.txt` や公開ポリシーを確認し、アクセス禁止の指示がある場合は従ってください。
-- ダウンローダーを改造する際は `urllib.request.Request` などで丁寧な User-Agent を付与し、並列ダウンロードは避けましょう。
+- ダウンローダーを改造する際は `urllib.request.Request` などで丁寧な User-Agent を付与し、並列化する場合も既定値（1 ワーカー）を基準に、ホストから明示的な許可があるケースだけ `--max-workers` を増やしてください。
 - 有料ページや認証が必要な領域を回避したり回避策を講じたりしないでください。判断が難しい場合は必ず許可を取り、取得した資料の扱い（共有可否など）にも注意してください。
 
 ### 2. GROBID の起動（推奨）
@@ -219,13 +286,15 @@
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id`（複数指定可）
   - `--chunk-size` / `--overlap`（既定値 2500 / 250 文字）
-  - `--embeddings --embedding-provider local`（Sentence Transformers で目的・手法・評価の埋め込みベクトルを生成）
-  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004`（Vertex AI Embeddings を利用）
+  - `--max-concurrency`: API 制限に余裕がある場合にチャンク要約を並列化
+  - `--embeddings --embedding-provider local`（Sentence Transformers でサマリー各セクション：位置づけ／目的／手法／評価（可能なら概要）を個別に埋め込み化）
+  - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004`（同じセクション構造で Vertex AI Embeddings を利用）
 
 ### 3.5 要約の方針
 - 整形した本文テキストを OpenAI Responses API に投げ、「位置づけ」「目的」「手法」「評価」の 4 セクションで返すようプロンプトを厳密に指定しています。
 - 各セクションは 2 文（最大 3 文）を目安とし、多数の論文を比較しやすい短く筋の通ったまとめを意識しています。
 - `--language` フラグで見出しと言語を日本語・英語で切り替えつつ、JSON のキーは共通なので後続処理の互換性が保たれます。
+- 日本語出力時の見出しは `概要`、`研究の位置づけ／目的`、`ソリューション／エンジニアリング`、`評価` で、スクリプト内の `JAPANESE_HEADINGS` に対応しています。
 - 元資料に評価指標・データセット・参加人数などが記されていればそのまま記載し、欠けている場合は `"Not specified"` / `記載なし` で明示します。
 - セクション検出は GROBID が返す構造を優先し、利用できない場合は PyPDF で抽出した段落を分割して補完します。
 
@@ -243,10 +312,68 @@
     "evaluation_summary": "...",
     "year": 2024,
     "ccs": {"paths": ["..."], "ids": ["..."]},
-    "links": {"pdf": "...", "code": "..."}
+    "links": {"pdf": "...", "code": "..."},
+    "embeddings": {
+      "provider": "...",
+      "model": "...",
+      "dim": 768,
+      "normed": true,
+      "sections": {
+        "positioning": [...],
+        "purpose": [...],
+        "method": [...],
+        "evaluation": [...],
+        "abstract": [...]
+      }
+    }
   }
   ```
 - 各 summary フィールドは 2 文（最大 3 文）で、課題・目的・手法・評価＋結果を素早く把握できるようにしています。
+
+### 4.5 セマンティック検索（任意）
+- 生成済み要約のディレクトリから、セクション単位の埋め込み索引を作成:
+  ```bash
+  .venv/bin/python Pre-Processing/search/build_embedding_index.py \
+      summaries/*.json \
+      -o search/embedding_index.jsonl
+  ```
+  文字数が短すぎるセクション（既定で 40 文字未満）は除外し、埋め込みベクトルとメタ情報を JSONL に蓄積します。
+- フリーテキストで索引を検索。複数のプロバイダ／モデルが混在する場合は引数で指定してください:
+  ```bash
+  .venv/bin/python Pre-Processing/search/search_embeddings.py \
+      search/embedding_index.jsonl \
+      --query "高齢者のための共有型AR体験" \
+      --top-k 5 \
+      --provider vertex-ai \
+      --vertex-project あなたのGCPプロジェクトID \
+      --vertex-location us-central1
+  ```
+- `--vertex-project` / `--vertex-location` を省略すると、`VERTEX_AI_PROJECT`（もしくは `GOOGLE_CLOUD_PROJECT`）と `VERTEX_AI_LOCATION` の環境変数が利用されます（既定ロケーションは `us-central1`）。
+- ローカル（Sentence Transformer）で埋め込みを生成した場合は Vertex 関連のフラグを省略すれば同じモデルが再利用されます。
+- 既存の要約 JSON を照会として使いたい場合は `--query-json` に指定すると、位置づけ／目的／手法／評価／概要の各セクションごとに類似文書が表示されます。
+- `--exclude-paper 論文ID` を付ければ特定の論文を結果から除外できます（要約 JSON を指定した場合、その `id` は自動的に除外されます）。
+- JSONL 索引はダッシュボードや外部ベクターストア（Pinecone, Weaviate など）の入力として再利用でき、要約処理を繰り返す必要がありません。
+
+### 4.6 ACM CCS 分類（LLM 活用）
+- 要約生成と同時に分類したい場合は `--classify-ccs` を付けて実行します（`--ccs-id` / `--ccs-path` を指定した場合は自動分類をスキップ）:
+  ```bash
+  OPENAI_API_KEY=... \
+  python Pre-Processing/summarize_pdf.py thesis/WISS/2024/001_parasights-2.pdf \
+      --extractor grobid \
+      --classify-ccs \
+      --output summaries/wiss2024_001.json
+  ```
+- 既存の要約 JSON を対象にする場合は専用 CLI を使います。Sentence Transformers で候補を絞り込んだ上で OpenAI Responses API に 3 件までの最適な概念を選ばせます:
+  ```bash
+  OPENAI_API_KEY=... \
+  python Pre-Processing/ccs/classify_ccs.py summaries/*.json \
+      --model gpt-4.1-mini \
+      --embedding-model sentence-transformers/all-MiniLM-L6-v2 \
+      --top-candidates 15 \
+      --max-concepts 3 \
+      --output classification_report.jsonl
+  ```
+- タクソノミーの辞書やキーワード探索には `Pre-Processing/ccs/export_taxonomy.py` を利用できます。既定ではリポジトリ内の `ACM CCS/acm_ccs2012-1626988337597.xml` を参照しますが、`--xml` で明示的に切り替えられます。
 
 ### 5. よくあるトラブル
 - `GROBID service not reachable`: Docker コンテナが起動しているか、IP/ポートがアクセス可能か、`--grobid-timeout` が短すぎないか確認。

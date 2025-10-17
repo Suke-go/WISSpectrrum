@@ -4,7 +4,33 @@
 from __future__ import annotations
 
 import math
+from functools import lru_cache
+from threading import Lock
 from typing import Dict, List, Optional
+
+
+_SENTENCE_TRANSFORMER_LOCK = Lock()
+_VERTEX_MODEL_LOCK = Lock()
+
+
+@lru_cache(maxsize=8)
+def _lazy_sentence_transformer(model_name: str):
+    """Load and cache SentenceTransformer instances."""
+    with _SENTENCE_TRANSFORMER_LOCK:
+        from sentence_transformers import SentenceTransformer  # type: ignore
+
+        return SentenceTransformer(model_name)
+
+
+@lru_cache(maxsize=16)
+def _lazy_vertex_model(project: str, location: str, model_name: str):
+    """Load and cache Vertex AI TextEmbeddingModel instances."""
+    with _VERTEX_MODEL_LOCK:
+        import vertexai  # type: ignore
+        from vertexai.preview.language_models import TextEmbeddingModel  # type: ignore
+
+        vertexai.init(project=project, location=location)
+        return TextEmbeddingModel.from_pretrained(model_name)
 
 
 def maybe_compute_embeddings_local(
@@ -14,7 +40,6 @@ def maybe_compute_embeddings_local(
     normalize: bool,
 ) -> Dict[str, object]:
     try:
-        from sentence_transformers import SentenceTransformer  # type: ignore
         import numpy as np  # type: ignore  # noqa: F401
     except ImportError as exc:  # pragma: no cover - dependency guard
         raise SystemExit(
@@ -23,20 +48,32 @@ def maybe_compute_embeddings_local(
 
     texts: List[str] = []
     keys: List[str] = []
-    for key in ("purpose", "method", "evaluation"):
-        text = sections.get(key)
-        if text and text != "":
-            keys.append(key)
-            texts.append(text)
+    for key, raw in sections.items():
+        if raw is None:
+            continue
+        text = str(raw).strip()
+        if not text:
+            continue
+        keys.append(key)
+        texts.append(text)
     if not texts:
         return {}
 
-    embedder = SentenceTransformer(model_name)
+    try:
+        embedder = _lazy_sentence_transformer(model_name)
+    except ImportError as exc:  # pragma: no cover - dependency guard
+        raise SystemExit(
+            'Embedding generation requires "sentence-transformers". Install it with "pip install sentence-transformers".'
+        ) from exc
     vectors = embedder.encode(texts, normalize_embeddings=normalize)
 
-    result: Dict[str, object] = {}
+    result: Dict[str, object] = {
+        "sections": {},
+    }
     for key, vector in zip(keys, vectors):
-        result[key] = [float(x) for x in vector]
+        serialized = [float(x) for x in vector]
+        result["sections"][key] = serialized
+        result[key] = serialized  # backward compatibility for existing consumers
     dimension = len(vectors[0])
     result["model"] = model_name
     result["provider"] = "sentence-transformers"
@@ -54,14 +91,6 @@ def maybe_compute_embeddings_vertex_ai(
     dimensionality: Optional[int],
     normalize: bool,
 ) -> Dict[str, object]:
-    try:
-        import vertexai  # type: ignore
-        from vertexai.preview.language_models import TextEmbeddingModel  # type: ignore
-    except ImportError as exc:  # pragma: no cover - dependency guard
-        raise SystemExit(
-            'Vertex AI embeddings require the "google-cloud-aiplatform" package. Install it with "pip install google-cloud-aiplatform".'
-        ) from exc
-
     if not project:
         raise ValueError("Vertex AI project ID is required when --embedding-provider=vertex-ai.")
     if not location:
@@ -69,22 +98,31 @@ def maybe_compute_embeddings_vertex_ai(
 
     texts: List[str] = []
     keys: List[str] = []
-    for key in ("purpose", "method", "evaluation"):
-        text = sections.get(key)
-        if text and text != "":
-            keys.append(key)
-            texts.append(text)
+    for key, raw in sections.items():
+        if raw is None:
+            continue
+        text = str(raw).strip()
+        if not text:
+            continue
+        keys.append(key)
+        texts.append(text)
     if not texts:
         return {}
 
-    vertexai.init(project=project, location=location)
-    model = TextEmbeddingModel.from_pretrained(model_name)
+    try:
+        vertexai_client = _lazy_vertex_model(project, location, model_name)
+    except ImportError as exc:  # pragma: no cover - dependency guard
+        raise SystemExit(
+            'Vertex AI embeddings require the "google-cloud-aiplatform" package. Install it with "pip install google-cloud-aiplatform".'
+        ) from exc
 
-    embeddings = model.get_embeddings(
+    embeddings = vertexai_client.get_embeddings(
         texts,
         output_dimensionality=dimensionality,
     )
-    result: Dict[str, object] = {}
+    result: Dict[str, object] = {
+        "sections": {},
+    }
     vectors: List[List[float]] = []
     for embedding in embeddings:
         vector = [float(x) for x in embedding.values]  # type: ignore[attr-defined]
@@ -96,7 +134,8 @@ def maybe_compute_embeddings_vertex_ai(
 
     dimension = len(vectors[0])
     for key, vector in zip(keys, vectors):
-        result[key] = vector
+        result["sections"][key] = vector
+        result[key] = vector  # backward compatibility
 
     result["model"] = model_name
     result["provider"] = "vertex-ai"
@@ -108,7 +147,14 @@ def maybe_compute_embeddings_vertex_ai(
     return result
 
 
+def clear_embedding_caches() -> None:
+    """Reset cached embedding backends (useful for tests)."""
+    _lazy_sentence_transformer.cache_clear()
+    _lazy_vertex_model.cache_clear()
+
+
 __all__ = [
     "maybe_compute_embeddings_local",
     "maybe_compute_embeddings_vertex_ai",
+    "clear_embedding_caches",
 ]
