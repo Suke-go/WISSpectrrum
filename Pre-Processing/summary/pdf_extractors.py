@@ -114,8 +114,8 @@ class GrobidExtractor(PdfExtractor):
     def __init__(
         self,
         base_url: str = "http://localhost:8070",
-        healthcheck_timeout: float = 5.0,
-        request_timeout: float = 30.0,
+        healthcheck_timeout: float = 60.0,
+        request_timeout: float = 60.0,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.healthcheck_timeout = max(0.5, float(healthcheck_timeout))
@@ -321,7 +321,7 @@ def build_extractor(
     if normalized == "grobid":
         return GrobidExtractor(
             base_url=grobid_url or "http://localhost:8070",
-            healthcheck_timeout=grobid_timeout or 5.0,
-            request_timeout=grobid_timeout or 30.0,
+            healthcheck_timeout=grobid_timeout or 60.0,
+            request_timeout=grobid_timeout or 60.0,
         )
     raise PdfExtractionError(f"Unsupported extractor '{name}'. Try 'pypdf' or 'grobid'.")

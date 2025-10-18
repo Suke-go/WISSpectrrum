@@ -903,7 +903,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--grobid-timeout",
         type=float,
-        default=5.0,
+        default=60.0,
         help="Seconds to wait for the GROBID health check (used when --extractor=grobid).",
     )
     parser.add_argument("--language", default="Japanese", help="Language for the summaries (e.g. 'Japanese', 'English').")

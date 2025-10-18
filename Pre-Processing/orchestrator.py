@@ -42,7 +42,7 @@ DEFAULT_TAXONOMY_PATH = ACM_TAXONOMY_PATH
 class SummariserConfig:
     extractor: str = "pypdf"
     grobid_url: Optional[str] = None
-    grobid_timeout: float = 5.0
+    grobid_timeout: float = 60.0
     model: str = "gpt-5-mini"
     language: str = "Japanese"
     chunk_size: int = 2500
@@ -213,6 +213,7 @@ def run_jobs(
                 vertex_embedding_model=config.vertex_embedding_model,
                 vertex_embedding_dim=config.vertex_embedding_dim,
                 gemini_api_key=config.gemini_api_key,
+                gemini_embedding_model=config.gemini_embedding_model,
                 gemini_task_type=config.gemini_task_type,
                 gemini_batch_size=config.gemini_batch_size,
                 classify_ccs=config.classify_ccs,

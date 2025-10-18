@@ -7,16 +7,24 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 import threading
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from typing import Dict, List, Optional
+
+from shared import (
+    CommandRequest,
+    DEFAULT_TAXONOMY,
+    EmbeddingToolOptions,
+    PipelineFormState,
+    SECTION_CHOICES,
+    prepare_embeddings_command,
+    prepare_pipeline_command,
+)
 
 THIS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = THIS_DIR.parent
@@ -35,20 +43,6 @@ try:
 except Exception:  # pragma: no cover - fallback when running in isolation
     def load_env(*_, **__) -> Optional[Path]:
         return None
-
-
-SECTION_CHOICES = ["positioning", "purpose", "method", "evaluation", "abstract"]
-DEFAULT_TAXONOMY = REPO_ROOT / "ACM CCS" / "acm_ccs2012-1626988337597.xml"
-
-
-@dataclass
-class CommandRequest:
-    """Run configuration for subprocess execution."""
-
-    command: List[str]
-    cwd: Path
-    env: Optional[Dict[str, str]] = None
-    cleanup_paths: Optional[List[Path]] = None
 
 
 class PreprocessingUI:
@@ -89,7 +83,7 @@ class PreprocessingUI:
         self.dual_language_var = tk.BooleanVar(value=False)
         self.extractor_var = tk.StringVar(value="pypdf")
         self.grobid_url_var = tk.StringVar(value="http://localhost:8070")
-        self.grobid_timeout_var = tk.StringVar(value="5.0")
+        self.grobid_timeout_var = tk.StringVar(value="60.0")
         self.grobid_status_var = tk.StringVar(value="未確認")
         self.compute_embeddings_var = tk.BooleanVar(value=True)
         self.embedding_provider_var = tk.StringVar(value="gemini")
@@ -480,149 +474,62 @@ class PreprocessingUI:
         if not pdf_root:
             messagebox.showerror("入力エラー", "PDF ディレクトリを指定してください。")
             return
-        command = [self.python_exec, "orchestrator.py", "run"]
-        command += ["--pdf-dir", pdf_root]
-        for extra in self.additional_pdf_dirs:
-            command += ["--pdf-dir", extra]
-
-        output_dir = self.output_dir_var.get().strip()
-        if output_dir:
-            command += ["--output-dir", output_dir]
-
-        pattern = self.pattern_var.get().strip()
-        if pattern:
-            command += ["--pattern", pattern]
-
-        limit = self.limit_var.get().strip()
-        if limit:
-            command += ["--limit", limit]
-
-        policy = self.json_policy_var.get()
-        if policy == "force":
-            command.append("--force")
-
-        env_file = self.env_path_var.get().strip()
-        if env_file:
-            command += ["--env-file", env_file]
-
-        summary_model = self.summary_model_var.get().strip()
-        if summary_model:
-            command += ["--model", summary_model]
-
-        language = self.summary_language_var.get().strip()
-        if language:
-            command += ["--language", language]
-
-        if self.dual_language_var.get():
-            command.append("--dual-language")
-
-        chunk_size = self.chunk_size_var.get().strip()
-        if chunk_size:
-            command += ["--chunk-size", chunk_size]
-
-        temperature = self.temperature_var.get().strip()
-        if temperature:
-            command += ["--temperature", temperature]
-
-        provider = self.embedding_provider_var.get()
-        if provider:
-            command += ["--embedding-provider", provider]
-
-        if not self.compute_embeddings_var.get():
-            command.append("--disable-embeddings")
-
-        if not self.classify_ccs_var.get():
-            command.append("--disable-ccs")
-
-        config_data = self._build_config_payload()
-        config_path: Optional[Path] = None
-        if config_data:
-            config_path = self._write_temp_config(config_data)
-            command += ["--config", str(config_path)]
-
-        env = os.environ.copy()
-        if self.gemini_api_key_var.get().strip():
-            env.setdefault("GEMINI_API_KEY", self.gemini_api_key_var.get().strip())
-        if self.openai_key_ui_var.get().strip():
-            env.setdefault("OPENAI_API_KEY", self.openai_key_ui_var.get().strip())
-
-        request = CommandRequest(
-            command=command,
-            cwd=REPO_ROOT,
-            env=env,
-            cleanup_paths=[config_path] if config_path else None,
+        form = PipelineFormState(
+            pdf_dirs=[pdf_root, *self.additional_pdf_dirs],
+            output_dir=self._value_or_none(self.output_dir_var.get()),
+            pattern=self._value_or_none(self.pattern_var.get()),
+            limit=self._value_or_none(self.limit_var.get()),
+            json_policy=self.json_policy_var.get(),
+            env_file=self._value_or_none(self.env_path_var.get()),
+            summary_model=self._value_or_none(self.summary_model_var.get()),
+            summary_language=self._value_or_none(self.summary_language_var.get()),
+            dual_language=self.dual_language_var.get(),
+            chunk_size=self._value_or_none(self.chunk_size_var.get()),
+            overlap=self._value_or_none(self.overlap_var.get()),
+            temperature=self._value_or_none(self.temperature_var.get()),
+            chunk_max_tokens=self._value_or_none(self.chunk_max_tokens_var.get()),
+            final_max_tokens=self._value_or_none(self.final_max_tokens_var.get()),
+            metadata_chars=self._value_or_none(self.metadata_chars_var.get()),
+            extra_prompt=self._value_or_none(self.summary_prompt_text.get("1.0", tk.END)),
+            extractor=self.extractor_var.get(),
+            grobid_url=self._value_or_none(self.grobid_url_var.get()),
+            grobid_timeout=self._value_or_none(self.grobid_timeout_var.get()),
+            compute_embeddings=self.compute_embeddings_var.get(),
+            embedding_provider=self._value_or_none(self.embedding_provider_var.get()),
+            embedding_model_local=self._value_or_none(self.local_model_var.get()),
+            vertex_project=self._value_or_none(self.vertex_project_var.get()),
+            vertex_location=self._value_or_none(self.vertex_location_var.get()),
+            vertex_model=self._value_or_none(self.vertex_model_var.get()),
+            vertex_dim=self._value_or_none(self.vertex_dim_var.get()),
+            gemini_model=self._value_or_none(self.gemini_model_var.get()),
+            gemini_task_type=self._value_or_none(self.gemini_task_type_var.get()),
+            gemini_batch_size=self._value_or_none(self.gemini_batch_size_var.get()),
+            embedding_normalize=self.embedding_normalize_var.get(),
+            embedding_sections=[name for name, var in self.embedding_sections_vars.items() if var.get()],
+            embedding_version=self._value_or_none(self.embedding_version_var.get()),
+            classify_ccs=self.classify_ccs_var.get(),
+            ccs_model=self._value_or_none(self.ccs_model_var.get()),
+            ccs_taxonomy=self._value_or_none(self.ccs_taxonomy_var.get()),
+            ccs_max_concepts=self._value_or_none(self.ccs_max_concepts_var.get()),
+            ccs_top_candidates=self._value_or_none(self.ccs_top_candidates_var.get()),
+            ccs_fallback_candidates=self._value_or_none(self.ccs_fallback_candidates_var.get()),
+            ccs_temperature=self._value_or_none(self.ccs_temperature_var.get()),
+            ccs_max_output_tokens=self._value_or_none(self.ccs_max_output_tokens_var.get()),
+            ccs_embedding_model=self._value_or_none(self.ccs_embedding_model_var.get()),
+            openai_key=self._value_or_none(self.openai_key_ui_var.get()),
+            gemini_api_key=self._value_or_none(self.gemini_api_key_var.get()),
         )
+
+        try:
+            request, config_path = prepare_pipeline_command(form, self.python_exec, REPO_ROOT)
+        except ValueError as exc:
+            messagebox.showerror("入力エラー", str(exc))
+            return
+
+        if config_path:
+            self._append_log(f"[INFO] Config written: {config_path}")
+
         self._execute_async(request)
-
-    def _build_config_payload(self) -> Dict[str, object]:
-        data: Dict[str, object] = {}
-
-        # Summary overrides
-        data["chunk_size"] = self._coerce_int(self.chunk_size_var.get())
-        data["overlap"] = self._coerce_int(self.overlap_var.get())
-        data["temperature"] = self._coerce_float(self.temperature_var.get())
-        data["chunk_max_tokens"] = self._coerce_int(self.chunk_max_tokens_var.get())
-        data["final_max_tokens"] = self._coerce_int(self.final_max_tokens_var.get())
-        data["metadata_chars"] = self._coerce_int(self.metadata_chars_var.get())
-        data["dual_language"] = self.dual_language_var.get()
-
-        extra_prompt = self.summary_prompt_text.get("1.0", tk.END).strip()
-        if extra_prompt:
-            data["extra_prompt"] = extra_prompt
-
-        extractor = self.extractor_var.get()
-        data["extractor"] = extractor
-        if extractor == "grobid":
-            data["grobid_url"] = self.grobid_url_var.get().strip()
-            data["grobid_timeout"] = self._coerce_float(self.grobid_timeout_var.get())
-
-        # Embedding overrides
-        data["compute_embeddings"] = self.compute_embeddings_var.get()
-        provider = self.embedding_provider_var.get()
-        data["embedding_provider"] = provider
-        if provider == "local":
-            data["embedding_model"] = self.local_model_var.get().strip()
-        elif provider == "vertex-ai":
-            data["vertex_project"] = self.vertex_project_var.get().strip()
-            data["vertex_location"] = self.vertex_location_var.get().strip()
-            data["vertex_embedding_model"] = self.vertex_model_var.get().strip()
-            dim = self._coerce_int(self.vertex_dim_var.get())
-            if dim is not None:
-                data["vertex_embedding_dim"] = dim
-        elif provider == "gemini":
-            data["gemini_embedding_model"] = self.gemini_model_var.get().strip()
-            data["gemini_task_type"] = self.gemini_task_type_var.get().strip()
-            data["gemini_batch_size"] = self._coerce_int(self.gemini_batch_size_var.get())
-        data["embedding_normalize"] = self.embedding_normalize_var.get()
-
-        selected_sections = [name for name, var in self.embedding_sections_vars.items() if var.get()]
-        if selected_sections and len(selected_sections) < len(SECTION_CHOICES):
-            data["embedding_sections"] = selected_sections
-        data["embedding_version"] = self.embedding_version_var.get().strip()
-
-        # CCS
-        data["classify_ccs"] = self.classify_ccs_var.get()
-        if self.classify_ccs_var.get():
-            data["ccs_model"] = self.ccs_model_var.get().strip()
-            data["ccs_taxonomy_path"] = self.ccs_taxonomy_var.get().strip()
-            data["ccs_max_concepts"] = self._coerce_int(self.ccs_max_concepts_var.get())
-            data["ccs_top_candidates"] = self._coerce_int(self.ccs_top_candidates_var.get())
-            data["ccs_fallback_candidates"] = self._coerce_int(self.ccs_fallback_candidates_var.get())
-            data["ccs_temperature"] = self._coerce_float(self.ccs_temperature_var.get())
-            data["ccs_max_output_tokens"] = self._coerce_int(self.ccs_max_output_tokens_var.get())
-            data["ccs_embedding_model"] = self.ccs_embedding_model_var.get().strip()
-
-        # Clean up None / empty
-        cleaned = {k: v for k, v in data.items() if v not in (None, "", [], {})}
-        return cleaned
-
-    def _write_temp_config(self, data: Dict[str, object]) -> Path:
-        tmp = tempfile.NamedTemporaryFile("w", delete=False, suffix=".json", encoding="utf-8")
-        json.dump(data, tmp, ensure_ascii=False, indent=2)
-        tmp.flush()
-        tmp.close()
-        self._append_log(f"[INFO] Config written: {tmp.name}")
-        return Path(tmp.name)
 
     def _execute_async(self, request: CommandRequest) -> None:
         def runner() -> None:
@@ -669,55 +576,28 @@ class PreprocessingUI:
         if not summary_dir:
             messagebox.showerror("入力エラー", "サマリー JSON のディレクトリを指定してください。")
             return
-        command = [self.python_exec, "compute_embeddings.py", summary_dir]
-        if self.embedding_provider_var.get():
-            command += ["--provider", self.embedding_provider_var.get()]
-        if self.embedding_normalize_var.get():
-            command.append("--normalize")
-        selected_sections = [name for name, var in self.embedding_sections_vars.items() if var.get()]
-        if selected_sections and len(selected_sections) < len(SECTION_CHOICES):
-            command += ["--sections", *selected_sections]
-        if self.embedding_version_var.get().strip():
-            command += ["--embedding-version", self.embedding_version_var.get().strip()]
-        if self.embedding_force_var.get():
-            command.append("--force")
-        if self.embedding_dry_run_var.get():
-            command.append("--dry-run")
-        output_dir = self.emb_output_dir_var.get().strip()
-        if output_dir:
-            command += ["--output-dir", output_dir]
-        env_file = self.env_path_var.get().strip()
-        if env_file:
-            command += ["--env-file", env_file]
-
-        provider = self.embedding_provider_var.get()
-        if provider == "local":
-            command += ["--model", self.local_model_var.get().strip()]
-        elif provider == "vertex-ai":
-            if self.vertex_project_var.get().strip():
-                command += ["--vertex-project", self.vertex_project_var.get().strip()]
-            if self.vertex_location_var.get().strip():
-                command += ["--vertex-location", self.vertex_location_var.get().strip()]
-            if self.vertex_model_var.get().strip():
-                command += ["--model", self.vertex_model_var.get().strip()]
-            if self.vertex_dim_var.get().strip():
-                command += ["--vertex-dim", self.vertex_dim_var.get().strip()]
-        elif provider == "gemini":
-            if self.gemini_model_var.get().strip():
-                command += ["--model", self.gemini_model_var.get().strip()]
-            if self.gemini_api_key_var.get().strip():
-                command += ["--gemini-api-key", self.gemini_api_key_var.get().strip()]
-            if self.gemini_task_type_var.get().strip():
-                command += ["--gemini-task-type", self.gemini_task_type_var.get().strip()]
-            if self.gemini_batch_size_var.get().strip():
-                command += ["--gemini-batch-size", self.gemini_batch_size_var.get().strip()]
-
-        env = os.environ.copy()
-        if self.openai_key_ui_var.get().strip():
-            env.setdefault("OPENAI_API_KEY", self.openai_key_ui_var.get().strip())
-        if self.gemini_api_key_var.get().strip():
-            env.setdefault("GEMINI_API_KEY", self.gemini_api_key_var.get().strip())
-        request = CommandRequest(command=command, cwd=REPO_ROOT, env=env)
+        options = EmbeddingToolOptions(
+            summary_dir=summary_dir,
+            provider=self._value_or_none(self.embedding_provider_var.get()),
+            normalize=self.embedding_normalize_var.get(),
+            sections=[name for name, var in self.embedding_sections_vars.items() if var.get()],
+            embedding_version=self._value_or_none(self.embedding_version_var.get()),
+            force=self.embedding_force_var.get(),
+            dry_run=self.embedding_dry_run_var.get(),
+            output_dir=self._value_or_none(self.emb_output_dir_var.get()),
+            env_file=self._value_or_none(self.env_path_var.get()),
+            local_model=self._value_or_none(self.local_model_var.get()),
+            vertex_project=self._value_or_none(self.vertex_project_var.get()),
+            vertex_location=self._value_or_none(self.vertex_location_var.get()),
+            vertex_model=self._value_or_none(self.vertex_model_var.get()),
+            vertex_dim=self._value_or_none(self.vertex_dim_var.get()),
+            gemini_model=self._value_or_none(self.gemini_model_var.get()),
+            gemini_api_key=self._value_or_none(self.gemini_api_key_var.get()),
+            gemini_task_type=self._value_or_none(self.gemini_task_type_var.get()),
+            gemini_batch_size=self._value_or_none(self.gemini_batch_size_var.get()),
+            openai_key=self._value_or_none(self.openai_key_ui_var.get()),
+        )
+        request = prepare_embeddings_command(options, self.python_exec, REPO_ROOT)
         self._execute_async(request)
 
     # ------------------------------------------------------------------ network helpers
@@ -727,7 +607,7 @@ class PreprocessingUI:
             return
 
         url = self.grobid_url_var.get().strip().rstrip("/")
-        timeout = self._coerce_float(self.grobid_timeout_var.get()) or 5.0
+        timeout = self._coerce_float(self.grobid_timeout_var.get()) or 60.0
         endpoint = f"{url}/api/isalive"
 
         def worker() -> None:
@@ -846,6 +726,13 @@ class PreprocessingUI:
             return float(value)
         except ValueError:
             return None
+
+    @staticmethod
+    def _value_or_none(value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        stripped = value.strip()
+        return stripped or None
 
 
 def main() -> None:
