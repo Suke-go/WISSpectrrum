@@ -86,7 +86,7 @@
       --pretty \
       --output summaries/wiss2024_001.json
   ```
-- Without GROBID, replace `--extractor grobid` with `--extractor pypdf` (ensure `pypdf` is installed). The PyPDF path now applies simple heading heuristics so later stages still receive section boundaries; logs will flag any degraded extraction so you can spot PDFs that need manual attention.
+REA- Without GROBID, replace `--extractor grobid` with `--extractor pypdf` (ensure `pypdf` is installed). The PyPDF path now applies simple heading heuristics so later stages still receive section boundaries; logs will flag any degraded extraction so you can spot PDFs that need manual attention.
 - Useful overrides:
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id` (repeatable)
