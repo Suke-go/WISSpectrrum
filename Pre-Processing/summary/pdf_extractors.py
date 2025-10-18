@@ -9,6 +9,7 @@ entangling the rest of the code.
 
 from __future__ import annotations
 
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -78,14 +79,17 @@ class PyPdfExtractor(PdfExtractor):
             if stripped:
                 pages.append(stripped)
         if not pages:
-            fallback_text = self._extract_with_pdfminer(pdf_path)
-            if fallback_text:
+            fallback = self._extract_with_pdfminer(pdf_path)
+            if fallback:
                 print("[INFO] Falling back to pdfminer for text extraction.", file=sys.stderr)
-                return PdfExtractionResult(text=fallback_text)
+                fallback_text, fallback_sections = fallback
+                return PdfExtractionResult(text=fallback_text, sections=fallback_sections or None)
             raise PdfExtractionError("No extractable text found in the PDF.")
-        return PdfExtractionResult(text="\n\n".join(pages))
+        text_body = "\n\n".join(pages)
+        sections = self._infer_sections(text_body)
+        return PdfExtractionResult(text=text_body, sections=sections or None)
 
-    def _extract_with_pdfminer(self, pdf_path: Path) -> Optional[str]:
+    def _extract_with_pdfminer(self, pdf_path: Path) -> Optional[tuple[str, List[TeiSection]]]:
         try:
             from pdfminer.high_level import extract_text  # type: ignore
         except ImportError:
@@ -103,7 +107,75 @@ class PyPdfExtractor(PdfExtractor):
             return None
         # Collapse consecutive blank lines to keep output manageable.
         lines = [line.strip() for line in stripped.splitlines() if line.strip()]
-        return "\n\n".join(lines)
+        normalized = "\n\n".join(lines)
+        sections = self._infer_sections(normalized)
+        return normalized, sections
+
+    def _looks_like_heading(self, line: str) -> bool:
+        candidate = line.strip()
+        if not candidate:
+            return False
+        if len(candidate) > 80:
+            return False
+        if candidate.endswith(("。", ".", "?", "！", "!", "？")):
+            return False
+        if re.match(r"^(第?\s*\d+\s*章|第?\s*\d+\s*節)", candidate):
+            return True
+        if re.match(r"^\d+(?:\.\d+)*\s+[^\d].*$", candidate):
+            return True
+        if re.match(r"^[A-Z][A-Z\s\-]{2,}$", candidate):
+            return True
+        if re.match(r"^[A-Z][\w\s\-]{1,40}$", candidate) and candidate.count(" ") <= 6:
+            return True
+        return False
+
+    def _infer_sections(self, text: str) -> List[TeiSection]:
+        """
+        Build coarse section hints when TEI data is unavailable.
+
+        Uses heuristic heading detection (numbered headings, 全角「第1章」など、または英字大文字) to
+        associate body paragraphs with the nearest heading.
+        """
+        sections: List[TeiSection] = []
+        if not text.strip():
+            return sections
+
+        blocks = re.split(r"\n\s*\n", text)
+        current_heading: Optional[str] = None
+        buffer: List[str] = []
+
+        def flush_buffer() -> None:
+            nonlocal buffer
+            if not buffer:
+                return
+            body = "\n\n".join(buffer).strip()
+            if body:
+                sections.append(
+                    TeiSection(
+                        heading=current_heading,
+                        text=body,
+                        depth=0,
+                    )
+                )
+            buffer = []
+
+        for block in blocks:
+            lines = [line.strip() for line in block.splitlines() if line.strip()]
+            if not lines:
+                continue
+            first_line = lines[0]
+            if self._looks_like_heading(first_line):
+                flush_buffer()
+                current_heading = first_line.strip()
+                body_lines = lines[1:]
+            else:
+                body_lines = lines
+            body = "\n".join(body_lines).strip()
+            if body:
+                buffer.append(body)
+
+        flush_buffer()
+        return sections
 
 
 class GrobidExtractor(PdfExtractor):

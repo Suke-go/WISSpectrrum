@@ -92,12 +92,19 @@ def build_parser() -> argparse.ArgumentParser:
         default=SUMMARY_DEFAULTS.metadata_chars,
         help="Characters from the PDF start used for metadata extraction.",
     )
-    parser.add_argument("--dual-language", action="store_true", help="Add English translations to the JSON.")
     parser.add_argument(
-        "--flatten-translations",
-        action="store_true",
-        help="Copy English translations into top-level *_en fields.",
+        "--no-dual-language",
+        action="store_false",
+        dest="dual_language",
+        help="Disable English translations in the JSON (default: enabled).",
     )
+    parser.add_argument(
+        "--no-flatten-translations",
+        action="store_false",
+        dest="flatten_translations",
+        help="Disable copying English translations into top-level *_en fields.",
+    )
+    parser.set_defaults(dual_language=SUMMARY_DEFAULTS.dual_language, flatten_translations=SUMMARY_DEFAULTS.flatten_translations)
     parser.add_argument(
         "--embeddings",
         action="store_true",

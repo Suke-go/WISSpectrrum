@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fallback-candidates", type=int, default=25, help="Number of candidates when embeddings are unavailable.")
     parser.add_argument(
         "--embedding-model",
-        default=os.getenv("CCS_EMBEDDING_MODEL", "models/text-embedding-004"),
+        default=os.getenv("CCS_EMBEDDING_MODEL", "gemini-embedding-001"),
         help="Embedding model identifier (Gemini or SentenceTransformer). Use 'none' to disable embeddings.",
     )
     parser.add_argument(

@@ -36,6 +36,10 @@ from utils.paths import ACM_TAXONOMY_PATH, ensure_preprocess_path
 
 ensure_preprocess_path(PREPROCESS_ROOT)
 
+RETRY_FLOOR_TOKENS = 2600
+RETRY_CEILING_TOKENS = 4800
+RETRY_INCREMENT_TOKENS = 400
+
 JAPANESE_HEADINGS: Dict[str, str] = {
     "overview": "\u6982\u8981",
     "positioning": "\u7814\u7a76\u306e\u4f4d\u7f6e\u3065\u3051\uff0f\u76ee\u7684",
@@ -270,10 +274,12 @@ def call_openai(client: "OpenAI", *, model: str, messages: Sequence[Dict[str, st
         reason = getattr(getattr(response, "incomplete_details", None), "reason", None)
 
         if status != "completed" and reason == "max_output_tokens":
-            if attempt_tokens < 2200:
-                attempt_tokens = 2200
+            retry_floor = max(RETRY_FLOOR_TOKENS, max_output_tokens)
+            retry_ceiling = max(RETRY_CEILING_TOKENS, max_output_tokens)
+            if attempt_tokens < retry_floor:
+                attempt_tokens = retry_floor
             else:
-                attempt_tokens = min(3000, attempt_tokens + 200)
+                attempt_tokens = min(retry_ceiling, attempt_tokens + RETRY_INCREMENT_TOKENS)
             print(
                 f"[WARN] OpenAI response truncated at max_output_tokens; retrying with {attempt_tokens}.",
                 file=sys.stderr,
@@ -335,60 +341,6 @@ def extract_metadata(client: "OpenAI", *, model: str, excerpt: str, temperature:
     except ValueError:
         print("[WARN] Metadata extraction returned non-JSON response; ignoring.", file=sys.stderr)
         return {}
-
-
-def translate_record_to_english(
-    client: "OpenAI",
-    *,
-    model: str,
-    record: Dict[str, object],
-    missing_token: str,
-    temperature: float,
-    max_output_tokens: int,
-) -> Optional[Dict[str, object]]:
-    payload = {
-        "title": record.get("title"),
-        "authors": record.get("authors"),
-        "abstract": record.get("abstract"),
-        "positioning_summary": record.get("positioning_summary"),
-        "purpose_summary": record.get("purpose_summary"),
-        "method_summary": record.get("method_summary"),
-        "evaluation_summary": record.get("evaluation_summary"),
-        "links": record.get("links"),
-        "metadata": {
-            "year": record.get("year"),
-            "ccs": record.get("ccs"),
-        },
-    }
-    system_prompt = (
-        "You are a precise technical translator. Convert the provided Japanese fields into fluent, concise English while preserving meaning. "
-        "Maintain JSON structure and keep missing fields set to \"Not specified\"."
-    )
-    user_prompt = (
-        "Translate the following JSON values into English. Output JSON with the same keys. "
-        f"If a value is missing or equals \"{missing_token}\", output \"Not specified\" for that field.\n\n"
-        f"{json.dumps(payload, ensure_ascii=False, indent=2)}"
-    )
-    raw = call_openai(
-        client,
-        model=model,
-        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
-        temperature=temperature,
-        max_output_tokens=max_output_tokens,
-    )
-    try:
-        translated = parse_json_response(raw)
-    except ValueError:
-        print("[WARN] English translation failed to produce JSON; skipping dual-language output.", file=sys.stderr)
-        return None
-
-    def _normalize(value: object) -> object:
-        if isinstance(value, str) and value.strip() == "":
-            return "Not specified"
-        return value
-
-    normalized = {key: _normalize(value) for key, value in translated.items()}
-    return normalized
 
 
 def summarize_chunk(
@@ -479,13 +431,20 @@ def synthesize_record(
     )
     schema_description = json.dumps(
         {
-            "title": "string or null",
-            "authors": "array of strings",
-            "abstract": "string",
-            "positioning_summary": "string",
-            "purpose_summary": "string",
-            "method_summary": "string",
-            "evaluation_summary": "string",
+            "title": "string or null (Japanese)",
+            "title_en": "string or null (English)",
+            "authors": "array of strings (Japanese order)",
+            "authors_en": "array of strings (English)",
+            "abstract": "string (Japanese)",
+            "abstract_en": "string (English)",
+            "positioning_summary": "string (Japanese)",
+            "positioning_summary_en": "string (English)",
+            "purpose_summary": "string (Japanese)",
+            "purpose_summary_en": "string (English)",
+            "method_summary": "string (Japanese)",
+            "method_summary_en": "string (English)",
+            "evaluation_summary": "string (Japanese)",
+            "evaluation_summary_en": "string (English)",
             "doi": "string or null",
             "year": "integer or null",
             "ccs_paths": "array of strings",
@@ -510,7 +469,7 @@ def synthesize_record(
         f"{hints_block}\n\n"
         "Chunk notes:\n"
         f"{notes_block}\n\n"
-        "Return JSON only."
+        "Return JSON only. Provide both Japanese and English values; when information is missing, output the Japanese missing token and \"Not specified\" for English."
     )
     attempt_tokens = max_output_tokens
     for attempt in range(2):
@@ -524,8 +483,10 @@ def synthesize_record(
         try:
             return parse_json_response(raw)
         except ValueError:
-            if attempt == 0 and attempt_tokens < 3000:
-                attempt_tokens = min(3000, max(2200, attempt_tokens + 300))
+            retry_ceiling = max(RETRY_CEILING_TOKENS, max_output_tokens)
+            retry_floor = max(RETRY_FLOOR_TOKENS, max_output_tokens)
+            if attempt == 0 and attempt_tokens < retry_ceiling:
+                attempt_tokens = min(retry_ceiling, max(retry_floor, attempt_tokens + RETRY_INCREMENT_TOKENS))
                 print(
                     f"[WARN] Final synthesis JSON parsing failed; retrying with max_output_tokens={attempt_tokens}.",
                     file=sys.stderr,
@@ -699,30 +660,88 @@ def summarise_pdf(
         temperature=temperature,
     )
 
+    def _normalize_list(value: object) -> List[str]:
+        if value in (None, "", [], {}):
+            return []
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return [str(value).strip()]
+
+    def _select_text(*candidates: object, missing: str) -> str:
+        for candidate in candidates:
+            if isinstance(candidate, str):
+                text = candidate.strip()
+                if text and text != missing:
+                    return text
+        return missing
+
     record: Dict[str, object] = {}
     record["id"] = paper_id or structured.get("doi") or extraction_metadata.get("doi") or metadata_llm.get("doi")
-    record["title"] = prefer_cli(
-        title,
-        structured.get("title") or extraction_metadata.get("title") or metadata_llm.get("title"),
+    structured_title = structured.get("title")
+    record["title"] = prefer_cli(title, structured_title or extraction_metadata.get("title") or metadata_llm.get("title"))
+    record["title_en"] = _select_text(
+        structured.get("title_en"),
+        metadata_llm.get("title_en"),
+        ENGLISH_MISSING,
+        missing=ENGLISH_MISSING,
     )
 
     authors_value = prefer_cli(
         authors,
         structured.get("authors") or extraction_metadata.get("authors") or metadata_llm.get("authors"),
     )
-    if isinstance(authors_value, str):
-        authors_list = [a.strip() for a in authors_value.split(",") if a.strip()]
-    else:
-        authors_list = list(authors_value or [])
-    record["authors"] = authors_list
+    record["authors"] = _normalize_list(authors_value)
+    record["authors_en"] = _normalize_list(structured.get("authors_en"))
 
-    record["abstract"] = (
-        structured.get("abstract") or extraction_metadata.get("abstract") or metadata_llm.get("abstract") or missing_token
+    record["abstract"] = _select_text(
+        structured.get("abstract"),
+        extraction_metadata.get("abstract"),
+        metadata_llm.get("abstract"),
+        missing=missing_token,
     )
-    record["positioning_summary"] = structured.get("positioning_summary") or missing_token
-    record["purpose_summary"] = structured.get("purpose_summary") or missing_token
-    record["method_summary"] = structured.get("method_summary") or missing_token
-    record["evaluation_summary"] = structured.get("evaluation_summary") or missing_token
+    record["abstract_en"] = _select_text(
+        structured.get("abstract_en"),
+        ENGLISH_MISSING,
+        missing=ENGLISH_MISSING,
+    )
+    record["positioning_summary"] = _select_text(
+        structured.get("positioning_summary"),
+        missing=missing_token,
+    )
+    record["positioning_summary_en"] = _select_text(
+        structured.get("positioning_summary_en"),
+        ENGLISH_MISSING,
+        missing=ENGLISH_MISSING,
+    )
+    record["purpose_summary"] = _select_text(
+        structured.get("purpose_summary"),
+        missing=missing_token,
+    )
+    record["purpose_summary_en"] = _select_text(
+        structured.get("purpose_summary_en"),
+        ENGLISH_MISSING,
+        missing=ENGLISH_MISSING,
+    )
+    record["method_summary"] = _select_text(
+        structured.get("method_summary"),
+        missing=missing_token,
+    )
+    record["method_summary_en"] = _select_text(
+        structured.get("method_summary_en"),
+        ENGLISH_MISSING,
+        missing=ENGLISH_MISSING,
+    )
+    record["evaluation_summary"] = _select_text(
+        structured.get("evaluation_summary"),
+        missing=missing_token,
+    )
+    record["evaluation_summary_en"] = _select_text(
+        structured.get("evaluation_summary_en"),
+        ENGLISH_MISSING,
+        missing=ENGLISH_MISSING,
+    )
 
     chosen_year = prefer_cli(
         year,
@@ -739,38 +758,117 @@ def summarise_pdf(
         "code": code_link or structured.get("code") or extraction_metadata.get("code") or metadata_llm.get("code"),
     }
 
-    translations: Dict[str, Dict[str, object]] = {}
+    def _normalize_doi(value: object) -> Optional[str]:
+        if not isinstance(value, str):
+            return None
+        token = value.strip()
+        if not token:
+            return None
+        return token.lower()
+
+    def _normalize_year(value: object) -> Optional[int]:
+        parsed = coerce_year(value)
+        return parsed
+
+    def _summarise_field(
+        sources: Dict[str, object],
+        *,
+        final_value: object,
+        normalizer,
+    ) -> Dict[str, object]:
+        normalized_sources: Dict[str, Optional[object]] = {}
+        unique_values = set()
+        for name, raw in sources.items():
+            normalized = normalizer(raw)
+            normalized_sources[name] = normalized
+            if normalized not in (None, ""):
+                unique_values.add(normalized)
+        if not unique_values:
+            status = "missing"
+        elif len(unique_values) == 1:
+            status = "consistent"
+        else:
+            status = "conflict"
+        final_normalized = normalizer(final_value)
+        preferred_source = None
+        for name, normalized in normalized_sources.items():
+            if normalized is not None and normalized == final_normalized:
+                preferred_source = name
+                break
+        present_count = sum(1 for value in normalized_sources.values() if value not in (None, ""))
+        if status == "consistent" and present_count >= 2:
+            confidence = "high"
+        elif status == "consistent":
+            confidence = "medium"
+        elif status == "conflict":
+            confidence = "low"
+        else:
+            confidence = "unknown"
+        return {
+            "status": status,
+            "confidence": confidence,
+            "preferred_source": preferred_source,
+            "sources": normalized_sources,
+            "final": final_normalized,
+        }
+
+    record["metadata_meta"] = {
+        "doi": _summarise_field(
+            {
+                "cli": paper_id,
+                "grobid": extraction_metadata.get("doi"),
+                "metadata_llm": metadata_llm.get("doi"),
+                "synthesized": structured.get("doi"),
+            },
+            final_value=record.get("id"),
+            normalizer=_normalize_doi,
+        ),
+        "year": _summarise_field(
+            {
+                "cli": year,
+                "grobid": extraction_metadata.get("year"),
+                "metadata_llm": metadata_llm.get("year"),
+                "synthesized": structured.get("year"),
+            },
+            final_value=record.get("year"),
+            normalizer=_normalize_year,
+        ),
+    }
+
     if dual_language:
-        english_translation = translate_record_to_english(
-            client,
-            model=model,
-            record=record,
-            missing_token=missing_token,
-            temperature=max(0.0, min(temperature, 0.5)),
-            max_output_tokens=1200,
-        )
-        if english_translation:
-            translations["en"] = english_translation
-    if translations:
+        translations: Dict[str, Dict[str, object]] = {
+            "en": {
+                "title": record.get("title_en") or ENGLISH_MISSING,
+                "authors": record.get("authors_en", []),
+                "abstract": record.get("abstract_en") or ENGLISH_MISSING,
+                "positioning_summary": record.get("positioning_summary_en") or ENGLISH_MISSING,
+                "purpose_summary": record.get("purpose_summary_en") or ENGLISH_MISSING,
+                "method_summary": record.get("method_summary_en") or ENGLISH_MISSING,
+                "evaluation_summary": record.get("evaluation_summary_en") or ENGLISH_MISSING,
+                "links": record.get("links"),
+                "metadata": {
+                    "year": record.get("year"),
+                    "ccs": record.get("ccs"),
+                },
+            }
+        }
         record["translations"] = translations
 
-    # Optionally flatten English translations into top-level *_en fields
+    # Optionally flatten English translations into top-level *_en fields (retained for backwards compatibility)
     if flatten_translations and record.get("translations") and isinstance(record["translations"], dict):
         en = record["translations"].get("en")  # type: ignore[index]
         if isinstance(en, dict):
-            def _copy_en(src_key: str, dest_key: str) -> None:
-                if dest_key in record:
-                    return
-                if src_key in en:
+            for src_key, dest_key in (
+                ("title", "title_en"),
+                ("authors", "authors_en"),
+                ("abstract", "abstract_en"),
+                ("positioning_summary", "positioning_summary_en"),
+                ("purpose_summary", "purpose_summary_en"),
+                ("method_summary", "method_summary_en"),
+                ("evaluation_summary", "evaluation_summary_en"),
+            ):
+                if dest_key not in record and src_key in en:
                     record[dest_key] = en[src_key]
-
-            _copy_en("title", "title_en")
-            _copy_en("authors", "authors_en")
-            _copy_en("abstract", "abstract_en")
-            _copy_en("positioning_summary", "positioning_summary_en")
-            _copy_en("purpose_summary", "purpose_summary_en")
-            _copy_en("method_summary", "method_summary_en")
-            _copy_en("evaluation_summary", "evaluation_summary_en")
 
     if compute_embeddings:
         def _usable_section(value: object) -> Optional[str]:
@@ -823,7 +921,7 @@ def summarise_pdf(
             embeddings = maybe_compute_embeddings_gemini(
                 sections,
                 api_key=gemini_api_key,
-                model_name=gemini_embedding_model or "models/text-embedding-004",
+                model_name=gemini_embedding_model or "gemini-embedding-001",
                 task_type=gemini_task_type,
                 normalize=embedding_normalize,
                 batch_size=gemini_batch_size,
@@ -918,21 +1016,24 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--chunk-max-output",
         type=int,
-        default=1600,
-        help="Maximum tokens for each chunk summary call (higher default reduces repeated truncation retries).",
+        default=2200,
+        help="Maximum tokens for each chunk summary call.",
     )
-    parser.add_argument("--final-max-output", type=int, default=1200, help="Maximum tokens for the final synthesis call.")
+    parser.add_argument("--final-max-output", type=int, default=1600, help="Maximum tokens for the final synthesis call.")
     parser.add_argument("--metadata-chars", type=int, default=4000, help="Characters from the PDF start used for metadata extraction prompts.")
     parser.add_argument(
-        "--dual-language",
-        action="store_true",
-        help="Generate English translations for summary fields (stored under translations.en).",
+        "--no-dual-language",
+        action="store_false",
+        dest="dual_language",
+        help="Disable English translation output (default: enabled).",
     )
     parser.add_argument(
-        "--flatten-translations",
-        action="store_true",
-        help="Copy English translation fields into top-level *_en keys (e.g., title_en, abstract_en, method_summary_en).",
+        "--no-flatten-translations",
+        action="store_false",
+        dest="flatten_translations",
+        help="Disable copying English translation fields into top-level *_en keys.",
     )
+    parser.set_defaults(dual_language=True, flatten_translations=True)
 
     parser.add_argument("--paper-id", help="Preferred identifier (e.g. DOI) for the output JSON.")
     parser.add_argument("--title", help="Override paper title used in the output JSON.")
@@ -979,7 +1080,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--gemini-embedding-model",
-        default="models/text-embedding-004",
+        default="gemini-embedding-001",
         help="Gemini embedding model name (used when --embedding-provider=gemini).",
     )
     parser.add_argument(
@@ -1037,8 +1138,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--ccs-embedding-model",
-        default=os.getenv("CCS_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
-        help="SentenceTransformer model used for CCS candidate retrieval (use 'none' to disable embeddings).",
+        default=os.getenv("CCS_EMBEDDING_MODEL", "gemini-embedding-001"),
+        help="Gemini embedding model used for CCS candidate retrieval (use 'none' to disable embeddings).",
     )
 
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output.")

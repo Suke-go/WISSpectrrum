@@ -77,8 +77,8 @@ class PreprocessingUI:
         self.chunk_size_var = tk.StringVar(value="2500")
         self.overlap_var = tk.StringVar(value="250")
         self.temperature_var = tk.StringVar(value="0.2")
-        self.chunk_max_tokens_var = tk.StringVar(value="400")
-        self.final_max_tokens_var = tk.StringVar(value="1200")
+        self.chunk_max_tokens_var = tk.StringVar(value="2200")
+        self.final_max_tokens_var = tk.StringVar(value="1600")
         self.metadata_chars_var = tk.StringVar(value="4000")
         self.dual_language_var = tk.BooleanVar(value=False)
         self.extractor_var = tk.StringVar(value="pypdf")
@@ -96,7 +96,7 @@ class PreprocessingUI:
         self.vertex_location_var = tk.StringVar(value="us-central1")
         self.vertex_model_var = tk.StringVar(value="text-embedding-004")
         self.vertex_dim_var = tk.StringVar()
-        self.gemini_model_var = tk.StringVar(value="models/text-embedding-004")
+        self.gemini_model_var = tk.StringVar(value="gemini-embedding-001")
         self.gemini_task_type_var = tk.StringVar(value="SEMANTIC_SIMILARITY")
         self.gemini_batch_size_var = tk.StringVar(value="32")
         self.gemini_api_key_var = tk.StringVar()
@@ -109,7 +109,7 @@ class PreprocessingUI:
         self.ccs_fallback_candidates_var = tk.StringVar(value="25")
         self.ccs_temperature_var = tk.StringVar(value="0.1")
         self.ccs_max_output_tokens_var = tk.StringVar(value="900")
-        self.ccs_embedding_model_var = tk.StringVar(value="sentence-transformers/all-MiniLM-L6-v2")
+        self.ccs_embedding_model_var = tk.StringVar(value="gemini-embedding-001")
 
         self.embedding_sections_vars: Dict[str, tk.BooleanVar] = {
             name: tk.BooleanVar(value=True) for name in SECTION_CHOICES

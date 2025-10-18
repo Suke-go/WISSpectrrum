@@ -117,7 +117,7 @@ class CCSClassifier:
         self,
         taxonomy: CCSTaxonomy,
         *,
-        embedding_model: Optional[str] = "models/text-embedding-004",
+        embedding_model: Optional[str] = "gemini-embedding-001",
         embedding_min_score: float = 0.0,
         embedding_provider: Optional[str] = None,
         embedding_cache_dir: Optional[Path] = None,

@@ -48,11 +48,11 @@ class SummariserConfig:
     chunk_size: int = 2500
     overlap: int = 250
     temperature: float = 0.2
-    chunk_max_tokens: int = 1600
-    final_max_tokens: int = 1200
+    chunk_max_tokens: int = 2200
+    final_max_tokens: int = 1600
     metadata_chars: int = 4000
     dual_language: bool = True
-    flatten_translations: bool = False
+    flatten_translations: bool = True
     compute_embeddings: bool = True
     section_embeddings: bool = False
     embedding_provider: str = "gemini"
@@ -63,7 +63,7 @@ class SummariserConfig:
     vertex_embedding_model: str = "text-embedding-004"
     vertex_embedding_dim: Optional[int] = None
     gemini_api_key: Optional[str] = None
-    gemini_embedding_model: str = "models/text-embedding-004"
+    gemini_embedding_model: str = "gemini-embedding-001"
     gemini_task_type: str = "SEMANTIC_SIMILARITY"
     gemini_batch_size: int = 32
     classify_ccs: bool = True
@@ -74,7 +74,7 @@ class SummariserConfig:
     ccs_fallback_candidates: int = 25
     ccs_temperature: float = 0.1
     ccs_max_output_tokens: int = 900
-    ccs_embedding_model: Optional[str] = "sentence-transformers/all-MiniLM-L6-v2"
+    ccs_embedding_model: Optional[str] = "gemini-embedding-001"
 
     def apply_overrides(self, overrides: Dict[str, object]) -> None:
         for key, value in overrides.items():
@@ -274,10 +274,10 @@ def handle_run(args: argparse.Namespace) -> int:
             overrides["compute_embeddings"] = False
         if args.disable_ccs:
             overrides["classify_ccs"] = False
-        if args.dual_language:
-            overrides["dual_language"] = True
-        if getattr(args, "flatten_translations", False):
-            overrides["flatten_translations"] = True
+        if args.dual_language != config.dual_language:
+            overrides["dual_language"] = args.dual_language
+        if args.flatten_translations != config.flatten_translations:
+            overrides["flatten_translations"] = args.flatten_translations
         if args.chunk_size is not None:
             overrides["chunk_size"] = args.chunk_size
         if args.temperature is not None:
@@ -330,11 +330,22 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output.")
     run_parser.add_argument("--model", help="Override the OpenAI model used for summarisation.")
     run_parser.add_argument("--language", help="Override summary language.")
-    run_parser.add_argument("--dual-language", action="store_true", help="Generate English translations in addition to the primary language.")
     run_parser.add_argument(
-        "--flatten-translations",
-        action="store_true",
-        help="Copy English translation fields into top-level *_en keys (e.g., title_en, abstract_en).",
+        "--no-dual-language",
+        action="store_false",
+        dest="dual_language",
+        help="Disable English translations in addition to the primary language (default: enabled).",
+    )
+    run_parser.add_argument(
+        "--no-flatten-translations",
+        action="store_false",
+        dest="flatten_translations",
+        help="Disable copying English translation fields into top-level *_en keys.",
+    )
+    defaults = SummariserConfig()
+    run_parser.set_defaults(
+        dual_language=defaults.dual_language,
+        flatten_translations=defaults.flatten_translations,
     )
     run_parser.add_argument("--embedding-provider", choices=["local", "vertex-ai", "gemini"], help="Override embedding provider.")
     run_parser.add_argument("--disable-embeddings", action="store_true", help="Skip embedding generation.")

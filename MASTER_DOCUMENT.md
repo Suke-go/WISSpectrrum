@@ -23,22 +23,22 @@
 
 ### 3.2 テキスト抽出
 - 基本は GROBID を利用し、段落・セクション情報を含む構造化テキストを得る。
-- GROBID が利用できない場合は PyPDF などのフォールバックを用意し、抽出品質の差をログに残す。
+- GROBID が利用できない場合は PyPDF などのフォールバックを用意し、抽出品質の差をログに残す。現行実装では PyPDF ルートで簡易ヘッダ検出を行い、擬似的なセクションを付与して後段のチャンク処理を崩さないようにしている。
 - 抽出失敗時にはリトライ回数・タイムアウト・エラーレポートを設定し、再実行時の手がかりにする。
 
 ### 3.3 セクション別要約生成
 - `Pre-Processing/summary/summarize_pdf.py` を通じて、環境変数 (.env) に保存した API キーで OpenAI Responses API を呼び出す。本文は 2,500 文字前後でチャンク化し、250 文字程度のオーバーラップを設けて文脈が途切れないようにする。
 - セクション別プロンプトでは「問題意識」「目的」「実装・新規性」「評価」を明示し、Few-shot 例と語数上限（各 2〜3 文）を指定する。生成結果が空や冗長な場合は自動再試行し、最大試行回数を決める。
-- 出力 JSON には少なくとも以下を含める: `id`, `title`, `authors`, `abstract`, `positioning`, `purpose`, `method`, `evaluation`, `links`, `embedding_meta`（後段処理用）。欠損情報は `"Not specified"` などの明示メッセージを入れる。
-- 生成直後に基本バリデーション（文字数、NG ワード、マークダウン崩れ等）を実施し、失敗したセクションのみを再プロンプトする。処理履歴は `processing_jobs` テーブルにジョブ単位で記録する。
-- 実行ログ（API 呼び出しの成否、警告、処理時間、使用トークン数）を構造化ログとして残し、再現性やコスト分析に使えるようにする。
+- 出力 JSON には `id`, 日本語/英語のタイトル・著者・要約 (`title`, `title_en`, `authors`, `authors_en`, `abstract`, `abstract_en` など)、セクション別サマリ (`positioning_summary`, `purpose_summary`, `method_summary`, `evaluation_summary` とその `_en` 版)、`links`、`ccs` を含める。メタデータの信頼度は `metadata_meta` に集約し、各ソース（CLI 上書き / GROBID / LLM / 最終採用値）の整合状況を保存する。欠損情報は `"Not specified"` や日本語版の欠損トークンで埋める。
+- 生成直後のバリデーションは現状軽量で、JSON パースの成否と空レスポンスチェックに限られる。セクション単位の再プロンプトや `processing_jobs` テーブルによる永続ジョブログは未実装の検討項目として残っている。
+- 実行ログは標準エラー出力に `[INFO]` / `[WARN]` / `[ERROR]` を流す実装で、構造化ログやトークン使用量の自動集計は今後の課題。
 
 ### 3.4 埋め込み計算
-- Gemini Embedding API（例: `models/text-embedding-004`）を標準とし、要約 JSON 内の各セクションからベクトルを生成・保存する。処理の入口は専用 CLI / バッチスクリプト `compute_embeddings.py` を用意し、要約済み JSON 群を一括投入する。
+- Gemini Embedding API（例: `gemini-embedding-001`）を標準とし、要約 JSON 内の各セクションからベクトルを生成・保存する。処理の入口は専用 CLI / バッチスクリプト `compute_embeddings.py` を用意し、要約済み JSON 群を一括投入する。
 - 事前に `GEMINI_API_KEY` を `.env` に設定し、HTTP クライアントまたは公式 SDK（Python, Node.js など）から `content` にセクションテキストを渡して `embedding` を取得する。`task_type="SEMANTIC_SIMILARITY"` を付与し、テキスト長が上限 30k tokens を超えないように自動カットする。
-- 取得したベクトルは正規化前の値を `embeddings` テーブルに書き込み、同時に `model`, `embedding_version`, `dim`, `normalized=False`, `created_at`, `source_summary_id` を記録する。コサイン類似度計算時にアプリケーション側または pgvector の `vector_normalize` 関数で正規化する。
-- 大量処理では最大 32 件/リクエストを目安にバッチ化し、指数バックオフ + ジッターを備えたリトライ、サーキットブレーカ、レートメーターを導入する。未処理レコードは `processing_jobs` にキューイングし、完了したら `last_embedding_at` を更新する。
-- キャッシュ更新ポリシー: 手動で再生成したい場合は `force=true` フラグで既存ベクトルを上書きし、旧バージョンは履歴テーブル（`embeddings_history`）に退避する。
+- 取得したベクトルは要約 JSON の `embeddings` ブロックとして保存し、`provider`, `model`, `dim`, `normalized`, `sections`, `embedding_version` などのメタデータを併記する。RDB への永続化は将来検討のまま。
+- Gemini 経路では同一テキストの重複計算を避けるため事前に集約し、`batch_embed_content` が利用可能な環境では自動的にバッチ推論を行う（失敗時は警告を出して逐次リクエストにフォールバックする）。Vertex AI と Sentence Transformers も CLI フラグで切り替え可能。
+- バッチ処理時の指数バックオフや統計的なレート監視は未導入で、HTTP エラーが発生した場合はその場で例外を返す。必要に応じて CLI 実行側でリトライを包む。
 - 参考用フォールバックとして、`sentence-transformers/all-mpnet-base-v2`（ローカル推論・768 次元）、`text-embedding-3-large`（OpenAI, 3,072 次元）、Vertex AI `text-embedding-005` を用意する。フォールバック実行時は `provider`, `cost_estimate`, `latency_ms` をメタ情報に含め、後段でモデル混在を識別できるようにする。
 - 例: Python SDK を用いたセクション埋め込み取得
   ```python
@@ -48,7 +48,7 @@
   genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
   result = genai.embed_content(
-      model="models/text-embedding-004",
+      model="gemini-embedding-001",
       content=section_text,
       task_type="SEMANTIC_SIMILARITY",
   )
@@ -107,6 +107,7 @@
   - `embeddings` : `paper_id`, `section`, `vector`(pgvector), `model`, `dim`, `normalized`.
   - `ccs_labels` : `paper_id`, `concept_id`, `concept_path`, `confidence`, `explanation`.
   - `processing_jobs` : 前処理ジョブのステータス・ログ（失敗時の再実行を想定）。
+- ※ 現時点のパイプラインは JSON ファイルへの書き込みで完結しており、上記テーブル構成は将来のデータベース移行を見据えた計画段階。
 - **補助ビュー**
   - セクション別類似度のキャッシュを `materialized view` として保持し、フロントの初回読み込みを高速化。
   - 「カバーされていない領域」指標のため、近傍距離の分布を集約した統計テーブルを定期更新。
@@ -143,3 +144,4 @@
 - UI の具体的な可視化方法（リスト、グラフ、ネットワーク図など）と操作パターン。
 - 類似度の閾値・重み付けの標準値、およびユーザがカスタマイズした設定の保存方法。
 - 長期運用時のストレージ戦略、ログの保持期間、モデル更新のスケジュール。
+- `call_openai` に指数バックオフやジッターを持たせたリトライ層、トークン使用量の収集、構造化ログ出力をいつ導入するか（現状は標準エラーでの逐次出力のみ）。

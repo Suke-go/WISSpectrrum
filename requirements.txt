@@ -9,4 +9,4 @@ torch>=2.2.0
 # Optional: enable Vertex AI embeddings
 # google-cloud-aiplatform>=1.46.0
 # Optional: enable Gemini embeddings
-# google-generativeai>=0.7.0
+google-generativeai>=0.7.0

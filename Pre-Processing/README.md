@@ -41,7 +41,7 @@ This directory collects CLI tools that summarise research PDFs, classify ACM CCS
 ## 2. ワークフロー概要 / Pipeline Overview
 
 1. **PDF 要約 (OpenAI GPT)**: `Pre-Processing/summary/summarize_pdf.py` が PDF からセクション抽出 → チャンク要約 → 最終要約 → ACM CCS 提案までを一括実行します。 / The GPT-based summariser performs extraction → chunk summaries → final synthesis → optional ACM CCS tagging.
-2. **埋め込み計算 (Google Gemini)**: `embedding/compute_embeddings.py`（`compute_embeddings.py` シム経由）で JSON 要約の目的・手法等を `models/text-embedding-004` などでベクトル化します。日本語セクションは従来通り保持しつつ、`--dual-language` で英語訳を追加保存できます。 / `embedding/compute_embeddings.py` (reachable via the `compute_embeddings.py` shim) turns summary sections into vectors via Gemini or other providers; `--dual-language` keeps Japanese sections while adding English translations alongside them.
+2. **埋め込み計算 (Google Gemini)**: `embedding/compute_embeddings.py`（`compute_embeddings.py` シム経由）で JSON 要約の目的・手法等を `gemini-embedding-001` などでベクトル化します。日本語セクションは従来通り保持しつつ、`--dual-language` で英語訳を追加保存できます。 / `embedding/compute_embeddings.py` (reachable via the `compute_embeddings.py` shim) turns summary sections into vectors via Gemini or other providers; `--dual-language` keeps Japanese sections while adding English translations alongside them.
 3. **バッチ実行**: `orchestrator.py` や GUI から PDF キューを管理し、要約/埋め込みを `output/summaries/` に蓄積します。 / The orchestrator / GUI manages queues and writes outputs to `output/summaries/`.
 4. **後処理オプション**: 既存 JSON に対する CCS 追記や embeddings 再計算を個別 CLI で行えます。 / Follow-up tools enrich existing JSON records.
 
@@ -55,17 +55,17 @@ python Pre-Processing/summarize_pdf.py thesis/WISS/2005/fingering_paper.pdf \
   --language Japanese \
   --dual-language \
   --classify-ccs \
-  --ccs-embedding-model models/text-embedding-004 \
+  --ccs-embedding-model gemini-embedding-001 \
   --embeddings \
   --embedding-provider gemini \
-  --embedding-model models/text-embedding-004 \
+  --embedding-model gemini-embedding-001 \
   --gemini-task-type SEMANTIC_SIMILARITY \
   --section-embeddings
 ```
 
 - `--classify-ccs` で ACM CCS 分類を有効化します。XML は既定で `Pre-Processing/ACM CCS/acm_ccs2012-1626988337597.xml` を参照します。
-- `--ccs-embedding-model` に Gemini もしくは SentenceTransformer の名前を指定します。`models/text-embedding-004` の場合は `.env` の `GEMINI_API_KEY` が利用されます。
-- `--embeddings` は要約（purpose/method/evaluation）の埋め込みを、`--section-embeddings` は GROBID などで抽出した各セクションの埋め込みを追加で計算します。Gemini を使う場合は `--embedding-provider gemini --embedding-model models/text-embedding-004` を指定し、必要に応じて `--gemini-task-type` や `--gemini-batch-size` を調整します。
+- `--ccs-embedding-model` に Gemini もしくは SentenceTransformer の名前を指定します。`gemini-embedding-001` の場合は `.env` の `GEMINI_API_KEY` が利用されます。
+- `--embeddings` は要約（purpose/method/evaluation）の埋め込みを、`--section-embeddings` は GROBID などで抽出した各セクションの埋め込みを追加で計算します。Gemini を使う場合は `--embedding-provider gemini --embedding-model gemini-embedding-001` を指定し、必要に応じて `--gemini-task-type` や `--gemini-batch-size` を調整します。
 - `.env` と同階層で実行すると自動的にキーが読み込まれます。別ファイルを使う場合は `--env-file` でパスを指定してください。
 
 ## 4. 既存要約への ACM CCS 付加
@@ -75,7 +75,7 @@ python Pre-Processing/summarize_pdf.py thesis/WISS/2005/fingering_paper.pdf \
 ```bash
 python Pre-Processing/ccs/classify_ccs.py summaries/test_fingering.json \
   --xml Pre-Processing/ACM\ CCS/acm_ccs2012-1626988337597.xml \
-  --embedding-model models/text-embedding-004 \
+  --embedding-model gemini-embedding-001 \
   --update
 ```
 
@@ -90,7 +90,7 @@ python Pre-Processing/ccs/classify_ccs.py summaries/test_fingering.json \
 ```bash
 python Pre-Processing/compute_embeddings.py summaries/test_fingering.json \
   --sections purpose method evaluation \
-  --model models/text-embedding-004 \
+  --model gemini-embedding-001 \
   --provider gemini \
   --env-file .env \
   --update

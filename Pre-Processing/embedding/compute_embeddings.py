@@ -403,7 +403,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if args.model is None:
         if args.provider == "gemini":
-            args.model = "models/text-embedding-004"
+            args.model = "gemini-embedding-001"
         elif args.provider == "vertex-ai":
             args.model = "text-embedding-005"
         else:
@@ -439,4 +439,3 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())
-

@@ -86,13 +86,13 @@
       --pretty \
       --output summaries/wiss2024_001.json
   ```
-- Without GROBID, replace `--extractor grobid` with `--extractor pypdf` (ensure `pypdf` is installed).
+- Without GROBID, replace `--extractor grobid` with `--extractor pypdf` (ensure `pypdf` is installed). The PyPDF path now applies simple heading heuristics so later stages still receive section boundaries; logs will flag any degraded extraction so you can spot PDFs that need manual attention.
 - Useful overrides:
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id` (repeatable)
   - `--chunk-size`, `--overlap` (default 2500/250 chars)
   - `--temperature` to tune sampling (ignored when the selected model is in the GPT-5 family)
-  - `--max-concurrency` to parallelise chunk summaries when your API quota supports it
+  - `--no-dual-language` / `--no-flatten-translations` if you want to opt out of the English fields that are emitted by default (see the JSON schema below).
   - `--embeddings --embedding-provider local` (produces vectors for each summary section — positioning/purpose/method/evaluation and the abstract when available)
   - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004` (uses the same section-wise output backed by Vertex AI embeddings)
 
@@ -101,6 +101,7 @@
 - Each section is capped at two concise sentences (three at most) so you can skim dozens of papers quickly while keeping core contributions intact.
 - The `--language` flag switches output prose and heading labels between Japanese and English while leaving JSON keys stable for downstream tooling.
 - Japanese output swaps the headings for `概要`, `研究の位置づけ／目的`, `ソリューション／エンジニアリング`, and `評価`, matching the `JAPANESE_HEADINGS` map.
+- Final synthesis now produces Japanese and English copies of every major field; use `--no-dual-language` to emit Japanese-only JSON or `--no-flatten-translations` to keep the English payload under `translations.en` instead of top-level `*_en` keys.
 - When the source mentions metrics, datasets, or participant counts, those details are preserved; if something is missing the field falls back to `"Not specified"`.
 - Section detection prefers GROBID-parsed structure; when unavailable it falls back to chunked paragraphs from PyPDF extraction.
 
@@ -121,7 +122,7 @@
     "language": "Japanese",
     "chunk_size": 2800,
     "embedding_provider": "gemini",
-    "gemini_embedding_model": "models/text-embedding-004",
+    "gemini_embedding_model": "gemini-embedding-001",
     "classify_ccs": true
   }
   ```
@@ -135,18 +136,38 @@
 - JSON schema (see `synthesize_record`):
   ```jsonc
   {
-    "id": "...",                     // DOI or manual id
-    "title": "...",
+    "id": "...",                          // DOI or manual id
+    "title": "...",                       // Japanese
+    "title_en": "...",                    // English (auto-generated unless --no-dual-language)
     "authors": ["..."],
+    "authors_en": ["..."],
     "abstract": "...",
-    "positioning_summary": "...",    // problem framing
-    "purpose_summary": "...",        // research question or goal
-    "method_summary": "...",         // proposed system/method
-    "evaluation_summary": "...",     // evaluation procedure + results
+    "abstract_en": "...",
+    "positioning_summary": "...",         // problem framing (JA)
+    "positioning_summary_en": "...",      // English copy
+    "purpose_summary": "...",             // research question or goal (JA)
+    "purpose_summary_en": "...",
+    "method_summary": "...",              // proposed system/method (JA)
+    "method_summary_en": "...",
+    "evaluation_summary": "...",          // evaluation procedure + results (JA)
+    "evaluation_summary_en": "...",
     "year": 2024,
     "ccs": {"paths": ["..."], "ids": ["..."]},
     "links": {"pdf": "...", "code": "..."},
-    "embeddings": {                   // optional; section-wise vectors & metadata when requested
+    "metadata_meta": {                  // provenance + consistency checks for key fields
+      "doi": {
+        "status": "consistent|conflict|missing",
+        "confidence": "high|medium|low|unknown",
+        "preferred_source": "grobid|metadata_llm|synthesized|cli|null",
+        "sources": {"grobid": "...", "metadata_llm": "...", "synthesized": "...", "cli": "..."},
+        "final": "..."
+      },
+      "year": { "...": "..." }
+    },
+    "translations": {                   // present unless --no-dual-language / --no-flatten-translations
+      "en": { "title": "...", "abstract": "...", "positioning_summary": "...", "...": "..." }
+    },
+    "embeddings": {                     // optional; section-wise vectors & metadata when requested
       "provider": "...",
       "model": "...",
       "dim": 768,
@@ -201,12 +222,12 @@
       --classify-ccs \
       --output summaries/wiss2024_001.json
   ```
-- Classify existing summary JSON files (up to 3 labels per paper by default). The script narrows candidates via local embeddings (Sentence Transformers) before delegating the final choice to the OpenAI Responses API:
+- Classify existing summary JSON files (up to 3 labels per paper by default). The script narrows candidates via Gemini embeddings before delegating the final choice to the OpenAI Responses API:
   ```bash
   OPENAI_API_KEY=... \
   python Pre-Processing/ccs/classify_ccs.py summaries/*.json \
       --model gpt-5 \
-      --embedding-model sentence-transformers/all-MiniLM-L6-v2 \
+      --embedding-model gemini-embedding-001 \
       --top-candidates 15 \
       --max-concepts 3 \
       --output classification_report.jsonl
@@ -215,12 +236,12 @@
 - Both CLIs assume the ACM CCS XML lives at `ACM CCS/acm_ccs2012-1626988337597.xml`; override the location with `--xml` when needed.
 
 ### 4.7 Batch embedding refresher (new)
-- Once summaries exist you can regenerate or backfill embeddings with the dedicated CLI. It supports Gemini, Vertex AI and local Sentence Transformer backends, adds metadata (`embedding_meta`) and honours per-section filters:
+- Once summaries exist you can regenerate or backfill embeddings with the dedicated CLI. It supports Gemini, Vertex AI and local Sentence Transformer backends, adds metadata (`embedding_meta`) and honours per-section filters. The Gemini path deduplicates identical section text, prefers `batch_embed_content` for throughput, and logs a warning before falling back to sequential requests if batching is unavailable:
   ```bash
   GEMINI_API_KEY=... \
-  python Pre-Processing/compute_embeddings.py summaries/*.json \
-      --provider gemini \
-      --model models/text-embedding-004 \
+    python Pre-Processing/compute_embeddings.py summaries/*.json \
+        --provider gemini \
+        --model gemini-embedding-001 \
       --embedding-version v1 \
       --normalize
   ```
@@ -234,6 +255,11 @@
 - `requests package missing`: install inside the venv (`pip install requests`).
 - `pypdf import error`: install `pypdf` or `PyPDF2`.
 - Large PDFs causing timeouts: raise `--grobid-timeout` and consider `docker run` with `-m` to allocate more RAM.
+
+### 6. Known gaps / roadmap
+- `call_openai` still aborts on repeated HTTP 429/5xx responses; an exponential backoff + jitter retry layer is planned but not yet implemented.
+- Structured job logging (`processing_jobs` table, per-request token accounting) is deferred; check stderr output for now when diagnosing failures.
+- Embedding caches are in-memory only—consider persisting section hashes if you process very large corpora and want to skip recomputation between runs.
 
 ---
 
@@ -324,13 +350,14 @@
       --pretty \
       --output summaries/wiss2024_001.json
   ```
-- GROBID を使わない場合は `--extractor pypdf` を指定します（事前に `pypdf` を導入）。
+- GROBID を使わない場合は `--extractor pypdf` を指定します（事前に `pypdf` を導入）。PyPDF ルートでは簡易ヘッダ検出で疑似セクションを付与しているため、後続のチャンク処理やサマリ生成は継続できますが、ヘッダ品質は GROBID より劣る可能性があります。
 - 主なオプション:
   - `--title`, `--author`, `--year`, `--pdf-link`, `--code-link`
   - `--ccs-path`, `--ccs-id`（複数指定可）
   - `--chunk-size` / `--overlap`（既定値 2500 / 250 文字）
   - `--temperature`（サンプリング温度の調整。GPT-5 ファミリーを選ぶと無視されます）
-  - `--max-concurrency`: API 制限に余裕がある場合にチャンク要約を並列化
+  - `--no-dual-language`：英語フィールドを生成せず日本語のみ出力したい場合
+  - `--no-flatten-translations`：英語フィールドを `translations.en` のみに残し、トップレベルの `*_en` キーを作成しない
   - `--embeddings --embedding-provider local`（Sentence Transformers でサマリー各セクション：位置づけ／目的／手法／評価（可能なら概要）を個別に埋め込み化）
   - `--embeddings --embedding-provider vertex-ai --embedding-model text-embedding-004`（同じセクション構造で Vertex AI Embeddings を利用）
 
@@ -338,6 +365,7 @@
 - 整形した本文テキストを OpenAI Responses API に投げ、「位置づけ」「目的」「手法」「評価」の 4 セクションで返すようプロンプトを厳密に指定しています。
 - 各セクションは 2 文（最大 3 文）を目安とし、多数の論文を比較しやすい短く筋の通ったまとめを意識しています。
 - `--language` フラグで見出しと言語を日本語・英語で切り替えつつ、JSON のキーは共通なので後続処理の互換性が保たれます。
+- 最終出力は既定で日英両方のフィールド（`title` / `title_en` など）を含みます。英語を除外したい場合は `--no-dual-language`、トップレベルへのコピーを避けたい場合は `--no-flatten-translations` を併用してください。
 - 日本語出力時の見出しは `概要`、`研究の位置づけ／目的`、`ソリューション／エンジニアリング`、`評価` で、スクリプト内の `JAPANESE_HEADINGS` に対応しています。
 - 元資料に評価指標・データセット・参加人数などが記されていればそのまま記載し、欠けている場合は `"Not specified"` / `記載なし` で明示します。
 - セクション検出は GROBID が返す構造を優先し、利用できない場合は PyPDF で抽出した段落を分割して補完します。
@@ -359,7 +387,7 @@
     "language": "Japanese",
     "chunk_size": 2800,
     "embedding_provider": "gemini",
-    "gemini_embedding_model": "models/text-embedding-004",
+    "gemini_embedding_model": "gemini-embedding-001",
     "classify_ccs": true
   }
   ```
@@ -374,16 +402,50 @@
   ```jsonc
   {
     "id": "WISS2024-001",
-    "title": "ParaSights：…",
+    "title": "ParaSights：…",               // 日本語
+    "title_en": "ParaSights: ...",        // 英語（既定で生成）
     "authors": ["..."],
+    "authors_en": ["..."],
     "abstract": "...",
+    "abstract_en": "...",
     "positioning_summary": "...",
+    "positioning_summary_en": "...",
     "purpose_summary": "...",
+    "purpose_summary_en": "...",
     "method_summary": "...",
+    "method_summary_en": "...",
     "evaluation_summary": "...",
+    "evaluation_summary_en": "...",
     "year": 2024,
     "ccs": {"paths": ["..."], "ids": ["..."]},
     "links": {"pdf": "...", "code": "..."},
+    "metadata_meta": {
+      "doi": {
+        "status": "consistent",
+        "confidence": "high",
+        "preferred_source": "grobid",
+        "sources": {"grobid": "...", "metadata_llm": "...", "synthesized": "...", "cli": null},
+        "final": "..."
+      },
+      "year": {
+        "status": "consistent",
+        "confidence": "medium",
+        "preferred_source": "metadata_llm",
+        "sources": {"grobid": 2024, "metadata_llm": 2024, "synthesized": 2024, "cli": null},
+        "final": 2024
+      }
+    },
+    "translations": {
+      "en": {
+        "title": "ParaSights: ...",
+        "abstract": "...",
+        "positioning_summary": "...",
+        "purpose_summary": "...",
+        "method_summary": "...",
+        "evaluation_summary": "...",
+        "links": {"pdf": "...", "code": "..."}
+      }
+    },
     "embeddings": {
       "provider": "...",
       "model": "...",
@@ -434,12 +496,12 @@
       --classify-ccs \
       --output summaries/wiss2024_001.json
   ```
-- 既存の要約 JSON を対象にする場合は専用 CLI を使います。Sentence Transformers で候補を絞り込んだ上で OpenAI Responses API に 3 件までの最適な概念を選ばせます:
+- 既存の要約 JSON を対象にする場合は専用 CLI を使います。Gemini 埋め込みで候補を絞り込んだ上で OpenAI Responses API に 3 件までの最適な概念を選ばせます:
   ```bash
   OPENAI_API_KEY=... \
   python Pre-Processing/ccs/classify_ccs.py summaries/*.json \
       --model gpt-5 \
-      --embedding-model sentence-transformers/all-MiniLM-L6-v2 \
+      --embedding-model gemini-embedding-001 \
       --top-candidates 15 \
       --max-concepts 3 \
       --output classification_report.jsonl
@@ -447,12 +509,12 @@
 - タクソノミーの辞書やキーワード探索には `Pre-Processing/ccs/export_taxonomy.py` を利用できます。既定ではリポジトリ内の `ACM CCS/acm_ccs2012-1626988337597.xml` を参照しますが、`--xml` で明示的に切り替えられます。
 
 ### 4.7 埋め込み再計算バッチ（新機能）
-- 要約 JSON が揃っている場合、専用 CLI でセクション別埋め込みを再生成できます。Gemini / Vertex AI / Sentence Transformers に対応し、`embedding_meta` にメタ情報を追記します:
+- 要約 JSON が揃っている場合、専用 CLI でセクション別埋め込みを再生成できます。Gemini / Vertex AI / Sentence Transformers に対応し、`embedding_meta` にメタ情報を追記します。Gemini 経路では同一テキストをまとめて `batch_embed_content` に投げ、利用できない場合は警告を出して逐次リクエストにフォールバックします:
   ```bash
   GEMINI_API_KEY=... \
-  python Pre-Processing/compute_embeddings.py summaries/*.json \
-      --provider gemini \
-      --model models/text-embedding-004 \
+    python Pre-Processing/compute_embeddings.py summaries/*.json \
+        --provider gemini \
+        --model gemini-embedding-001 \
       --embedding-version v1 \
       --normalize
   ```
@@ -468,5 +530,10 @@
 - `requests が見つからない`: 仮想環境内で `pip install requests` を実行。
 - `pypdf が見つからない`: `pip install pypdf` もしくは `PyPDF2` を導入。
 - 大きな PDF でタイムアウトする: `--grobid-timeout` を増やし、必要なら `docker run` でメモリ上限 (`-m`) を引き上げてください。
+
+### 6. 既知の課題 / 今後の対応
+- `call_openai` はまだ HTTP 429 / 5xx 用の指数バックオフやジッタを備えていません。リトライ層とトークン使用量の記録は今後の実装予定です。
+- ログは標準エラー出力中心で、`processing_jobs` のような永続ジョブログは未整備です。大規模処理では追加の監視・記録を検討してください。
+- 埋め込みの再利用キャッシュはプロセス内のみです。巨大なコーパスで重複計算を避けたい場合は、セクション本文のハッシュを保存する仕組みを追補する必要があります。
 
 エンジニア視点でパイプライン全体を把握できるように設計しているので、構成やフラグを調整しつつ、WISS 論文の比較・整理に活用してください。

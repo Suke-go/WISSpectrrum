@@ -111,6 +111,16 @@ ensure_defaults(
     }
 )
 
+# migrate legacy session defaults to updated token/model settings
+if st.session_state.get("pipeline_chunk_max_tokens") == "400":
+    st.session_state["pipeline_chunk_max_tokens"] = "2200"
+if st.session_state.get("pipeline_final_max_tokens") == "1200":
+    st.session_state["pipeline_final_max_tokens"] = "1600"
+if st.session_state.get("pipeline_ccs_embedding_model") == "sentence-transformers/all-MiniLM-L6-v2":
+    st.session_state["pipeline_ccs_embedding_model"] = "gemini-embedding-001"
+if st.session_state.get("pipeline_gemini_model") == "models/gemini-embedding-001":
+    st.session_state["pipeline_gemini_model"] = "gemini-embedding-001"
+
 PIPELINE_DEFAULTS = {
     "pipeline_pdf_dir": "",
     "pipeline_additional_dirs": "",
@@ -123,8 +133,8 @@ PIPELINE_DEFAULTS = {
     "pipeline_chunk_size": "2500",
     "pipeline_overlap": "250",
     "pipeline_temperature": "0.2",
-    "pipeline_chunk_max_tokens": "400",
-    "pipeline_final_max_tokens": "1200",
+    "pipeline_chunk_max_tokens": "2200",
+    "pipeline_final_max_tokens": "1600",
     "pipeline_metadata_chars": "4000",
     "pipeline_dual_language": False,
     "pipeline_extra_prompt": "",
@@ -141,7 +151,7 @@ PIPELINE_DEFAULTS = {
     "pipeline_vertex_location": "us-central1",
     "pipeline_vertex_model": "text-embedding-004",
     "pipeline_vertex_dim": "",
-    "pipeline_gemini_model": "models/text-embedding-004",
+    "pipeline_gemini_model": "gemini-embedding-001",
     "pipeline_gemini_task_type": "SEMANTIC_SIMILARITY",
     "pipeline_gemini_batch_size": "32",
     "pipeline_classify_ccs": True,
@@ -152,7 +162,7 @@ PIPELINE_DEFAULTS = {
     "pipeline_ccs_fallback_candidates": "25",
     "pipeline_ccs_temperature": "0.1",
     "pipeline_ccs_max_output_tokens": "900",
-    "pipeline_ccs_embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "pipeline_ccs_embedding_model": "gemini-embedding-001",
 }
 ensure_defaults(PIPELINE_DEFAULTS)
 

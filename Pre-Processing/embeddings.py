@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import math
 import os
+import sys
+from collections.abc import Iterable as IterableABC
 from functools import lru_cache
 from threading import Lock
 from typing import Dict, Iterable, List, Optional
@@ -197,24 +199,70 @@ def maybe_compute_embeddings_gemini(
     with _GEMINI_CLIENT_LOCK:
         genai.configure(api_key=api_key)
 
-    vectors: List[List[float]] = []
-    collected_keys: List[str] = []
-    keys = [item[0] for item in prepared]
-    values = {key: text for key, text in prepared}
-    for batch_keys in _batched(keys, batch_size):
-        for key in batch_keys:
-            text = values[key]
+    def _normalize_vector(raw_vector: Iterable[float]) -> List[float]:
+        numeric = [float(x) for x in raw_vector]
+        if normalize:
+            norm = math.sqrt(sum(x * x for x in numeric))
+            if norm > 0:
+                numeric = [x / norm for x in numeric]
+        return numeric
+
+    text_to_keys: Dict[str, List[str]] = {}
+    for key, text in prepared:
+        text_to_keys.setdefault(text, []).append(key)
+
+    text_vectors: Dict[str, List[float]] = {}
+    batch_supported = hasattr(genai, "batch_embed_content")
+
+    if batch_supported:
+        try:
+            for chunk in _batched(list(text_to_keys.keys()), batch_size):
+                requests = [{"content": text, "task_type": task_type} for text in chunk]
+                response = genai.batch_embed_content(model=model_name, requests=requests)  # type: ignore[attr-defined]
+                embeddings = None
+                if isinstance(response, dict):
+                    embeddings = response.get("embeddings") or response.get("responses")
+                elif hasattr(response, "embeddings"):
+                    embeddings = getattr(response, "embeddings")
+                elif hasattr(response, "responses"):
+                    embeddings = getattr(response, "responses")
+                if embeddings is None:
+                    raise RuntimeError("Unexpected response format from batch_embed_content.")
+                if len(embeddings) != len(chunk):
+                    raise RuntimeError("Gemini batch embedding response length mismatch.")
+                for text_value, item in zip(chunk, embeddings):
+                    vector = None
+                    if isinstance(item, dict):
+                        vector = item.get("embedding")
+                    if vector is None and hasattr(item, "values"):
+                        vector = getattr(item, "values")
+                    if vector is None and hasattr(item, "embedding"):
+                        vector = getattr(item, "embedding")
+                    if not isinstance(vector, IterableABC):  # type: ignore[arg-type]
+                        raise RuntimeError("Gemini batch embedding item missing 'embedding'.")
+                    text_vectors[text_value] = _normalize_vector(vector)  # type: ignore[arg-type]
+        except Exception as exc:
+            print(f"[WARN] Gemini batch embedding failed ({exc}); falling back to sequential requests.", file=sys.stderr)
+            batch_supported = False
+
+    if not batch_supported:
+        for text, keys_for_text in text_to_keys.items():
+            if text in text_vectors:
+                continue
             response = genai.embed_content(model=model_name, content=text, task_type=task_type)
             vector = response.get("embedding")  # type: ignore[assignment]
-            if not isinstance(vector, list):
+            if not isinstance(vector, IterableABC):
                 raise RuntimeError("Gemini embedding response did not contain 'embedding'.")
-            numeric = [float(x) for x in vector]
-            if normalize:
-                norm = math.sqrt(sum(x * x for x in numeric))
-                if norm > 0:
-                    numeric = [x / norm for x in numeric]
-            vectors.append(numeric)
-            collected_keys.append(key)
+            text_vectors[text] = _normalize_vector(vector)
+
+    vectors: List[List[float]] = []
+    collected_keys: List[str] = []
+    for key, text in prepared:
+        vector = text_vectors.get(text)
+        if vector is None:
+            raise RuntimeError("Failed to compute embedding vector for a section.")
+        vectors.append(vector)
+        collected_keys.append(key)
 
     if not vectors:
         return {}
