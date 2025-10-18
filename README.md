@@ -461,7 +461,7 @@ REA- Without GROBID, replace `--extractor grobid` with `--extractor pypdf` (ensu
     }
   }
   ```
-- 各 summary フィールドは 2 文（最大 3 文）で、課題・目的・手法・評価＋結果を素早く把握できるようにしています。
+- 各 summary フィールドは 2 文（最大 3 文）で、課題・目的・手法・評価＋結果を素早く把握できるようにしています。日英両方の値が揃うため、欠損時は日本語側が「記載なし」、英語側が “Not specified” で統一されます。`metadata_meta` には DOI や発行年などの整合性と信頼度が保存され、どの情報源（GROBID／LLM／CLI）が採用されたかを後段で追跡できます。また `translations.en` にも同内容が保持されるため、`--no-flatten-translations` を付けても英語要約を参照できます。
 
 ### 4.5 セマンティック検索（任意）
 - 生成済み要約のディレクトリから、セクション単位の埋め込み索引を作成:
