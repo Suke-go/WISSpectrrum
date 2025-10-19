@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WISS Summaries Explorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="top-bar">
+      <div>
+        <h1>WISS Summaries Explorer</h1>
+        <p class="subtitle">ACM CCS explorer with filters</p>
+      </div>
+      <div class="controls">
+        <label><input type="radio" name="language" value="ja" checked /> Japanese</label>
+        <label><input type="radio" name="language" value="en" /> English</label>
+        <label><input type="radio" name="language" value="both" /> Show both</label>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <section class="concept-panel">
+          <div class="concept-header">
+            <h2>ACM CCS Concepts</h2>
+            <button type="button" id="clear-concept" class="ghost">Clear Filter</button>
+          </div>
+          <input
+            type="search"
+            id="concept-search"
+            class="concept-search"
+            placeholder="Search concepts…"
+          />
+          <p class="search-hint">Enter: select top match / Esc: clear</p>
+          <ul id="concept-list" class="concept-list"></ul>
+        </section>
+        <section class="search-panel">
+          <h2 class="year-heading">Paper Search</h2>
+          <input
+            type="search"
+            id="paper-search"
+            class="paper-search"
+            placeholder="Search title, author, or CCS…"
+          />
+          <p class="search-hint">Type keywords (Esc clears)</p>
+        </section>
+        <section>
+          <h2 class="year-heading">Papers by Year</h2>
+          <div id="year-list"></div>
+        </section>
+        <section class="log-panel">
+          <div class="log-header">
+            <h2>Interaction Log</h2>
+            <button type="button" id="clear-log" class="ghost">Clear</button>
+          </div>
+          <ul id="log-list" class="log-list"></ul>
+        </section>
+      </aside>
+
+      <section class="content">
+        <section class="viz-wrapper">
+          <div class="viz-header">
+            <h2>Concept Map</h2>
+            <p class="viz-hint">Click bubbles to zoom; click leaves to apply filters.</p>
+          </div>
+          <div id="viz-container" class="viz-container">
+            <p class="placeholder">Preparing concept map…</p>
+          </div>
+        </section>
+        <div id="status-banner" class="banner"></div>
+        <article id="paper-details" class="paper-details">
+          <p class="placeholder">Select a paper from the list to see details.</p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <small>
+        source: <code>Pre-Processing/output/summaries</code> |
+        <span id="generated-at"></span>
+      </small>
+    </footer>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
