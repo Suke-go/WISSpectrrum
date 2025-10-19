@@ -23,6 +23,7 @@ if str(PREPROCESS_ROOT) not in sys.path:
     sys.path.insert(0, str(PREPROCESS_ROOT))
 
 from embeddings import (  # noqa: E402
+    EmbeddingQuotaExceeded,
     maybe_compute_embeddings_gemini,
     maybe_compute_embeddings_local,
     maybe_compute_embeddings_vertex_ai,
@@ -249,6 +250,8 @@ def process_file(
             gemini_task_type=args.gemini_task_type,
             gemini_batch_size=args.gemini_batch_size,
         )
+    except EmbeddingQuotaExceeded as exc:
+        return "quota", f"{path}: {exc}"
     except Exception as exc:
         return "error", f"{path}: failed to compute embeddings ({exc})"
     elapsed_ms = int((time.perf_counter() - started) * 1000)
@@ -424,17 +427,37 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return 1
 
     status_counts = {"updated": 0, "skipped": 0, "empty": 0, "error": 0}
+    quota_abort = False
     for path in inputs:
         status, message = process_file(path, args=args)
         status_counts.setdefault(status, 0)
         status_counts[status] += 1
-        prefix = {"updated": "[OK]", "skipped": "[SKIP]", "empty": "[WARN]", "error": "[ERROR]"}.get(status, "[INFO]")
+        prefix = {
+            "updated": "[OK]",
+            "skipped": "[SKIP]",
+            "empty": "[WARN]",
+            "error": "[ERROR]",
+            "quota": "[ERROR]",
+        }.get(status, "[INFO]")
         print(f"{prefix} {message}")
+        if status == "quota":
+            quota_abort = True
+            break
 
     total = sum(status_counts.values())
-    summary_parts = ", ".join(f"{key}={status_counts.get(key,0)}" for key in ["updated", "skipped", "empty", "error"])
+    if quota_abort:
+        remaining = len(inputs) - total
+        if remaining > 0:
+            print(f"[WARN] Aborted {remaining} pending file(s) after Gemini quota exhaustion.")
+    summary_keys = ["updated", "skipped", "empty", "error"]
+    if status_counts.get("quota"):
+        summary_keys.append("quota")
+    summary_parts = ", ".join(f"{key}={status_counts.get(key,0)}" for key in summary_keys)
     print(f"[INFO] Processed {total} file(s): {summary_parts}")
-    return 0 if status_counts.get("error", 0) == 0 else 1
+    exit_code = 0
+    if status_counts.get("error", 0) > 0 or status_counts.get("quota", 0) > 0:
+        exit_code = 1
+    return exit_code
 
 
 if __name__ == "__main__":  # pragma: no cover

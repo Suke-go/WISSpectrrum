@@ -23,6 +23,40 @@ _VERTEX_MODEL_LOCK = Lock()
 _GEMINI_CLIENT_LOCK = Lock()
 
 
+class EmbeddingQuotaExceeded(RuntimeError):
+    """Raised when an embedding provider reports quota exhaustion or rate limiting."""
+
+
+def _is_quota_error(exc: Exception) -> bool:
+    """
+    Best-effort detection of quota / rate limit errors from provider SDKs.
+    """
+
+    message = str(exc).lower()
+    if any(keyword in message for keyword in ("quota", "rate limit", "429", "too many requests")):
+        return True
+
+    for attr in ("code", "status", "status_code", "http_status", "grpc_status_code"):
+        value = getattr(exc, attr, None)
+        if value is None:
+            continue
+        if isinstance(value, int) and value == 429:
+            return True
+        name = getattr(value, "name", "")
+        if isinstance(name, str) and name.upper() in {"RESOURCE_EXHAUSTED", "TOO_MANY_REQUESTS"}:
+            return True
+
+    errors = getattr(exc, "errors", None)
+    if isinstance(errors, list):
+        for item in errors:
+            if isinstance(item, dict):
+                reason = str(item.get("reason", "")).lower()
+                if "quota" in reason or "rate" in reason:
+                    return True
+
+    return False
+
+
 @lru_cache(maxsize=8)
 def _lazy_sentence_transformer(model_name: str):
     """Load and cache SentenceTransformer instances."""
@@ -242,14 +276,33 @@ def maybe_compute_embeddings_gemini(
                         raise RuntimeError("Gemini batch embedding item missing 'embedding'.")
                     text_vectors[text_value] = _normalize_vector(vector)  # type: ignore[arg-type]
         except Exception as exc:
+            if _is_quota_error(exc):
+                detail_raw = str(exc).strip()
+                detail = (
+                    f"Gemini API quota or rate limit exhausted: {detail_raw}"
+                    if detail_raw
+                    else "Gemini API quota or rate limit exhausted."
+                )
+                raise EmbeddingQuotaExceeded(detail) from exc
             print(f"[WARN] Gemini batch embedding failed ({exc}); falling back to sequential requests.", file=sys.stderr)
             batch_supported = False
 
     if not batch_supported:
-        for text, keys_for_text in text_to_keys.items():
+        for text, _keys_for_text in text_to_keys.items():
             if text in text_vectors:
                 continue
-            response = genai.embed_content(model=model_name, content=text, task_type=task_type)
+            try:
+                response = genai.embed_content(model=model_name, content=text, task_type=task_type)
+            except Exception as exc:
+                if _is_quota_error(exc):
+                    detail_raw = str(exc).strip()
+                    detail = (
+                        f"Gemini API quota or rate limit exhausted: {detail_raw}"
+                        if detail_raw
+                        else "Gemini API quota or rate limit exhausted."
+                    )
+                    raise EmbeddingQuotaExceeded(detail) from exc
+                raise
             vector = response.get("embedding")  # type: ignore[assignment]
             if not isinstance(vector, IterableABC):
                 raise RuntimeError("Gemini embedding response did not contain 'embedding'.")
@@ -288,6 +341,7 @@ def clear_embedding_caches() -> None:
 
 
 __all__ = [
+    "EmbeddingQuotaExceeded",
     "maybe_compute_embeddings_local",
     "maybe_compute_embeddings_vertex_ai",
     "maybe_compute_embeddings_gemini",

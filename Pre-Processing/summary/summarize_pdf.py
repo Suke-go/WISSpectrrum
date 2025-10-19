@@ -413,8 +413,8 @@ def synthesize_record(
     system_prompt = (
         "You are a research assistant who produces structured JSON summaries. "
         "Keep the tone literal and avoid metaphors. "
-        "Replace specific proper nouns (systems, organisations, products, datasets, people) with neutral descriptors such as "
-        "\"本研究\", \"本システム\", or language-appropriate equivalents unless the exact name is indispensable for meaning."
+        "Within summary fields, replace specific proper nouns (systems, organisations, products, datasets, people) with neutral descriptors such as 本研究や本システムなど言語に合わせた表現 unless the exact name is indispensable for meaning. "
+        "For metadata fields (title, title_en, authors, authors_en, doi, year, ccs identifiers), retain the original proper nouns exactly as provided."
     )
     hint_lines = []
     for key, value in metadata_hints.items():
@@ -456,8 +456,8 @@ def synthesize_record(
     user_prompt = (
         f"Generate a JSON object that follows the schema below. "
         f"Write all textual fields in {language} with clear, literal sentences. Avoid metaphors and excessive jargon. "
-        "When you encounter proper nouns for systems, organisations, datasets, or people, replace them with neutral descriptors such as "
-        "\"本研究\" or language-appropriate equivalents unless the exact name is indispensable. "
+        "For the narrative summary fields, replace specific proper nouns for systems, organisations, datasets, or people with neutral descriptors such as 本研究や本システムなどの表現 unless the exact name is indispensable. "
+        "Keep metadata fields (title, title_en, authors, authors_en, doi, year, ccs_paths, ccs_ids) faithful to the original proper nouns and identifiers when they are provided, using the hints and extracted content. "
         f"For each *_summary field, write 2 sentences (maximum 3). The first sentence should restate the central idea, and the second sentence should mention specific details such as targets, mechanisms, participants, or quantitative outcomes when available. "
         "Ensure every sentence is self-contained: restate the subject within the same sentence instead of referring back to earlier sentences, "
         "and distribute important keywords across the sentence (including towards the end) so the information is not front-loaded. "
@@ -680,7 +680,10 @@ def summarise_pdf(
     record: Dict[str, object] = {}
     record["id"] = paper_id or structured.get("doi") or extraction_metadata.get("doi") or metadata_llm.get("doi")
     structured_title = structured.get("title")
-    record["title"] = prefer_cli(title, structured_title or extraction_metadata.get("title") or metadata_llm.get("title"))
+    record["title"] = prefer_cli(
+        title,
+        extraction_metadata.get("title") or metadata_llm.get("title") or structured_title,
+    )
     record["title_en"] = _select_text(
         structured.get("title_en"),
         metadata_llm.get("title_en"),
@@ -690,7 +693,7 @@ def summarise_pdf(
 
     authors_value = prefer_cli(
         authors,
-        structured.get("authors") or extraction_metadata.get("authors") or metadata_llm.get("authors"),
+        extraction_metadata.get("authors") or metadata_llm.get("authors") or structured.get("authors"),
     )
     record["authors"] = _normalize_list(authors_value)
     record["authors_en"] = _normalize_list(structured.get("authors_en"))

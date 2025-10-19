@@ -32,9 +32,12 @@ class PipelineFormState:
     """Form values collected from a UI for the orchestrator pipeline."""
 
     pdf_dirs: List[str]
+    data_roots: Optional[str] = None
+    db_path: Optional[str] = None
     output_dir: Optional[str] = None
     pattern: Optional[str] = None
     limit: Optional[str] = None
+    workers: Optional[str] = None
     json_policy: str = "skip"
     env_file: Optional[str] = None
     summary_model: Optional[str] = None
@@ -121,6 +124,10 @@ def prepare_pipeline_command(
         command += ["--pattern", options.pattern]
     if options.limit:
         command += ["--limit", options.limit]
+    if options.workers:
+        command += ["--workers", options.workers]
+    if options.db_path:
+        command += ["--db", options.db_path]
     if options.json_policy == "force":
         command.append("--force")
     if options.env_file:
@@ -129,8 +136,8 @@ def prepare_pipeline_command(
         command += ["--model", options.summary_model]
     if options.summary_language:
         command += ["--language", options.summary_language]
-    if options.dual_language:
-        command.append("--dual-language")
+    if options.dual_language is False:
+        command.append("--no-dual-language")
     if options.chunk_size:
         command += ["--chunk-size", options.chunk_size]
     if options.temperature:
@@ -153,6 +160,10 @@ def prepare_pipeline_command(
         env.setdefault("OPENAI_API_KEY", options.openai_key)
     if options.gemini_api_key:
         env.setdefault("GEMINI_API_KEY", options.gemini_api_key)
+    if options.data_roots:
+        env.setdefault("WISS_DATA_ROOT", options.data_roots)
+    if options.db_path:
+        env.setdefault("WISS_PIPELINE_DB", options.db_path)
 
     request = CommandRequest(
         command=command,

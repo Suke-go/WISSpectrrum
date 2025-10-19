@@ -17,7 +17,7 @@ This directory collects CLI tools that summarise research PDFs, classify ACM CCS
 - `embeddings.py`: 各種埋め込みバックエンドの共通ヘルパー。 / Shared embedding helpers.
 - `utils/`: `.env` ローダーや `paths.py` によるディレクトリ定義、ジョブ状態管理など。 / Utilities such as `.env` loading, path helpers, and job state management.
 - `output/summaries/`: 要約・埋め込みの既定保存先（存在しない場合は自動作成されます）。 / Default output directory for summaries & embeddings.
-- `data/pipeline_state.db`: バッチ実行時に使う SQLite ジョブキューの既定パス。 / Default SQLite datastore for the orchestrator.
+- `data/pipeline_state.db`: 旧デフォルトの SQLite ジョブキュー保存先（新しい既定はユーザ別ディレクトリ例 `%LOCALAPPDATA%/WISSpectrrum/pipeline_state.db`）。 / Legacy SQLite datastore location; new default lives under the per-user app data directory (e.g. `%LOCALAPPDATA%/WISSpectrrum/pipeline_state.db`).
 - `ui/`: Tkinter ベースの制御パネル。 / Tkinter control panel for operators.
 
 ## 1. 事前準備 / Prerequisites
@@ -29,10 +29,12 @@ This directory collects CLI tools that summarise research PDFs, classify ACM CCS
   pip install -r requirements.txt
   ```
 - `.env` に API キーを記述すると、各 CLI が起動時に自動で読み込みます。最低限以下を設定してください。
-  ```
-  OPENAI_API_KEY=xxx
-  GEMINI_API_KEY=yyy
-  ```
+```
+OPENAI_API_KEY=xxx
+GEMINI_API_KEY=yyy
+WISS_DATA_ROOT=thesis
+#WISS_PIPELINE_DB=C:/Users/your-name/AppData/Local/WISSpectrrum/pipeline_state.db
+```
   Vertex AI を使う場合は `VERTEX_AI_PROJECT`, `VERTEX_AI_LOCATION`, `VERTEX_AI_EMBEDDING_MODEL` なども用意します。
 - すべての CLI は起動時に `utils.env.load_env()` と `utils.paths.ensure_preprocess_path()` を呼び出し、`.env` の自動探索とモジュール解決を行います。 / Every CLI bootstraps `.env` discovery and sys.path updates via `utils.env` / `utils.paths`.
 - `pdfminer.six` をインストールしておくと、PyPDF でテキストが抽出できない PDF に対して自動的にフォールバックします。 / Installing `pdfminer.six` enables automatic fallback extraction when PyPDF cannot read a PDF.

@@ -9,6 +9,15 @@ import sys
 from pathlib import Path
 from typing import Iterable, List, Optional
 
+# Ensure the preprocessing package is importable even when launched via `streamlit run`
+_THIS_FILE = Path(__file__).resolve()
+_UI_DIR = _THIS_FILE.parent
+_PREPROCESS_ROOT = _UI_DIR.parent
+for _candidate in (_PREPROCESS_ROOT, _UI_DIR):
+    _path_str = str(_candidate)
+    if _path_str not in sys.path:
+        sys.path.insert(0, _path_str)
+
 import streamlit as st
 
 from shared import (
@@ -20,6 +29,7 @@ from shared import (
     prepare_embeddings_command,
     prepare_pipeline_command,
 )
+from utils.paths import STATE_DB_PATH, resolve_data_roots
 
 THIS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = THIS_DIR.parent
@@ -124,9 +134,12 @@ if st.session_state.get("pipeline_gemini_model") == "models/gemini-embedding-001
 PIPELINE_DEFAULTS = {
     "pipeline_pdf_dir": "",
     "pipeline_additional_dirs": "",
+    "pipeline_data_root": os.getenv("WISS_DATA_ROOT", ", ".join(str(path) for path in resolve_data_roots())),
+    "pipeline_db_path": os.getenv("WISS_PIPELINE_DB", str(STATE_DB_PATH)),
     "pipeline_output_dir": str(REPO_ROOT / "output" / "summaries"),
     "pipeline_pattern": "*.pdf",
     "pipeline_limit": "",
+    "pipeline_workers": "1",
     "pipeline_json_policy": "skip",
     "pipeline_summary_model": "gpt-5-mini",
     "pipeline_summary_language": "Japanese",
@@ -143,17 +156,17 @@ PIPELINE_DEFAULTS = {
     "pipeline_grobid_timeout": "60.0",
     "pipeline_compute_embeddings": True,
     "pipeline_embedding_provider": "gemini",
-    "pipeline_embedding_normalize": True,
-    "pipeline_embedding_sections": list(SECTION_CHOICES),
-    "pipeline_embedding_version": "v1",
-    "pipeline_local_model": "intfloat/multilingual-e5-large-instruct",
+    "pipeline_local_model": "",
     "pipeline_vertex_project": "",
-    "pipeline_vertex_location": "us-central1",
-    "pipeline_vertex_model": "text-embedding-004",
+    "pipeline_vertex_location": "",
+    "pipeline_vertex_model": "",
     "pipeline_vertex_dim": "",
     "pipeline_gemini_model": "gemini-embedding-001",
     "pipeline_gemini_task_type": "SEMANTIC_SIMILARITY",
     "pipeline_gemini_batch_size": "32",
+    "pipeline_embedding_normalize": True,
+    "pipeline_embedding_sections": list(SECTION_CHOICES),
+    "pipeline_embedding_version": "",
     "pipeline_classify_ccs": True,
     "pipeline_ccs_model": "gpt-5",
     "pipeline_ccs_taxonomy": str(DEFAULT_TAXONOMY),
@@ -217,8 +230,11 @@ with tabs[0]:
         col_left, col_right = st.columns(2)
         pdf_dir = col_left.text_input("PDF ディレクトリ", key="pipeline_pdf_dir")
         additional_dirs_raw = col_left.text_area("追加PDFディレクトリ (改行区切り)", key="pipeline_additional_dirs", height=110)
+        data_root = col_left.text_input("基準ディレクトリ (WISS_DATA_ROOT, カンマ区切り)", key="pipeline_data_root")
         output_dir = col_right.text_input("出力ディレクトリ", key="pipeline_output_dir")
+        db_path = col_right.text_input("ジョブDBパス (--db / WISS_PIPELINE_DB)", key="pipeline_db_path")
         limit = col_right.text_input("処理件数上限", key="pipeline_limit")
+        workers = col_right.text_input("並列ワーカー数", key="pipeline_workers")
         pattern = col_right.text_input("ファイルパターン", key="pipeline_pattern")
         json_policy = col_right.selectbox(
             "既存 JSON の扱い",
@@ -303,9 +319,12 @@ with tabs[0]:
             additional_pdf_dirs = _split_lines(additional_dirs_raw)
             form = PipelineFormState(
                 pdf_dirs=[pdf_dir_clean, *additional_pdf_dirs],
+                data_roots=_value_or_none(data_root),
+                db_path=_value_or_none(db_path),
                 output_dir=_value_or_none(output_dir),
                 pattern=_value_or_none(pattern),
                 limit=_value_or_none(limit),
+                workers=_value_or_none(workers),
                 json_policy=json_policy,
                 env_file=_value_or_none(st.session_state["env_path"]),
                 summary_model=_value_or_none(summary_model),

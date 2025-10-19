@@ -26,6 +26,8 @@ class Job:
     job_id: int
     pdf_path: Path
     summary_path: Path
+    base_root: Optional[Path]
+    relative_pdf: Optional[Path]
     status: str
     attempts: int
     last_error: Optional[str]
@@ -53,6 +55,8 @@ class PipelineState:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     pdf_path TEXT UNIQUE NOT NULL,
                     summary_path TEXT NOT NULL,
+                    base_root TEXT,
+                    relative_pdf TEXT,
                     status TEXT NOT NULL,
                     attempts INTEGER NOT NULL DEFAULT 0,
                     last_error TEXT,
@@ -62,11 +66,35 @@ class PipelineState:
                 )
                 """
             )
+        self._ensure_columns()
 
-    def enqueue(self, pdf_path: Path, summary_path: Path, *, metadata: Optional[Dict[str, object]] = None, force: bool = False) -> int:
+    def _ensure_columns(self) -> None:
+        """Backfill optional columns for legacy databases."""
+        with self._conn:
+            existing = {
+                row["name"]
+                for row in self._conn.execute("PRAGMA table_info(jobs)").fetchall()
+            }
+            if "base_root" not in existing:
+                self._conn.execute("ALTER TABLE jobs ADD COLUMN base_root TEXT")
+            if "relative_pdf" not in existing:
+                self._conn.execute("ALTER TABLE jobs ADD COLUMN relative_pdf TEXT")
+
+    def enqueue(
+        self,
+        pdf_path: Path,
+        summary_path: Path,
+        *,
+        base_root: Optional[Path] = None,
+        relative_pdf: Optional[Path] = None,
+        metadata: Optional[Dict[str, object]] = None,
+        force: bool = False,
+    ) -> int:
         """Insert or requeue a job. Returns the job id."""
         pdf = str(pdf_path.expanduser().resolve())
         summary = str(summary_path.expanduser().resolve())
+        base_root_str = str(base_root.expanduser().resolve()) if base_root else None
+        relative_pdf_str = str(relative_pdf).replace("\\", "/") if relative_pdf else None
         payload = json.dumps(metadata or {}, ensure_ascii=False)
         now = utc_now()
 
@@ -85,6 +113,8 @@ class PipelineState:
                                metadata = ?,
                                attempts = CASE WHEN ? THEN 0 ELSE attempts END,
                                last_error = NULL,
+                               base_root = COALESCE(?, base_root),
+                               relative_pdf = COALESCE(?, relative_pdf),
                                updated_at = ?
                          WHERE id = ?
                         """,
@@ -93,6 +123,8 @@ class PipelineState:
                             summary,
                             payload,
                             int(force),
+                            base_root_str,
+                            relative_pdf_str,
                             now,
                             job_id,
                         ),
@@ -101,10 +133,10 @@ class PipelineState:
 
             cursor = self._conn.execute(
                 """
-                INSERT INTO jobs (pdf_path, summary_path, status, metadata, attempts, created_at, updated_at)
-                VALUES (?, ?, ?, ?, 0, ?, ?)
+                INSERT INTO jobs (pdf_path, summary_path, base_root, relative_pdf, status, metadata, attempts, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)
                 """,
-                (pdf, summary, STATUS_QUEUED, payload, now, now),
+                (pdf, summary, base_root_str, relative_pdf_str, STATUS_QUEUED, payload, now, now),
             )
             return int(cursor.lastrowid)
 
@@ -187,11 +219,34 @@ class PipelineState:
             job_id=int(row["id"]),
             pdf_path=Path(row["pdf_path"]),
             summary_path=Path(row["summary_path"]),
+            base_root=Path(row["base_root"]) if row["base_root"] else None,
+            relative_pdf=Path(row["relative_pdf"]) if row["relative_pdf"] else None,
             status=row["status"],
             attempts=int(row["attempts"]),
             last_error=row["last_error"],
             metadata=metadata,
         )
+
+    def purge_missing_jobs(self) -> int:
+        """
+        Remove jobs whose PDF no longer exists on disk.
+
+        Returns number of deleted rows.
+        """
+        with self._conn:
+            cursor = self._conn.execute(
+                "SELECT id, pdf_path FROM jobs"
+            )
+            victims = [
+                int(row["id"])
+                for row in cursor.fetchall()
+                if row["pdf_path"] and not Path(row["pdf_path"]).exists()
+            ]
+            if not victims:
+                return 0
+            self._conn.executemany("DELETE FROM jobs WHERE id = ?", [(vid,) for vid in victims])
+            self._conn.execute("VACUUM")
+            return len(victims)
 
 
 __all__ = [
