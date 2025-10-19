@@ -168,7 +168,7 @@ PIPELINE_DEFAULTS = {
     "pipeline_embedding_sections": list(SECTION_CHOICES),
     "pipeline_embedding_version": "",
     "pipeline_classify_ccs": True,
-    "pipeline_ccs_model": "gpt-5",
+    "pipeline_ccs_model": "gpt-5-mini",
     "pipeline_ccs_taxonomy": str(DEFAULT_TAXONOMY),
     "pipeline_ccs_max_concepts": "3",
     "pipeline_ccs_top_candidates": "15",

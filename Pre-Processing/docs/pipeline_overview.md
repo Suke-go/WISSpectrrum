@@ -101,6 +101,7 @@ python ui/app.py
 
 ## 設定とチューニング / Configuration Tips
 - `orchestrator.py` は JSON 設定ファイルを `--config` で読み込み、`SummariserConfig` の任意フィールドを上書きできます。例: チャンク長 (`chunk_size`), モデル (`model`), 埋め込みプロバイダ (`embedding_provider`), CCS モデル (`ccs_model`)。
+- `output_dir` を設定ファイルに含めると、CLI で `--output-dir` を明示しなくても要約 JSON の出力先を切り替えられます（CLI 引数が優先されます）。/ Including `output_dir` in the config JSON lets you change the summary destination without passing `--output-dir` (explicit CLI flags still win).
 - 主要環境変数:
   - `WISS_DATA_ROOT`: PDF を探索するディレクトリ (カンマ区切りで複数指定可)。
   - `WISS_PIPELINE_DB`: SQLite ジョブ DB の保存場所。未指定時はユーザごとのアプリデータ配下に作成されます。
@@ -122,4 +123,3 @@ python ui/app.py
 ---
 
 運用フローの更新や追加スクリプトが生じた場合は、このファイルを最新版に保ち、`orchestrator.py` や `README.md` からリンクしてください。
-

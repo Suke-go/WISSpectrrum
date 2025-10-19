@@ -79,7 +79,7 @@ class SummariserConfig:
     gemini_batch_size: int = 32
     classify_ccs: bool = True
     ccs_taxonomy_path: Path = field(default_factory=lambda: DEFAULT_TAXONOMY_PATH)
-    ccs_model: str = "gpt-5"
+    ccs_model: str = "gpt-5-mini"
     ccs_max_concepts: int = 3
     ccs_top_candidates: int = 15
     ccs_fallback_candidates: int = 25
@@ -480,12 +480,24 @@ def run_jobs(
 
 def handle_run(args: argparse.Namespace) -> int:
     load_env(explicit=args.env_file)
+    config_data = load_config_file(args.config)
+    output_dir_override: Optional[Path] = None
+    if config_data:
+        raw_output_dir = config_data.pop("output_dir", None)
+        if raw_output_dir not in (None, ""):
+            output_dir_override = Path(raw_output_dir)
     pdfs = discover_pdfs(args.pdf or [], args.pdf_dir or [], args.pattern)
     if not pdfs:
         print("[WARN] No PDF files discovered.")
         return 0
 
-    output_dir = args.output_dir.expanduser().resolve()
+    if output_dir_override and args.output_dir == DEFAULT_OUTPUT_DIR:
+        output_dir_candidate = output_dir_override.expanduser()
+        print(f"[INFO] Output directory overridden by config file: {output_dir_candidate}")
+    else:
+        output_dir_candidate = args.output_dir.expanduser()
+
+    output_dir = output_dir_candidate.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     db_path = args.db.expanduser().resolve()
@@ -506,7 +518,6 @@ def handle_run(args: argparse.Namespace) -> int:
         print(f"[INFO] Enqueued {enqueued} job(s); skipped {skipped} existing job(s).")
 
         config = SummariserConfig()
-        config_data = load_config_file(args.config)
         if config_data:
             config.apply_overrides(config_data)
 

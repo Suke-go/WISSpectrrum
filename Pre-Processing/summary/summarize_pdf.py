@@ -1116,7 +1116,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--ccs-model",
-        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-5"),
+        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-5-mini"),
         help="OpenAI model to use for CCS classification.",
     )
     parser.add_argument("--ccs-max-concepts", type=int, default=3, help="Maximum CCS concepts to assign.")

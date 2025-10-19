@@ -102,7 +102,7 @@ class PreprocessingUI:
         self.gemini_api_key_var = tk.StringVar()
         self.local_model_var = tk.StringVar(value="intfloat/multilingual-e5-large-instruct")
         self.classify_ccs_var = tk.BooleanVar(value=True)
-        self.ccs_model_var = tk.StringVar(value="gpt-5")
+        self.ccs_model_var = tk.StringVar(value="gpt-5-mini")
         self.ccs_taxonomy_var = tk.StringVar(value=str(DEFAULT_TAXONOMY))
         self.ccs_max_concepts_var = tk.StringVar(value="3")
         self.ccs_top_candidates_var = tk.StringVar(value="15")

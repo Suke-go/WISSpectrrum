@@ -48,8 +48,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--xml", type=Path, default=THIS_DIR.parent.parent / "ACM CCS" / "acm_ccs2012-1626988337597.xml", help="Path to the CCS XML file.")
     parser.add_argument(
         "--model",
-        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-5"),
-        help="OpenAI Responses model to use (e.g. 'gpt-5', 'gpt-5-mini').",
+        default=os.getenv("CCS_CLASSIFIER_MODEL", "gpt-5-mini"),
+        help="OpenAI Responses model to use (e.g. 'gpt-5-mini', 'gpt-5').",
     )
     parser.add_argument("--max-concepts", type=int, default=3, help="Maximum number of CCS concepts to assign per paper.")
     parser.add_argument("--top-candidates", type=int, default=15, help="Number of candidate concepts to surface to the LLM.")
