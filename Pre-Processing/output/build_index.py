@@ -140,7 +140,7 @@ def build_index() -> Dict[str, Any]:
 
 
 def build_tree_from_paths(concepts: List[Dict[str, Any]]) -> Dict[str, Any]:
-    split_pattern = re.compile(r"\s*(?:→|��)\s*")
+    split_pattern = re.compile(r"\s*(?:->|→|��)\s*")
 
     root: Dict[str, Any] = {"name": "ACM CCS", "count": 0, "children": {}}
 

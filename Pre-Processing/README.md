@@ -1,5 +1,7 @@
 # Pre-Processing Utilities
 
+実行方法：streamlit run Pre-Processing/ui/app_streamlit.py
+
 このディレクトリには、論文 PDF からの要約生成、ACM CCS 分類、埋め込み計算を行うための CLI がまとまっています。以下では代表的なスクリプトと使い方を紹介します。  
 This directory collects CLI tools that summarise research PDFs, classify ACM CCS concepts, and compute embeddings. The sections below walk through the key scripts and usage patterns.
 
