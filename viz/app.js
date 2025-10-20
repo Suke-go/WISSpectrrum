@@ -9,6 +9,27 @@ const summariesPath = [...pathParts, 'Pre-Processing', 'output', 'summaries', ''
 const SUMMARIES_BASE_URL = new URL(summariesPath, `${SCRIPT_URL.origin}/`);
 
 // State Management
+function openDetailPanel() {
+    document.body.classList.add('detail-open');
+    const panel = document.getElementById('detail-content');
+    if (panel) {
+        panel.scrollTop = 0;
+    }
+}
+
+function hideDetailPanel() {
+    document.body.classList.remove('detail-open');
+}
+
+const EMBEDDING_SECTION_LABELS = {
+    abstract: 'Abstract',
+    overview: 'Overview',
+    positioning: 'Positioning',
+    purpose: 'Purpose',
+    method: 'Method',
+    evaluation: 'Evaluation',
+};
+
 const state = {
     data: null,
     currentView: 'network',
@@ -86,6 +107,7 @@ function setupEventListeners() {
             e.target.classList.add('active');
             state.currentView = e.target.dataset.view;
             renderVisualization();
+            updateSelectionInfo();
         });
     });
 
@@ -144,6 +166,15 @@ function setupEventListeners() {
 
     // Close detail button
     document.getElementById('close-detail').addEventListener('click', closeDetail);
+    const backdrop = document.getElementById('detail-backdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', closeDetail);
+    }
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && document.body.classList.contains('detail-open')) {
+            closeDetail();
+        }
+    });
 }
 
 // Filter papers based on search and year
@@ -190,7 +221,18 @@ function filterPapers() {
 
     state.filteredPapers = papers;
     updateSelectionInfo();
+
+    if (state.selectedPaper) {
+        const stillVisible = papers.some(p => p.slug === state.selectedPaper.slug);
+        if (!stillVisible) {
+            state.selectedPaper = null;
+            if (!state.selectedConcept) {
+                closeDetail();
+            }
+        }
+    }
 }
+
 
 // Render Concept Tree
 function renderConceptTree() {
@@ -660,47 +702,74 @@ function renderNetworkView(container) {
         d3.select(this).attr('stroke-width', 1.5);
     }
 
-    node.on('click', async (event, d) => {
-        // Animate selected node
-        d3.select(event.target)
-            .transition()
-            .duration(200)
-            .attr('r', 10)
-            .transition()
-            .duration(200)
-            .attr('r', 6);
+    let lastHighlightContext = {
+        nodeId: null,
+        embeddingSection: null,
+        similarityThreshold: null,
+        similarPapers: null
+    };
 
-        // Find similar papers based on embeddings
-        const similarPapers = await findSimilarPapers(d.paper, 10);
+    function updateGraphHighlight(targetDatum, similarPapers, { animate = true, eventTarget = null } = {}) {
+        if (animate && eventTarget) {
+            d3.select(eventTarget)
+                .transition()
+                .duration(200)
+                .attr('r', 10)
+                .transition()
+                .duration(200)
+                .attr('r', 6);
+        }
 
-        // Highlight similar nodes
         const similarNodeIds = new Set(similarPapers.map(sp => sp.paper.slug));
 
         node.style('opacity', n => {
-            if (n.id === d.id) return 1;
+            if (n.id === targetDatum.id) return 1;
             if (similarNodeIds.has(n.id)) return 0.9;
             return 0.2;
-        })
-        .attr('stroke-width', n => {
-            if (n.id === d.id) return 3;
+        }).attr('stroke-width', n => {
+            if (n.id === targetDatum.id) return 3;
             if (similarNodeIds.has(n.id)) return 2.5;
             return 1.5;
         });
 
-        // Highlight links to similar papers
         link.style('opacity', l => {
             const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
             const targetId = typeof l.target === 'object' ? l.target.id : l.target;
 
-            if ((sourceId === d.id && similarNodeIds.has(targetId)) ||
-                (targetId === d.id && similarNodeIds.has(sourceId))) {
+            if ((sourceId === targetDatum.id && similarNodeIds.has(targetId)) ||
+                (targetId === targetDatum.id && similarNodeIds.has(sourceId))) {
                 return 0.8;
             }
             return 0.1;
         });
+    }
 
-        // Show paper detail with similar papers
-        await selectPaper(d.paper, similarPapers);
+    node.on('click', async (event, d) => {
+        const animate = event.detail === 1;
+        let similarPapers;
+        const contextMatches =
+            lastHighlightContext.nodeId === d.id &&
+            lastHighlightContext.embeddingSection === state.embeddingSection &&
+            lastHighlightContext.similarityThreshold === state.similarityThreshold &&
+            Array.isArray(lastHighlightContext.similarPapers);
+
+        if (contextMatches) {
+            similarPapers = lastHighlightContext.similarPapers;
+        } else {
+            similarPapers = await findSimilarPapers(d.paper, 10);
+            lastHighlightContext = {
+                nodeId: d.id,
+                embeddingSection: state.embeddingSection,
+                similarityThreshold: state.similarityThreshold,
+                similarPapers
+            };
+        }
+
+        updateGraphHighlight(d, similarPapers, { animate, eventTarget: event.target });
+
+        if (event.detail === 2) {
+            await selectPaper(d.paper, similarPapers);
+        }
     });
 
     // Tooltip
@@ -855,7 +924,11 @@ function renderTimelineView(container) {
                 .attr('stroke', '#1e2139')
                 .attr('stroke-width', 0.5)
                 .style('opacity', 0.8)
-                .on('click', () => selectPaper(paper))
+                .on('click', (event) => {
+                    if (event.detail === 2) {
+                        selectPaper(paper);
+                    }
+                })
                 .append('title')
                 .text(paper.title || paper.title_en);
         });
@@ -1112,23 +1185,68 @@ function createTooltip(container) {
         .attr('class', 'tooltip');
 }
 
+function getConceptLabel(conceptOrId) {
+    let concept = conceptOrId;
+    if (typeof conceptOrId === 'string') {
+        concept = state.conceptMap.get(conceptOrId) || conceptOrId;
+    }
+
+    if (!concept || typeof concept !== 'object') {
+        return typeof conceptOrId === 'string' ? conceptOrId : (conceptOrId?.id || 'Unknown concept');
+    }
+
+    const candidates = [
+        concept.label,
+        concept.name,
+        concept.title,
+        concept.path,
+        concept.id
+    ];
+
+    const labelSource = candidates.find(text => typeof text === 'string' && text.trim().length > 0);
+    if (!labelSource) {
+        return concept.id || 'Unknown concept';
+    }
+
+    const delimiters = [' ↁE', ' → ', ' > ', ' / ', ' | ', '›', '→', '／', '・'];
+    for (const delimiter of delimiters) {
+        if (labelSource.includes(delimiter)) {
+            const parts = labelSource.split(delimiter).map(part => part.trim()).filter(Boolean);
+            if (parts.length) {
+                return parts[parts.length - 1];
+            }
+        }
+    }
+
+    if (labelSource.includes('.')) {
+        const parts = labelSource.split('.').map(part => part.trim()).filter(Boolean);
+        if (parts.length) {
+            return parts[parts.length - 1];
+        }
+    }
+
+    return labelSource.trim();
+}
+
 // Detail Panel
 function showConceptDetail(conceptId) {
     const concept = state.conceptMap.get(conceptId);
     if (!concept) return;
 
     const detailContent = document.getElementById('detail-content');
+    openDetailPanel();
 
     const papers = state.filteredPapers.filter(paper =>
-        paper.concepts && paper.concepts.some(c => c.id === conceptId)
+        paper.concepts && paper.concepts.some(c => c.id === conceptId || c.id.startsWith(`${conceptId}.`))
     );
 
     detailContent.innerHTML = `
         <div class="detail-section">
             <h3>概念</h3>
             <div class="content">
-                <div class="paper-title">${concept.path || concept.id}</div>
+                <div class="paper-title">${getConceptLabel(concept)}</div>
                 <div class="paper-meta">
+                    <span class="meta-item">${concept.path || concept.id}</span>
                     <span class="meta-item">${papers.length} 件の論文</span>
                 </div>
             </div>
@@ -1138,9 +1256,9 @@ function showConceptDetail(conceptId) {
             <h3>関連論文</h3>
             <div class="content">
                 <div class="paper-list">
-                    ${papers.slice(0, 50).map(paper => `
+                    ${papers.slice(0, 60).map(paper => `
                         <div class="paper-item" onclick="selectPaperBySlug('${paper.slug}')">
-                            <div class="paper-item-title">${paper.title || paper.title_en}</div>
+                            <div class="paper-item-title">${paper.title || paper.title_en || paper.slug}</div>
                             <div class="paper-item-meta">${paper.year} · ${(paper.authors || []).slice(0, 2).join(', ')}</div>
                         </div>
                     `).join('')}
@@ -1151,8 +1269,12 @@ function showConceptDetail(conceptId) {
 }
 
 async function selectPaper(paper, similarPapers = null) {
-    state.selectedPaper = paper;
-    await showPaperDetail(paper, similarPapers);
+    if (!paper) return;
+    const resolved = state.paperMap.get(paper.slug) || paper;
+    state.selectedPaper = resolved;
+    openDetailPanel();
+    const neighbours = Array.isArray(similarPapers) ? similarPapers : await findSimilarPapers(resolved, 10);
+    await showPaperDetail(resolved, neighbours);
 }
 
 window.selectPaperBySlug = async function(slug) {
@@ -1162,19 +1284,23 @@ window.selectPaperBySlug = async function(slug) {
     }
 };
 
-async function showPaperDetail(paper, similarPapers = null) {
+window.filterByConceptFromDetail = function(conceptId) {
+    if (!conceptId) return;
+    selectConcept(conceptId);
+};
+
+async function showPaperDetail(paper, similarPapers = []) {
     const detailContent = document.getElementById('detail-content');
+    if (!detailContent) return;
 
-    const concepts = paper.concepts || [];
+    openDetailPanel();
 
-    // Show loading state
     detailContent.innerHTML = `
         <div class="loading">
             <div class="loading-spinner"></div>
         </div>
     `;
 
-    // Load full paper data
     let fullData = null;
     try {
         const response = await fetch(new URL(paper.path, SUMMARIES_BASE_URL));
@@ -1185,109 +1311,115 @@ async function showPaperDetail(paper, similarPapers = null) {
         console.warn('Failed to load full paper data:', error);
     }
 
-    // Render detail
+    const concepts = paper.concepts || [];
+    const filteredSlugs = new Set(state.filteredPapers.map(p => p.slug));
+
+    const conceptTagsHtml = concepts.length > 0
+        ? `<div class="detail-section">
+                <h3>関連概念</h3>
+                <div class="content">
+                    <div class="paper-concepts">
+                        ${concepts.map(c => {
+                            const isActive = Boolean(state.selectedConcept) &&
+                                (state.selectedConcept === c.id ||
+                                 c.id.startsWith(`${state.selectedConcept}.`) ||
+                                 state.selectedConcept.startsWith(`${c.id}.`));
+                            const classes = ['concept-tag', `${c.confidence || 'medium'}-confidence`];
+                            if (isActive) classes.push('is-active');
+                            return `<span class="${classes.join(' ')}" title="${c.path || c.id}" onclick="filterByConceptFromDetail('${c.id}')">${getConceptLabel(c)}</span>`;
+                        }).join('')}
+                    </div>
+                    <p class="hint-text">概念タグをクリックすると該当する論文だけに絞り込めます。</p>
+                </div>
+            </div>`
+        : '';
+
+    const sections = [
+        { title: '概要', body: fullData?.abstract || fullData?.abstract_en },
+        { title: '位置付け', body: fullData?.positioning_summary || fullData?.positioning_summary_en },
+        { title: '目的', body: fullData?.purpose_summary || fullData?.purpose_summary_en },
+        { title: '手法', body: fullData?.method_summary || fullData?.method_summary_en },
+        { title: '評価', body: fullData?.evaluation_summary || fullData?.evaluation_summary_en }
+    ].filter(section => section.body && section.body.trim().length > 0);
+
+    const sectionHtml = sections.map(section => `
+        <div class="detail-section">
+            <h3>${section.title}</h3>
+            <div class="content">
+                <p>${section.body}</p>
+            </div>
+        </div>
+    `).join('');
+
+    let similarHtml;
+    if (Array.isArray(similarPapers) && similarPapers.length > 0) {
+        const sectionLabel = EMBEDDING_SECTION_LABELS[state.embeddingSection] || state.embeddingSection;
+        similarHtml = `
+            <div class="detail-section">
+                <h3>類似論文（${sectionLabel} Embeddings）</h3>
+                <div class="content">
+                    <div class="paper-list">
+                        ${similarPapers.map(sp => {
+                            const inCurrentFilter = filteredSlugs.has(sp.paper.slug);
+                            const classes = ['paper-item'];
+                            if (!inCurrentFilter) classes.push('paper-item-muted');
+                            const authors = (sp.paper.authors || []).slice(0, 2).join(', ') || '著者情報なし';
+                            return `
+                                <div class="${classes.join(' ')}" onclick="selectPaperBySlug('${sp.paper.slug}')">
+                                    <div class="paper-item-title">${sp.paper.title || sp.paper.title_en || sp.paper.slug}</div>
+                                    <div class="paper-item-meta">
+                                        ${sp.paper.year || '-'} · ${authors}
+                                        <span class="similarity-score">類似度: ${(sp.similarity * 100).toFixed(1)}%</span>
+                                    </div>
+                                    ${!inCurrentFilter ? '<div class="paper-item-note">現在のフィルタ外の論文</div>' : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        similarHtml = `
+            <div class="detail-section">
+                <h3>類似論文</h3>
+                <div class="content">
+                    <p class="empty-note">現在のフィルタ条件では類似論文が見つかりません。しきい値やフィルタを調整してみてください。</p>
+                </div>
+            </div>
+        `;
+    }
+
     detailContent.innerHTML = `
         <div class="detail-section">
             <h3>論文情報</h3>
             <div class="content">
-                <div class="paper-title">${paper.title || paper.title_en}</div>
+                <div class="paper-title">${paper.title || paper.title_en || paper.slug}</div>
                 <div class="paper-meta">
-                    <span class="meta-item">${paper.year}</span>
-                    ${paper.authors && paper.authors.length ?
-                        `<span class="meta-item">${paper.authors.join(', ')}</span>` : ''}
+                    <span class="meta-item">${paper.year || '-'}</span>
+                    ${paper.authors && paper.authors.length ? `<span class="meta-item">${paper.authors.join(', ')}</span>` : ''}
                 </div>
             </div>
         </div>
-
-        ${fullData && fullData.abstract ? `
-        <div class="detail-section">
-            <h3>概要</h3>
-            <div class="content">
-                <p>${fullData.abstract || fullData.abstract_en || '（概要なし）'}</p>
-            </div>
-        </div>
-        ` : ''}
-
-        ${fullData && (fullData.positioning_summary || fullData.positioning_summary_en) ? `
-        <div class="detail-section">
-            <h3>位置付け</h3>
-            <div class="content">
-                <p>${fullData.positioning_summary || fullData.positioning_summary_en}</p>
-            </div>
-        </div>
-        ` : ''}
-
-        ${fullData && (fullData.purpose_summary || fullData.purpose_summary_en) ? `
-        <div class="detail-section">
-            <h3>目的</h3>
-            <div class="content">
-                <p>${fullData.purpose_summary || fullData.purpose_summary_en}</p>
-            </div>
-        </div>
-        ` : ''}
-
-        ${fullData && (fullData.method_summary || fullData.method_summary_en) ? `
-        <div class="detail-section">
-            <h3>手法</h3>
-            <div class="content">
-                <p>${fullData.method_summary || fullData.method_summary_en}</p>
-            </div>
-        </div>
-        ` : ''}
-
-        ${fullData && (fullData.evaluation_summary || fullData.evaluation_summary_en) ? `
-        <div class="detail-section">
-            <h3>評価</h3>
-            <div class="content">
-                <p>${fullData.evaluation_summary || fullData.evaluation_summary_en}</p>
-            </div>
-        </div>
-        ` : ''}
-
-        ${concepts.length > 0 ? `
-        <div class="detail-section">
-            <h3>概念</h3>
-            <div class="content">
-                <div class="paper-concepts">
-                    ${concepts.map(c => `
-                        <span class="concept-tag ${c.confidence}-confidence"
-                              onclick="selectConcept('${c.id}')">
-                            ${c.path ? c.path.split(' → ').pop() : c.id}
-                        </span>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-        ` : ''}
-
-        ${similarPapers && similarPapers.length > 0 ? `
-        <div class="detail-section">
-            <h3>類似論文（${state.embeddingSection} embeddings）</h3>
-            <div class="content">
-                <div class="paper-list">
-                    ${similarPapers.map(sp => `
-                        <div class="paper-item" onclick="selectPaperBySlug('${sp.paper.slug}')">
-                            <div class="paper-item-title">${sp.paper.title || sp.paper.title_en}</div>
-                            <div class="paper-item-meta">
-                                ${sp.paper.year} ·
-                                <span class="similarity-score">類似度: ${(sp.similarity * 100).toFixed(1)}%</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        </div>
-        ` : ''}
+        ${sectionHtml}
+        ${conceptTagsHtml}
+        ${similarHtml}
     `;
+
+    detailContent.scrollTop = 0;
 }
+
 
 function closeDetail() {
     const detailContent = document.getElementById('detail-content');
-    detailContent.innerHTML = '<div class="empty-state"><p>論文または概念を選択すると詳細が表示されます</p></div>';
+    if (detailContent) {
+        detailContent.innerHTML = '<div class="empty-state"><p>論文または概念を選択すると詳細が表示されます。</p></div>';
+    }
+    hideDetailPanel();
     state.selectedPaper = null;
 }
 
-// Update UI
+// Update UI// Update UI
 function updateHeader() {
     const paperCount = state.filteredPapers.length;
     const conceptCount = state.conceptMap.size;
@@ -1307,17 +1439,9 @@ function updateSelectionInfo() {
     const info = document.getElementById('selection-info');
     const parts = [];
 
-    // Show embedding section in network view
     if (state.currentView === 'network') {
-        const sectionLabels = {
-            'abstract': 'Abstract',
-            'overview': 'Overview',
-            'positioning': 'Positioning',
-            'purpose': 'Purpose',
-            'method': 'Method',
-            'evaluation': 'Evaluation'
-        };
-        parts.push(`📊 ${sectionLabels[state.embeddingSection]}`);
+        const label = EMBEDDING_SECTION_LABELS[state.embeddingSection] || state.embeddingSection;
+        parts.push(`📊 ${label}`);
     }
 
     if (state.selectedConcept) {

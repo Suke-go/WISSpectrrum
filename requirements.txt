@@ -4,6 +4,8 @@ requests>=2.31.0
 beautifulsoup4>=4.12.0
 lxml>=4.9.3
 pypdf>=4.2.0
+# Approximate neighbour precomputation for embeddings
+annoy>=1.17.3
 # UI dependencies
 streamlit>=1.35.0
 # Optional: enable Sentence Transformers-based embeddings
