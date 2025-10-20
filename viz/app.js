@@ -1,3 +1,6 @@
+// Static asset base for processed summaries
+const SUMMARIES_BASE_URL = new URL('../Pre-Processing/output/summaries/', import.meta.url);
+
 // State Management
 const state = {
     data: null,
@@ -34,10 +37,10 @@ async function init() {
 // Data Loading
 async function loadData() {
     // Try enhanced index first, fall back to regular index
-    let response = await fetch('/Pre-Processing/output/summaries/index_enhanced.json');
+    let response = await fetch(new URL('index_enhanced.json', SUMMARIES_BASE_URL));
     if (!response.ok) {
         console.warn('Enhanced index not found, using regular index');
-        response = await fetch('/Pre-Processing/output/summaries/index.json');
+        response = await fetch(new URL('index.json', SUMMARIES_BASE_URL));
         if (!response.ok) throw new Error('Failed to load data');
     } else {
         console.log('Using enhanced index with embeddings');
@@ -995,7 +998,7 @@ async function loadPaperEmbedding(paper) {
     }
 
     try {
-        const response = await fetch(`/Pre-Processing/output/summaries/${paper.path}`);
+        const response = await fetch(new URL(paper.path, SUMMARIES_BASE_URL));
         if (response.ok) {
             const data = await response.json();
             const embeddings = data.embeddings || {};
@@ -1167,7 +1170,7 @@ async function showPaperDetail(paper, similarPapers = null) {
     // Load full paper data
     let fullData = null;
     try {
-        const response = await fetch(`/Pre-Processing/output/summaries/${paper.path}`);
+        const response = await fetch(new URL(paper.path, SUMMARIES_BASE_URL));
         if (response.ok) {
             fullData = await response.json();
         }
