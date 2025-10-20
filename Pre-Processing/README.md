@@ -20,6 +20,7 @@ This folder hosts the ingestion pipeline: PDF extraction, section-level summaris
    python Pre-Processing/output/build_index.py
    python Pre-Processing/output/build_enhanced_index.py
    ```
+- build_enhanced_index.py は Annoy ベースの近似最近傍グラフと 2D 座標を前計算し、ビジュアライザーが即時に類似論文を提示できるようにします。実行前に pip install annoy を実行してください。
 5. 生成された `Pre-Processing/output/summaries/index.json` と各年の JSON をフロントエンドに渡す。
 
 ---
@@ -47,6 +48,7 @@ This folder hosts the ingestion pipeline: PDF extraction, section-level summaris
 - 追加パッケージ:
   - `pdfminer.six` – PyPDF が失敗した場合のフォールバック抽出
   - `sentence-transformers` / `torch` – ローカル埋め込みプロバイダを利用する場合
+  - Annoy – build_enhanced_index.py の近似最近傍計算に使用します (pip install annoy)
   - `google-cloud-aiplatform` – Vertex AI embeddings を使う場合
   - `streamlit` – UI 起動用 (requirements に含まれています)
 - 外部サービス:
@@ -146,7 +148,7 @@ python Pre-Processing/output/build_index.py \
 ```
 
 ### `output/build_enhanced_index.py`
-`index.json` を読み込み、セクション毎の埋め込みから PCA + t-SNE で 2D 座標を付与して `index_enhanced.json` を出力します。
+index.json を読み込み、セクション毎の埋め込みから PCA + t-SNE で 2D 座標を付与し、Annoy による近似最近傍リストも前計算して index_enhanced.json を出力します。
 
 ### `search/build_embedding_index.py` & `search/search_embeddings.py`
 - `build_embedding_index.py` – summaries からベクトル検索用 JSONL / Faiss ファイルを生成

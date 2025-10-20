@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -8,19 +8,18 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <h1>WISS Paper Explorer</h1>
-            <div class="header-meta">
-                <span id="paper-count">0 papers</span>
-                <span id="concept-count">0 concepts</span>
-                <span id="year-range"></span>
+        <header class="app-header" role="banner">
+            <div class="header-title">
+                <h1>WISS Paper Explorer</h1>
+                <div class="header-meta">
+                    <span id="paper-count">0 papers</span>
+                    <span id="concept-count">0 concepts</span>
+                    <span id="year-range"></span>
+                </div>
             </div>
         </header>
 
-        <!-- Main Content -->
         <div class="main-content">
-            <!-- Left Panel: Concept Tree -->
             <aside class="left-panel">
                 <div class="panel-header">
                     <h2>概念ツリー</h2>
@@ -33,61 +32,64 @@
                 </div>
             </aside>
 
-            <!-- Center: Visualization Area -->
             <main class="center-panel">
-                <div class="viz-controls">
-                    <div class="view-mode">
-                        <button class="view-btn active" data-view="network">ネットワーク</button>
-                        <button class="view-btn" data-view="timeline">タイムライン</button>
-                        <button class="view-btn" data-view="sunburst">サンバースト</button>
-                    </div>
-                    <div class="filter-controls">
-                        <select id="embedding-section">
-                            <option value="overview">Overview</option>
-                            <option value="abstract">Abstract</option>
-                            <option value="positioning">Positioning</option>
-                            <option value="purpose">Purpose</option>
-                            <option value="method">Method</option>
-                            <option value="evaluation">Evaluation</option>
-                        </select>
-                        <div class="similarity-control">
-                            <label for="similarity-threshold">類似度: <span id="similarity-value">70%</span></label>
-                            <input type="range" id="similarity-threshold" min="50" max="95" value="70" step="5">
-                        </div>
-                        <select id="year-filter">
-                            <option value="">全年度</option>
-                        </select>
-                        <input type="text" id="paper-search" placeholder="論文を検索...">
-                    </div>
-                </div>
                 <div class="viz-wrapper">
-                    <div id="visualization" class="visualization-area"></div>
-                    <div class="zoom-controls">
-                        <button id="zoom-in" class="zoom-btn" title="Zoom In">+</button>
-                        <button id="zoom-reset" class="zoom-btn" title="Reset Zoom">⟲</button>
-                        <button id="zoom-out" class="zoom-btn" title="Zoom Out">−</button>
+                    <div class="viz-overlay">
+                        <div class="viz-controls">
+                            <div class="view-mode">
+                                <button class="view-btn active" data-view="network">ネットワーク</button>
+                                <button class="view-btn" data-view="timeline">タイムライン</button>
+                                <button class="view-btn" data-view="sunburst">サンバースト</button>
+                            </div>
+                            <div class="filter-controls">
+                                <select id="embedding-section" aria-label="Embedding section">
+                                    <option value="overview">Overview</option>
+                                    <option value="abstract">Abstract</option>
+                                    <option value="positioning">Positioning</option>
+                                    <option value="purpose">Purpose</option>
+                                    <option value="method">Method</option>
+                                    <option value="evaluation">Evaluation</option>
+                                </select>
+                                <div class="similarity-control">
+                                    <label for="similarity-threshold"><span id="similarity-value">70%</span></label>
+                                    <input type="range" id="similarity-threshold" min="50" max="95" value="70" step="5">
+                                </div>
+                                <select id="year-filter" aria-label="Year filter">
+                                    <option value="">全年度</option>
+                                </select>
+                                <input type="text" id="paper-search" placeholder="論文を検索...">
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="viz-info">
-                    <div id="selection-info">概念または論文を選択してください</div>
-                    <div id="viz-legend" class="viz-legend"></div>
+                    <div id="network-explainer" class="network-explainer hidden"></div>
+                    <div id="visualization" class="visualization-area" role="region" aria-live="polite"></div>
+                    <div class="viz-info">
+                        <div id="selection-info">概念または論文を選択してください</div>
+                        <div id="viz-legend" class="viz-legend"></div>
+                    </div>
+                    <div class="zoom-controls" aria-label="ズーム操作">
+                        <button id="zoom-in" class="zoom-btn" title="ズームイン">+</button>
+                        <button id="zoom-reset" class="zoom-btn" title="ズームをリセット">⟲</button>
+                        <button id="zoom-out" class="zoom-btn" title="ズームアウト">−</button>
+                    </div>
                 </div>
             </main>
 
-            <!-- Right Panel: Details -->
-            <aside class="right-panel">
+            <aside class="right-panel" aria-live="polite">
                 <div class="panel-header">
                     <h2>詳細情報</h2>
-                    <button id="close-detail" class="close-btn">×</button>
+                    <button id="close-detail" class="close-btn" aria-label="詳細を閉じる">×</button>
                 </div>
                 <div class="panel-content" id="detail-content">
                     <div class="empty-state">
-                        <p>論文または概念を選択すると詳細が表示されます</p>
+                        <p>論文または概念を選択すると詳細が表示されます。</p>
                     </div>
                 </div>
             </aside>
         </div>
     </div>
+
+    <div id="detail-backdrop" class="detail-backdrop" role="presentation"></div>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module" src="app.js"></script>
