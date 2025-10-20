@@ -19,3 +19,4 @@ htmlcov/
 *.log
 *.sqlite3
 wissenv
+.claude/settings.local.json
