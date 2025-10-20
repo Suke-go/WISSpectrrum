@@ -20,6 +20,7 @@ htmlcov/
 *.sqlite3
 wissenv
 .claude/settings.local.json
+frontend
 # Logs
 logs
 *.log

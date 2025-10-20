@@ -1,5 +1,12 @@
 // Static asset base for processed summaries
-const SUMMARIES_BASE_URL = new URL('../Pre-Processing/output/summaries/', import.meta.url);
+const SCRIPT_URL = new URL(import.meta.url);
+const pathParts = SCRIPT_URL.pathname.split('/').filter(Boolean);
+pathParts.pop(); // drop app.js
+if (pathParts.length) {
+    pathParts.pop(); // move from viz/ to repo root
+}
+const summariesPath = [...pathParts, 'Pre-Processing', 'output', 'summaries', ''].join('/');
+const SUMMARIES_BASE_URL = new URL(summariesPath, `${SCRIPT_URL.origin}/`);
 
 // State Management
 const state = {
