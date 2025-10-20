@@ -1,143 +1,203 @@
 # Pre-Processing Utilities
 
-実行方法：streamlit run Pre-Processing/ui/app_streamlit.py
+WISSpectrrum の前処理パイプラインを構成する CLI 群とサポートツールのハブです。PDF を収集・解析し、セクション別サマリー、埋め込みベクトル、ACM CCS 分類、検索インデックス、ビジュアライザー用の `index.json` を生成するまでをこのディレクトリで扱います。
 
-このディレクトリには、論文 PDF からの要約生成、ACM CCS 分類、埋め込み計算を行うための CLI がまとまっています。以下では代表的なスクリプトと使い方を紹介します。  
-This directory collects CLI tools that summarise research PDFs, classify ACM CCS concepts, and compute embeddings. The sections below walk through the key scripts and usage patterns.
-
-## 更新概要 / Update Summary
-- UI: パイプライン操作用の Tkinter フロントエンド `Pre-Processing/ui/app.py` を追加し、GROBID 状態チェックや OpenAI モデル検索を含めた統合操作を提供します。 / Added a Tkinter control panel (`Pre-Processing/ui/app.py`) that unifies pipeline execution, GROBID health checks, and OpenAI model discovery.
-- Docs: README と UI 要件メモを日英併記にして、最新の設定項目を把握しやすくしました。 / README and the UI requirement note now include Japanese and English descriptions to highlight the latest configuration options.
-- Summary: GPT 要約はトークン不足を自動で検知して再試行し、各セクション 2 文・1 見出しに収まるよう最適化しました。PyPDF で取得できない場合は `pdfminer.six` に自動フォールバックします。 / GPT summarisation now auto-retries when responses truncate and limits section summaries to two sentences per heading, with automatic fallback to `pdfminer.six` when PyPDF cannot extract text.
-- Dual-lang: `--dual-language` フラグで英語要約を JSON (`translations.en.*`) に併記し、CCS 分類に活用できます。 / The `--dual-language` flag stores English translations under `translations.en` so CCS classification can rely on English context.
-
-## 0. ディレクトリ構成 / Directory Map
-- `summary/`: GPT ベースの要約・CCS 分類ロジック本体。`summary/summarize_pdf.py` が OpenAI Responses API を利用します。 / Core GPT summary + CCS implementation (`summary/summarize_pdf.py`).
-- `summarize_pdf.py`: 後方互換 CLI。内部で `summary/summarize_pdf.py` を呼び出します。 / Backwards compatible shim that forwards to `summary/summarize_pdf.py`.
-- `embedding/`: 埋め込み計算 CLI の実体。`embedding/compute_embeddings.py` が各プロバイダを束ねます。 / Embedding CLI implementation (`embedding/compute_embeddings.py`).
-- `compute_embeddings.py`: 埋め込み CLI のシム。内部で `embedding/compute_embeddings.py` を呼び出します。 / Thin wrapper forwarding to `embedding/compute_embeddings.py`.
-- `embeddings.py`: 各種埋め込みバックエンドの共通ヘルパー。 / Shared embedding helpers.
-- `utils/`: `.env` ローダーや `paths.py` によるディレクトリ定義、ジョブ状態管理など。 / Utilities such as `.env` loading, path helpers, and job state management.
-- `output/summaries/`: 要約・埋め込みの既定保存先（存在しない場合は自動作成されます）。 / Default output directory for summaries & embeddings.
-- `data/pipeline_state.db`: 旧デフォルトの SQLite ジョブキュー保存先（新しい既定はユーザ別ディレクトリ例 `%LOCALAPPDATA%/WISSpectrrum/pipeline_state.db`）。 / Legacy SQLite datastore location; new default lives under the per-user app data directory (e.g. `%LOCALAPPDATA%/WISSpectrrum/pipeline_state.db`).
-- `ui/`: Tkinter ベースの制御パネル。 / Tkinter control panel for operators.
-
-## 1. 事前準備 / Prerequisites
-
-- Python 3.10+ を想定しています。必要に応じて仮想環境を作成してください。
-  ```bash
-  python -m venv .venv
-  source .venv/bin/activate
-  pip install -r requirements.txt
-  ```
-- `.env` に API キーを記述すると、各 CLI が起動時に自動で読み込みます。最低限以下を設定してください。
-```
-OPENAI_API_KEY=xxx
-GEMINI_API_KEY=yyy
-WISS_DATA_ROOT=thesis
-#WISS_PIPELINE_DB=C:/Users/your-name/AppData/Local/WISSpectrrum/pipeline_state.db
-```
-  Vertex AI を使う場合は `VERTEX_AI_PROJECT`, `VERTEX_AI_LOCATION`, `VERTEX_AI_EMBEDDING_MODEL` なども用意します。
-- すべての CLI は起動時に `utils.env.load_env()` と `utils.paths.ensure_preprocess_path()` を呼び出し、`.env` の自動探索とモジュール解決を行います。 / Every CLI bootstraps `.env` discovery and sys.path updates via `utils.env` / `utils.paths`.
-- `pdfminer.six` をインストールしておくと、PyPDF でテキストが抽出できない PDF に対して自動的にフォールバックします。 / Installing `pdfminer.six` enables automatic fallback extraction when PyPDF cannot read a PDF.
-- GROBID を使う場合は Docker などでサービスを起動し、`--extractor grobid --grobid-url http://localhost:8070` を指定してください。 / For GROBID extraction, run the service (e.g. via Docker) and pass `--extractor grobid --grobid-url http://localhost:8070`.
-
-## 2. ワークフロー概要 / Pipeline Overview
-
-1. **PDF 要約 (OpenAI GPT)**: `Pre-Processing/summary/summarize_pdf.py` が PDF からセクション抽出 → チャンク要約 → 最終要約 → ACM CCS 提案までを一括実行します。 / The GPT-based summariser performs extraction → chunk summaries → final synthesis → optional ACM CCS tagging.
-2. **埋め込み計算 (Google Gemini)**: `embedding/compute_embeddings.py`（`compute_embeddings.py` シム経由）で JSON 要約の目的・手法等を `gemini-embedding-001` などでベクトル化します。日本語セクションは従来通り保持しつつ、`--dual-language` で英語訳を追加保存できます。 / `embedding/compute_embeddings.py` (reachable via the `compute_embeddings.py` shim) turns summary sections into vectors via Gemini or other providers; `--dual-language` keeps Japanese sections while adding English translations alongside them.
-3. **バッチ実行**: `orchestrator.py` や GUI から PDF キューを管理し、要約/埋め込みを `output/summaries/` に蓄積します。 / The orchestrator / GUI manages queues and writes outputs to `output/summaries/`.
-4. **後処理オプション**: 既存 JSON に対する CCS 追記や embeddings 再計算を個別 CLI で行えます。 / Follow-up tools enrich existing JSON records.
-
-## 3. PDF 要約 + CCS + 埋め込み
-
-`summarize_pdf.py` は PDF からテキスト抽出 → チャンク要約 → 最終要約 → CCS 分類 → 埋め込み計算までを一括実行します。
-
-```bash
-python Pre-Processing/summarize_pdf.py thesis/WISS/2005/fingering_paper.pdf \
-  --output summaries/fingering.json \
-  --language Japanese \
-  --dual-language \
-  --classify-ccs \
-  --ccs-embedding-model gemini-embedding-001 \
-  --embeddings \
-  --embedding-provider gemini \
-  --embedding-model gemini-embedding-001 \
-  --gemini-task-type SEMANTIC_SIMILARITY \
-  --section-embeddings
-```
-
-- `--classify-ccs` で ACM CCS 分類を有効化します。XML は既定で `Pre-Processing/ACM CCS/acm_ccs2012-1626988337597.xml` を参照します。
-- `--ccs-embedding-model` に Gemini もしくは SentenceTransformer の名前を指定します。`gemini-embedding-001` の場合は `.env` の `GEMINI_API_KEY` が利用されます。
-- `--embeddings` は要約（purpose/method/evaluation）の埋め込みを、`--section-embeddings` は GROBID などで抽出した各セクションの埋め込みを追加で計算します。Gemini を使う場合は `--embedding-provider gemini --embedding-model gemini-embedding-001` を指定し、必要に応じて `--gemini-task-type` や `--gemini-batch-size` を調整します。
-- `.env` と同階層で実行すると自動的にキーが読み込まれます。別ファイルを使う場合は `--env-file` でパスを指定してください。
-
-## 4. 既存要約への ACM CCS 付加
-
-`summaries/*.json` のような既存要約ファイルに後から CCS を付与するには `ccs/classify_ccs.py` を使用します。
-
-```bash
-python Pre-Processing/ccs/classify_ccs.py summaries/test_fingering.json \
-  --xml Pre-Processing/ACM\ CCS/acm_ccs2012-1626988337597.xml \
-  --embedding-model gemini-embedding-001 \
-  --update
-```
-
-- `--update` を付けると入力ファイルを直接書き換えます。結果のみ確認したい場合はオプションを外してください。
-- `.env` を自動で読み込みますが、明示的に指定したい場合は `--env-file path/to/.env` を併用できます。
-- Gemini ではなくローカル SentenceTransformer を使う場合は `--embedding-model sentence-transformers/all-MiniLM-L6-v2` のように指定します。
-
-## 5. 埋め込みのみを後付けする
-
-要約が既にあり、埋め込みだけ計算したい場合は `compute_embeddings.py` を利用します。
-
-```bash
-python Pre-Processing/compute_embeddings.py summaries/test_fingering.json \
-  --sections purpose method evaluation \
-  --model gemini-embedding-001 \
-  --provider gemini \
-  --env-file .env \
-  --update
-```
-
-- `--provider` で `local`（SentenceTransformer）、`vertex-ai`、`gemini` を選択します。
-- `--update` により入力ファイルへ埋め込み情報を追記します。
-- `--env-file` を指定すると明示した `.env` を先に読み込みます。指定がない場合は実行ディレクトリから親方向に自動探索します。 / `--env-file` forces a specific environment file; otherwise discovery walks up from the current directory.
-
-## 6. バッチ処理（オプション）
-
-大量の PDF を順番に処理したい場合は `orchestrator.py` を使うと、SQLite を用いたキュー管理と再開が可能です。
-
-```bash
-python Pre-Processing/orchestrator.py enqueue data/papers --glob "*.pdf"
-python Pre-Processing/orchestrator.py run --classify-ccs --embeddings --section-embeddings
-```
-
-キュー操作や各種オプションは `python Pre-Processing/orchestrator.py --help` を参照してください。
-
-## 7. GUI フロントエンド（試験的機能）
-
-Tkinter ベースの簡易 UI `ui/app.py` を用意しています。主要なオプションをまとめて設定し、`orchestrator.py` や `compute_embeddings.py` を直接呼び出します。
-
-```bash
-python Pre-Processing/ui/app.py
-```
-
-- `.env` の読み込み、GROBID ヘルスチェック、OpenAI モデル一覧取得（`models` API 利用）などを UI 上から実行できます。
-- 実行ログは画面下部にストリーム表示され、完了後に結果が確認できます。
-- 今後の改善予定: 要約プロンプトのきめ細かな調整や再要約フローの統合など。
-
-## 8. 運用チェックリスト / Operational Checklist
-- `.env` を最新の API キーで更新 (`OPENAI_API_KEY`, `GEMINI_API_KEY` 他)。
-- `.venv/bin/python` など仮想環境の Python から CLI を実行し、確実に依存を揃えます。
-- `pip install -r requirements.txt` で依存を満たし、必要なら `google-generativeai`, `openai`, `pypdf`, `pdfminer.six` などを再確認。
-- サマリーツール実行前に `output/summaries/` と `data/` の書き込み権限を確認。無ければ自動作成されます。
-- PyPDF で抽出できない場合に備え `pdfminer.six` を導入し、スキャン PDF は OCR（例: `ocrmypdf`）後に投入するか、GROBID ベースの抽出（`--extractor grobid`）に切り替えます。
-- GUI (`ui/app.py`) も `.venv/bin/python` が見つかれば自動で採用し、UI からのパイプライン実行・埋め込み計算でも仮想環境依存がそのまま使われます。
-- CCS 精度を高めたい場合は `--dual-language` で英語訳を生成し、必要に応じて英語側セクションで埋め込みや分類を行います。
-- 単体テスト: `python -m compileall Pre-Processing` でシンタックスチェック、`--dry-run` で書き込み無し実行。
-- バッチ処理では `orchestrator.py list` でジョブ状態を確認し、必要に応じて `enqueue --force` や `run --limit` を併用。
+This folder hosts the ingestion pipeline: PDF extraction, section-level summarisation, embeddings, ACM CCS classification, search indices, and UI helpers that feed the WISSpectrrum visualiser.
 
 ---
 
-不明点があれば `README.md`（リポジトリ直下）も併せて確認するか、開発チームまでお問い合わせください。
+## クイックスタート / Quick Start
+1. 仮想環境をアクティベートし依存を導入 (ルートの `README.md` の手順参照)。
+2. `.env` に API キー (`OPENAI_API_KEY`, `GEMINI_API_KEY`, …) を設定。
+3. 必要な PDF を `thesis/<venue>/<year>/*.pdf` に配置。
+4. 一括実行:
+   ```bash
+   python Pre-Processing/orchestrator.py run \
+     --pdf-dir thesis/WISS/2024 \
+     --output-dir Pre-Processing/output/summaries \
+     --workers 2 \
+     --pretty
+   python Pre-Processing/output/build_index.py
+   python Pre-Processing/output/build_enhanced_index.py
+   ```
+5. 生成された `Pre-Processing/output/summaries/index.json` と各年の JSON をフロントエンドに渡す。
+
+---
+
+## ディレクトリマップ / Directory Map
+- `summary/` – PDF 抽出・要約本体 (`summarize_pdf.py`, `batch_summarize.py`, `pdf_extractors.py`)
+- `embedding/` – 埋め込み計算 (`compute_embeddings.py`) とプロバイダ共通ロジック
+- `ccs/` – ACM CCS タクソノミーと分類器 (`classifier.py`, `taxonomy.py`)
+- `search/` – 埋め込み索引用ユーティリティ (`build_embedding_index.py`, `search_embeddings.py`)
+- `output/` – ビジュアライザー向けインデックス生成 (`build_index.py`, `build_enhanced_index.py`)
+- `pdfdownloader/` & `scraipingpdf/` – Proceedings からの CSV 生成と PDF ダウンロード
+- `ui/` – Tkinter / Streamlit ベースのオペレーター UI
+- `utils/` – `.env` ロード、パス解決、ジョブキュー (`utils.state.PipelineState`) 等の共通処理
+- `data/`, `output/summaries/` – パイプラインが生成する成果物 (自動作成されます)
+
+---
+
+## 環境と依存関係 / Environment & Dependencies
+- Python 3.10+ を推奨。ルート直下で仮想環境を作成し `pip install -r requirements.txt`。
+- `.env` で最低限必要なキー:
+  - `OPENAI_API_KEY` – GPT-5 mini 系 (要約・ACM CCS) に使用
+  - `GEMINI_API_KEY` – 既定の埋め込み (Gemini) で使用
+  - `WISS_DATA_ROOT` – PDF 配置ルート (`thesis` が標準値)
+  - オプション: `WISS_PIPELINE_DB`, `VERTEX_AI_PROJECT`, `VERTEX_AI_LOCATION`, `VERTEX_AI_EMBEDDING_MODEL`, `GROBID_URL` など
+- 追加パッケージ:
+  - `pdfminer.six` – PyPDF が失敗した場合のフォールバック抽出
+  - `sentence-transformers` / `torch` – ローカル埋め込みプロバイダを利用する場合
+  - `google-cloud-aiplatform` – Vertex AI embeddings を使う場合
+  - `streamlit` – UI 起動用 (requirements に含まれています)
+- 外部サービス:
+  - GROBID (optional) – `docker run --rm -p 8070:8070 lfoppiano/grobid:0.7.2`
+  - OpenAI Responses API / Gemini Embedding API / Vertex AI
+
+---
+
+## 研究利用の指針 / Academic Usage Notes
+- **再現性の確保 (Reproducibility):** 各 CLI は入力パス・出力パス・モデル名・パラメータを JSON / SQLite に記録します。論文執筆時は `processing_meta`, `embedding_meta`, `ccs` セクションを引用し、同じ設定で再計算できるようにしてください。
+- **引用可能な成果物 (Citeable Artefacts):** `output/summaries/<year>/<slug>.json` と `index.json` には生成時刻 (`generated_at`) と使用モデル (`model`, `embedding_provider`) が含まれます。研究論文やポスターではこれらを参照情報として明記できます。
+- **データ倫理 (Data Ethics):** WISS Proceedings の利用規約を守り、機密資料が含まれる場合はダウンロード対象から除外してください。個人情報が検出された場合はサマリー JSON を再生成し、該当フィールドをマスクしてください。
+- **再分析と拡張 (Secondary Analyses):** JSON 形式の成果物は R / Python / Observable などの分析環境に読み込めます。追加の指標や可視化を論文に掲載する際は、変換スクリプトとデータ版数を添付すると査読時の確認が容易になります。
+
+---
+
+## コア CLI / Core Command-Line Interfaces
+
+### `orchestrator.py`
+ジョブキューを介して PDF から要約・埋め込み・CCS 分類を一括実行します。
+
+```bash
+python Pre-Processing/orchestrator.py run \
+  --pdf-dir thesis/WISS/2023 \
+  --workers 4 \
+  --config configs/summariser.json \
+  --force
+```
+
+- `--pdf`, `--pdf-dir`, `--pattern`: 入力のフィルタリング
+- `--config`: JSON で `SummariserConfig` の初期値を上書き
+- `--model`, `--language`, `--embedding-provider`: 一時的なオーバーライド
+- `--disable-embeddings`, `--disable-ccs`: 処理ステップをスキップ
+- `--workers`: 並列実行数 (API レート制限に注意)
+- `status` サブコマンドでジョブ数を集計
+
+### `summary/summarize_pdf.py`
+単一 PDF から要約 JSON を生成します (orchestrator から内部的に使用)。
+
+```bash
+python Pre-Processing/summary/summarize_pdf.py \
+  thesis/WISS/2024/002_hideye-hmd.pdf \
+  --extractor grobid \
+  --grobid-url http://localhost:8070 \
+  --language Japanese \
+  --dual-language \
+  --output Pre-Processing/output/summaries/2024/002_hideye-hmd.json
+```
+
+主なオプション:
+- `--chunk-size`, `--overlap`: セクション化の粒度
+- `--metadata-chars`: 先頭抽出テキストの長さ (LLM へ渡すメタ情報)
+- `--dual-language`, `--flatten-translations`: 英語サマリーの格納方法
+- `--classify-ccs`: 生成直後に ACM CCS を付与
+- `--compute-embeddings`: 要約本文からセクション別ベクトルを生成
+
+### `embedding/compute_embeddings.py`
+既存サマリー JSON に対して埋め込みを再計算します。
+
+```bash
+python Pre-Processing/embedding/compute_embeddings.py \
+  Pre-Processing/output/summaries/2024/*.json \
+  --provider gemini \
+  --model gemini-embedding-001 \
+  --normalize \
+  --force
+```
+
+- `--provider`: `gemini` | `vertex-ai` | `local`
+- `--sections positioning purpose method evaluation`: セクション限定
+- `--output-dir refreshed/` で結果を別フォルダに保存
+- `--force` で既存ベクトルを上書き
+
+### `ccs/classify_ccs.py`
+サマリー JSON に ACM CCS 概念を後付けします。
+
+```bash
+python Pre-Processing/ccs/classify_ccs.py \
+  Pre-Processing/output/summaries/2024/*.json \
+  --model gpt-5-mini \
+  --embedding-model gemini-embedding-001 \
+  --top-candidates 20 \
+  --max-concepts 3 \
+  --output Pre-Processing/output/classifications_2024.jsonl
+```
+
+- 既存の `ccs` フィールドがある場合はスキップ。`--force` で上書き
+- LLM へのプロンプトは `summary_to_prompt_text` を参照
+
+### `output/build_index.py`
+年次 / 概念ツリー / 類似度メタデータを集約して `index.json` を生成します。
+
+```bash
+python Pre-Processing/output/build_index.py \
+  --summaries-dir Pre-Processing/output/summaries \
+  --output Pre-Processing/output/summaries/index.json
+```
+
+### `output/build_enhanced_index.py`
+`index.json` を読み込み、セクション毎の埋め込みから PCA + t-SNE で 2D 座標を付与して `index_enhanced.json` を出力します。
+
+### `search/build_embedding_index.py` & `search/search_embeddings.py`
+- `build_embedding_index.py` – summaries からベクトル検索用 JSONL / Faiss ファイルを生成
+- `search_embeddings.py` – 類似論文検索 CLI。`--query-json` で既存サマリーをクエリに再利用可能
+
+### `search/fetch_external_paper_data.py`
+外部ソース (ACM DL など) からメタデータを補完するサンプル。`--id`, `--doi`, `--acm` などで取得対象を指定します。
+
+---
+
+## UI ツール / Operator Interfaces
+- `ui/app.py` – Tkinter ベース。仮想環境検出、GROBID ヘルスチェック、ジョブ投入、Gemini レート監視などを 1 画面で操作。
+- `ui/app_streamlit.py` – Streamlit ダッシュボード。`streamlit run Pre-Processing/ui/app_streamlit.py` でブラウザ UI として利用可能。
+- UI からも `.env` が読み込まれ、同じ設定を共有します。
+
+---
+
+## データレイアウト / Data Layout
+- 入力 PDF: `WISS_DATA_ROOT` 直下に `<venue>/<year>/<slug>.pdf`
+- 出力 JSON: `output/summaries/<year>/<slug>.json`
+- インデックス: `output/summaries/index.json`, `index_enhanced.json`
+- ジョブログ: `data/pipeline_state.db` (既定)。`.env` の `WISS_PIPELINE_DB` で場所を変更可能
+- 追加資料: `output/summaries/*.json` の `links` に任意 URL を格納可能 (UI が参照します)
+
+---
+
+## 運用 Tips / Operational Tips
+- 速度調整: `orchestrator.py run --workers N --chunk-size 3000` でバッチサイズを調整。API 制限に合わせてワーカー数を調整してください。
+- エラー復旧: `STATUS_FAILED` のジョブは `--force` で再キュー、または `PipelineState.mark_queued` を使った手動復旧が可能。
+- ロギング: CLI は標準出力 / エラーで `[INFO]`, `[WARN]`, `[ERROR]` を出力。長期運用では `python -m pip install rich` でカラーログを有効化するオプションもあります (`rich` を import すれば自動で装飾)。
+- 大容量 PDF: `--extractor grobid` + `--grobid-timeout 120` で安定化。OCR が必要な場合は `ocrmypdf` などで事前処理。
+- Gemini Limit: `EmbeddingQuotaExceeded` が出た場合は `--provider vertex-ai` または `--provider local` に切り替え。
+- キャッシュ: サマリー JSON に `processing_meta.embedding_provider` を記録しているので、異なるプロバイダに変えた際は `--force` を忘れずに。
+
+---
+
+## テスト / Testing
+- `pytest tests/test_ccs_classifier.py` – ACM CCS 分類の回帰テスト
+- `python -m compileall Pre-Processing` – シンタックスチェック
+- `pyproject.toml` が無いので `ruff` 等を導入する際は `pip install` 後、個別に実行してください
+
+---
+
+## よくある質問 / FAQ
+- **GROBID を使わなくても良いですか?**  
+  はい。既定では PyPDF + 簡易ヘッダ推定で JSON を生成します。品質を高めたい場合に GROBID を指定してください。
+- **途中で API キーを変更したい**  
+  `.env` を更新し、再度コマンドを実行すれば新しいキーが読み込まれます。`orchestrator.py` 実行中に変更した場合は次のジョブから反映されます。
+- **LLM 応答が途切れる**  
+  `SummariserConfig.chunk_max_tokens` / `final_max_tokens` を増やすか、`--chunk-size` を減らしてチャンク当たりのトークン数を調整してください。
+
+---
+
+必要に応じて `MASTER_DOCUMENT.md` も併読し、体験設計やデータスキーマの背景を確認してください。改善アイデアやバグ報告は Issue / Pull Request で歓迎します。
