@@ -5,124 +5,282 @@ import {
   focusOnConcept,
   focusOnRoot,
 } from "./viz.js";
+import config from "./config.js";
 
-const INDEX_URL = "../Pre-Processing/output/summaries/index.json";
-const SUMMARIES_BASE = "../Pre-Processing/output/summaries/";
+// Utility function to sanitize HTML and prevent XSS
+function escapeHtml(unsafe) {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Utility function to safely set text content
+function safeSetText(element, text) {
+  if (!element) return;
+  element.textContent = text || '';
+}
+
+// Enhanced fetch with timeout and better error handling
+async function fetchWithTimeout(url, options = {}) {
+  const timeout = options.timeout || 10000;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const cacheStrategy = config.cache.enabled && config.cache.strategy === 'cache-first'
+      ? 'force-cache'
+      : 'no-cache';
+
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      cache: cacheStrategy,
+    });
+    clearTimeout(id);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout - please check your connection');
+    }
+    throw error;
+  }
+}
 
 const state = {
   index: null,
   language: "ja",
-  selectedPaper: null,
   selectedConceptId: null,
+  selectedPaper: null,
   conceptSearch: "",
   paperSearch: "",
   paperSearchRaw: "",
   logs: [],
   lastLoggedPaperSearch: "",
+  sidebarCollapsed: false,
+  conceptMap: new Map(),
+  paperDirectory: [],
+  paperByPath: new Map(),
+  paperCache: new Map(),
 };
 
 const conceptListEl = document.getElementById("concept-list");
 const conceptSearchEl = document.getElementById("concept-search");
 const clearConceptBtn = document.getElementById("clear-concept");
 const paperSearchEl = document.getElementById("paper-search");
-const yearListEl = document.getElementById("year-list");
-const detailsEl = document.getElementById("paper-details");
 const bannerEl = document.getElementById("status-banner");
 const generatedAtEl = document.getElementById("generated-at");
 const logListEl = document.getElementById("log-list");
 const clearLogBtn = document.getElementById("clear-log");
+const sidebar = document.getElementById("sidebar");
+const sidebarToggle = document.getElementById("sidebar-toggle");
+const detailPanel = document.getElementById("detail-panel");
+const detailContent = document.getElementById("detail-content");
+const detailClose = document.getElementById("detail-close");
+const appShell = document.querySelector(".app-shell");
 
-const MAX_LOG_ENTRIES = 60;
+const MAX_LOG_ENTRIES = config.ui.maxLogEntries;
+
+function setSidebarCollapsed(collapsed) {
+  state.sidebarCollapsed = collapsed;
+  if (sidebar) {
+    sidebar.classList.toggle("collapsed", collapsed);
+  }
+  if (appShell) {
+    appShell.classList.toggle("sidebar-hidden", collapsed);
+  }
+  if (sidebarToggle) {
+    sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+  }
+}
+
+setSidebarCollapsed(state.sidebarCollapsed);
+
+// -----------------------------------------------------------------------------
+// Event wiring
+// -----------------------------------------------------------------------------
 
 document.querySelectorAll("input[name='language']").forEach((input) => {
   input.addEventListener("change", () => {
     state.language = input.value;
     if (state.selectedPaper) {
-      renderDetails(state.selectedPaper.data);
+      renderPaperDetail(state.selectedPaper.data, state.selectedPaper.meta);
+    } else if (state.selectedConceptId) {
+      showConceptDetail(state.selectedConceptId);
     }
   });
 });
 
-conceptSearchEl.addEventListener("input", (event) => {
-  state.conceptSearch = event.target.value.trim().toLowerCase();
-  renderConcepts();
-});
+if (sidebarToggle) {
+  sidebarToggle.addEventListener("click", () => {
+    setSidebarCollapsed(!state.sidebarCollapsed);
+  });
+}
 
-conceptSearchEl.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    const concepts = getFilteredConcepts();
-    if (concepts.length > 0) {
-      const chosen = concepts[0];
-      applyConceptFilter(chosen.id, {
-        message: `Concept search selected: ${chosen.path || chosen.id}`,
-      });
-    }
-  } else if (event.key === "Escape") {
-    const hadQuery = Boolean(state.conceptSearch);
-    state.conceptSearch = "";
-    conceptSearchEl.value = "";
+if (detailClose) {
+  detailClose.addEventListener("click", () => {
+    closeDetailPanel();
+  });
+}
+
+if (conceptSearchEl) {
+  conceptSearchEl.addEventListener("input", (event) => {
+    state.conceptSearch = event.target.value.trim().toLowerCase();
     renderConcepts();
-    if (hadQuery) {
-      logEvent("Concept search cleared");
+  });
+
+  conceptSearchEl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      const concepts = getFilteredConcepts();
+      if (concepts.length > 0) {
+        const chosen = concepts[0];
+        applyConceptFilter(chosen.id, {
+          message: `Concept search selected: ${chosen.path || chosen.id}`,
+        });
+      }
+    } else if (event.key === "Escape") {
+      const hadQuery = Boolean(state.conceptSearch);
+      state.conceptSearch = "";
+      conceptSearchEl.value = "";
+      renderConcepts();
+      refreshBubbleHighlight();
+      if (hadQuery) {
+        logEvent("Concept search cleared");
+      }
     }
-  }
-});
+  });
+}
 
-clearConceptBtn.addEventListener("click", () => {
-  applyConceptFilter(null);
-});
+if (clearConceptBtn) {
+  clearConceptBtn.addEventListener("click", () => {
+    applyConceptFilter(null, { message: "Concept filter cleared" });
+  });
+}
 
-paperSearchEl.addEventListener("input", (event) => {
-  state.paperSearchRaw = event.target.value;
-  state.paperSearch = state.paperSearchRaw.trim().toLowerCase();
-  renderYears();
-  updateBanner();
-  if (state.paperSearch && state.paperSearch !== state.lastLoggedPaperSearch) {
-    logEvent(`Keyword search: "${state.paperSearchRaw.trim()}"`);
-    state.lastLoggedPaperSearch = state.paperSearch;
-  } else if (!state.paperSearch && state.lastLoggedPaperSearch) {
-    logEvent("Keyword search cleared");
-    state.lastLoggedPaperSearch = "";
-  }
-});
-
-paperSearchEl.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    state.paperSearch = "";
-    state.paperSearchRaw = "";
-    paperSearchEl.value = "";
-    renderYears();
-    updateBanner();
-    if (state.lastLoggedPaperSearch) {
+if (paperSearchEl) {
+  paperSearchEl.addEventListener("input", (event) => {
+    state.paperSearchRaw = event.target.value;
+    state.paperSearch = state.paperSearchRaw.trim().toLowerCase();
+    if (state.paperSearch && state.paperSearch !== state.lastLoggedPaperSearch) {
+      logEvent(`Keyword search: "${state.paperSearchRaw.trim()}"`);
+      state.lastLoggedPaperSearch = state.paperSearch;
+    } else if (!state.paperSearch && state.lastLoggedPaperSearch) {
       logEvent("Keyword search cleared");
       state.lastLoggedPaperSearch = "";
     }
-  }
-});
+    handleSearchChange();
+  });
 
-clearLogBtn.addEventListener("click", () => {
-  state.logs = [];
-  renderLog();
-});
+  paperSearchEl.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      const hadValue = Boolean(state.paperSearch);
+      state.paperSearch = "";
+      state.paperSearchRaw = "";
+      paperSearchEl.value = "";
+      handleSearchChange();
+      if (hadValue) {
+        logEvent("Keyword search cleared");
+        state.lastLoggedPaperSearch = "";
+      }
+    }
+  });
+}
+
+if (clearLogBtn) {
+  clearLogBtn.addEventListener("click", () => {
+    state.logs = [];
+    renderLog();
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Data loading
+// -----------------------------------------------------------------------------
 
 async function loadIndex() {
-  const response = await fetch(INDEX_URL);
-  if (!response.ok) {
-    throw new Error(`failed to fetch index: ${response.status}`);
+  try {
+    showLoadingState('Loading concepts...');
+    const response = await fetchWithTimeout(config.indexUrl, { timeout: 15000 });
+    const payload = await response.json();
+    state.index = payload;
+    safeSetText(generatedAtEl, payload.generated_at || '');
+    hideLoadingState();
+
+    state.conceptMap = new Map();
+    (payload.concepts || []).forEach((concept) => {
+      state.conceptMap.set(concept.id, concept);
+    });
+
+    state.paperDirectory = [];
+    state.paperByPath = new Map();
+    (payload.years || []).forEach((block) => {
+      (block.papers || []).forEach((paper) => {
+        const meta = { ...paper, year: block.year };
+        state.paperDirectory.push(meta);
+        state.paperByPath.set(paper.path, meta);
+      });
+    });
+
+    if (window.innerWidth < config.ui.sidebarCollapseBreakpoint) {
+      setSidebarCollapsed(true);
+    } else {
+      setSidebarCollapsed(false);
+    }
+
+    renderConcepts();
+    updateBanner();
+    initBubble(payload.concept_tree, {
+      onSelectConcept: handleConceptSelectedFromViz,
+    });
+    focusOnRoot();
+    refreshBubbleHighlight();
+    renderLog();
+  } catch (error) {
+    console.error('Failed to load index:', error);
+    showError(`Failed to load data: ${error.message}`, true);
+    throw error;
   }
-  const payload = await response.json();
-  state.index = payload;
-  generatedAtEl.textContent = payload.generated_at || "";
-  renderConcepts();
-  renderYears();
-  updateBanner();
-  initBubble(state.index.concept_tree, {
-    onSelectConcept: handleConceptSelectedFromViz,
-  });
-  resizeBubble();
-  refreshBubbleHighlight();
-  renderLog();
 }
+
+// UI helper functions
+function showLoadingState(message) {
+  if (bannerEl) {
+    bannerEl.textContent = message;
+    bannerEl.style.color = 'var(--accent)';
+  }
+}
+
+function hideLoadingState() {
+  if (bannerEl) {
+    bannerEl.textContent = '';
+  }
+}
+
+function showError(message, isPersistent = false) {
+  if (bannerEl) {
+    bannerEl.textContent = message;
+    bannerEl.style.color = '#ef4444';
+    if (!isPersistent) {
+      setTimeout(() => {
+        bannerEl.textContent = '';
+        bannerEl.style.color = '';
+      }, 5000);
+    }
+  }
+  logEvent(`Error: ${message}`);
+}
+
+// -----------------------------------------------------------------------------
+// Rendering helpers
+// -----------------------------------------------------------------------------
 
 function getFilteredConcepts() {
   if (!state.index) return [];
@@ -138,347 +296,85 @@ function getFilteredConcepts() {
 
 function renderConcepts() {
   if (!state.index) {
-    conceptListEl.innerHTML = `<li class="placeholder">データを読み込み中…</li>`;
-    refreshBubbleHighlight();
+    conceptListEl.innerHTML = `<li class="placeholder">Loading concepts...</li>`;
     return;
   }
 
   const concepts = getFilteredConcepts();
-
   if (concepts.length === 0) {
-    conceptListEl.innerHTML = `<li class="empty-note">該当する概念がありません。</li>`;
-    refreshBubbleHighlight();
+    conceptListEl.innerHTML = `<li class="empty-note">No matching concepts.</li>`;
     return;
   }
 
   conceptListEl.innerHTML = "";
   concepts.forEach((concept) => {
-    const item = document.createElement("li");
-    item.className = "concept-item";
+    const li = document.createElement("li");
+    li.className = "concept-item";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = concept.path || concept.id;
     if (concept.id === state.selectedConceptId) {
-      item.classList.add("active");
+      button.classList.add("active");
     }
-    item.tabIndex = 0;
-    item.innerHTML = `
-      <span class="concept-label">${concept.path || concept.id}</span>
-      <span class="count">${concept.count ?? concept.papers.length}</span>
-    `;
-    const activate = () => {
+    button.addEventListener("click", () => {
       const isActive = state.selectedConceptId === concept.id;
       applyConceptFilter(isActive ? null : concept.id);
-    };
-    item.addEventListener("click", activate);
-    item.addEventListener("keypress", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        activate();
-      }
     });
-    conceptListEl.appendChild(item);
+    li.appendChild(button);
+    conceptListEl.appendChild(li);
   });
   refreshBubbleHighlight();
-}
-
-function renderYears() {
-  if (!state.index) {
-    yearListEl.innerHTML = `<p class="placeholder">データを読み込み中…</p>`;
-    return;
-  }
-
-  const conceptId = state.selectedConceptId;
-  const years = state.index.years || [];
-  const searchTerm = state.paperSearch;
-
-  yearListEl.innerHTML = "";
-  let totalVisible = 0;
-
-  years.forEach((yearBlock) => {
-    const filteredPapers = (yearBlock.papers || []).filter((paper) => {
-      if (conceptId) {
-        const conceptIds = (paper.concepts || []).map((concept) => concept.id);
-        if (!conceptIds.includes(conceptId)) {
-          return false;
-        }
-      }
-      if (searchTerm) {
-        const normalizedFields = [
-          paper.title,
-          paper.title_en,
-          paper.slug,
-          ...(paper.authors || []),
-          ...(paper.authors_en || []),
-          ...(paper.concepts || []).map((concept) => concept.path || concept.id),
-        ]
-          .filter(Boolean)
-          .map((value) => value.toString().toLowerCase());
-        const matched = normalizedFields.some((field) => field.includes(searchTerm));
-        if (!matched) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    if (filteredPapers.length === 0) {
-      return;
-    }
-
-    totalVisible += filteredPapers.length;
-
-    const container = document.createElement("div");
-    container.className = "year-block";
-
-    const caption = document.createElement("p");
-    caption.className = "year-title";
-    caption.textContent = `${yearBlock.year} (${filteredPapers.length})`;
-    container.appendChild(caption);
-
-    const list = document.createElement("ul");
-    list.className = "paper-list";
-
-    filteredPapers.forEach((paper) => {
-      const entry = document.createElement("li");
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = paper.title || paper.title_en || paper.slug;
-      if (
-        state.selectedPaper &&
-        state.selectedPaper.entry.path === paper.path
-      ) {
-        button.classList.add("active");
-      }
-      button.addEventListener("click", () => {
-        setActivePaper(button);
-        loadPaper(yearBlock.year, paper).catch((error) => {
-          console.error(error);
-          detailsEl.innerHTML = `<p class="placeholder">論文の読み込みに失敗しました: ${error.message}</p>`;
-        });
-        logEvent(`Paper selected: ${paper.title || paper.title_en || paper.slug}`);
-      });
-      entry.appendChild(button);
-      list.appendChild(entry);
-    });
-
-    container.appendChild(list);
-    yearListEl.appendChild(container);
-  });
-
-  if (totalVisible === 0) {
-    yearListEl.innerHTML = `<p class="empty-note">フィルタに一致する論文がありません。</p>`;
-  }
-}
-
-function setActivePaper(activeButton) {
-  yearListEl.querySelectorAll("button").forEach((btn) => {
-    if (btn === activeButton) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
-  });
-}
-
-async function loadPaper(year, paperEntry) {
-  const url = `${SUMMARIES_BASE}${paperEntry.path}`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`failed to fetch paper json: ${response.status}`);
-  }
-  const data = await response.json();
-  state.selectedPaper = { year, entry: paperEntry, data };
-  renderDetails(data);
-}
-
-function renderDetails(data) {
-  detailsEl.innerHTML = "";
-
-  const title = document.createElement("h2");
-  title.textContent = pickLanguage(data.title, data.title_en);
-
-  const meta = document.createElement("div");
-  meta.className = "paper-meta";
-  meta.innerHTML = [
-    data.year ? `Year: ${data.year}` : null,
-    formatAuthors(data.authors, data.authors_en),
-    formatConceptBadges(data),
-  ]
-    .filter(Boolean)
-    .join(" | ");
-
-  detailsEl.appendChild(title);
-  if (meta.textContent) {
-    detailsEl.appendChild(meta);
-  }
-
-  appendSection(detailsEl, "Abstract", data.abstract, data.abstract_en);
-  appendSection(detailsEl, "Positioning", data.positioning_summary, data.positioning_summary_en);
-  appendSection(detailsEl, "Purpose", data.purpose_summary, data.purpose_summary_en);
-  appendSection(detailsEl, "Method", data.method_summary, data.method_summary_en);
-  appendSection(detailsEl, "Evaluation", data.evaluation_summary, data.evaluation_summary_en);
-
-  if (data.links && (data.links.pdf || data.links.code)) {
-    const links = document.createElement("div");
-    links.className = "links";
-    if (data.links.pdf) {
-      const pdf = document.createElement("a");
-      pdf.href = data.links.pdf;
-      pdf.textContent = "PDF";
-      pdf.target = "_blank";
-      pdf.rel = "noopener";
-      links.appendChild(pdf);
-    }
-    if (data.links.code) {
-      const code = document.createElement("a");
-      code.href = data.links.code;
-      code.textContent = "Code";
-      code.target = "_blank";
-      code.rel = "noopener";
-      links.appendChild(code);
-    }
-    detailsEl.appendChild(links);
-  }
-}
-
-function appendSection(root, label, valueJa, valueEn) {
-  const text = pickLanguage(valueJa, valueEn);
-  if (!text) return;
-
-  const card = document.createElement("section");
-  card.className = "section-card";
-  const heading = document.createElement("h3");
-  heading.textContent = label;
-  const paragraph = document.createElement("p");
-  paragraph.textContent = text;
-  card.appendChild(heading);
-  card.appendChild(paragraph);
-  root.appendChild(card);
-}
-
-function pickLanguage(valueJa, valueEn) {
-  switch (state.language) {
-    case "ja":
-      return valueJa || valueEn || "";
-    case "en":
-      return valueEn || valueJa || "";
-    case "both":
-      if (valueJa && valueEn && valueJa !== valueEn) {
-        return `${valueJa}\n${valueEn}`;
-      }
-      return valueJa || valueEn || "";
-    default:
-      return valueJa || valueEn || "";
-  }
-}
-
-function formatAuthors(authorsJa, authorsEn) {
-  const ja = Array.isArray(authorsJa) ? authorsJa.filter(Boolean) : [];
-  const en = Array.isArray(authorsEn) ? authorsEn.filter(Boolean) : [];
-
-  switch (state.language) {
-    case "ja":
-      return ja.length ? `Authors: ${ja.join(", ")}` : en.length ? `Authors: ${en.join(", ")}` : "";
-    case "en":
-      return en.length ? `Authors: ${en.join(", ")}` : ja.length ? `Authors: ${ja.join(", ")}` : "";
-    case "both":
-      if (ja.length && en.length) {
-        return `Authors: ${ja.join(", ")} / ${en.join(", ")}`;
-      }
-      return ja.length
-        ? `Authors: ${ja.join(", ")}`
-        : en.length
-        ? `Authors: ${en.join(", ")}`
-        : "";
-    default:
-      return "";
-  }
-}
-
-function formatConceptBadges(data) {
-  if (!data.ccs || !Array.isArray(data.ccs.paths)) {
-    return "";
-  }
-  const items = data.ccs.paths.map((path, index) => {
-    const explanation =
-      data.ccs.llm_explanations && data.ccs.llm_explanations[index]
-        ? data.ccs.llm_explanations[index]
-        : {};
-    const confidence = explanation.confidence ? `<span class="badge">${explanation.confidence}</span>` : "";
-    return `${confidence}${path}`;
-  });
-  return items.length ? `CCS: ${items.join(" / ")}` : "";
-}
-
-function updateBanner() {
-  const parts = [];
-
-  if (state.selectedConceptId && state.index) {
-    const concept = (state.index.concepts || []).find(
-      (item) => item.id === state.selectedConceptId,
-    );
-    if (concept) {
-      parts.push(`Concept: ${concept.path || concept.id} (${concept.count ?? concept.papers.length} items)`);
-    }
-  }
-
-  if (state.paperSearch) {
-    parts.push(`Search: "${state.paperSearchRaw.trim()}"`);
-  }
-
-  bannerEl.textContent = parts.join(" / ");
-}
-
-function getConceptById(conceptId) {
-  if (!state.index || !conceptId) return null;
-  return (state.index.concepts || []).find((concept) => concept.id === conceptId) || null;
 }
 
 function applyConceptFilter(conceptId, options = {}) {
   const normalizedId = conceptId || null;
-  const { message, suppressLog } = options;
   const previous = state.selectedConceptId || null;
-  if (previous === normalizedId) {
+  if (normalizedId === previous) {
     refreshBubbleHighlight();
-    if (!suppressLog && message) {
-      logEvent(message);
+    if (options.message && !options.suppressLog) {
+      logEvent(options.message);
     }
     return;
+  }
+
+  if (normalizedId && state.paperSearch) {
+    state.paperSearch = "";
+    state.paperSearchRaw = "";
+    if (paperSearchEl) {
+      paperSearchEl.value = "";
+    }
   }
 
   state.selectedConceptId = normalizedId;
   renderConcepts();
-  renderYears();
   updateBanner();
+
   if (normalizedId) {
     focusOnConcept(normalizedId);
+    showConceptDetail(normalizedId);
   } else {
     focusOnRoot();
+    handleSearchChange();
   }
+
   refreshBubbleHighlight();
 
-  if (suppressLog) {
+  if (options.suppressLog) {
     return;
   }
 
-  let logMessage = message;
-  if (!logMessage) {
+  let message = options.message;
+  if (!message) {
     if (normalizedId) {
-      const concept = getConceptById(normalizedId);
-      logMessage = `概念フィルタを適用: ${concept?.path || normalizedId}`;
+      const concept = state.conceptMap.get(normalizedId);
+      message = `Concept filter applied: ${concept?.path || normalizedId}`;
     } else if (previous) {
-      logMessage = "概念フィルタを解除";
+      message = "Concept filter cleared";
     }
   }
-
-  if (logMessage) {
-    logEvent(logMessage);
+  if (message) {
+    logEvent(message);
   }
-}
-
-function refreshBubbleHighlight() {
-  updateBubbleHighlight({
-    activeId: state.selectedConceptId,
-    searchTerm: state.conceptSearch,
-  });
 }
 
 function handleConceptSelectedFromViz(concept) {
@@ -486,9 +382,304 @@ function handleConceptSelectedFromViz(concept) {
   const isActive = state.selectedConceptId === concept.id;
   applyConceptFilter(isActive ? null : concept.id, {
     message: isActive
-      ? `概念マップで解除: ${concept.path || concept.id}`
-      : `概念マップで選択: ${concept.path || concept.id}`,
-    suppressLog: false,
+      ? `Concept bubble cleared: ${concept.path || concept.id}`
+      : `Concept bubble selected: ${concept.path || concept.id}`,
+  });
+}
+
+function handleSearchChange() {
+  if (state.paperSearch) {
+    renderSearchResults(state.paperSearch);
+  } else if (state.selectedConceptId) {
+    showConceptDetail(state.selectedConceptId);
+  } else {
+    closeDetailPanel();
+  }
+  updateBanner();
+  refreshBubbleHighlight();
+}
+
+function showConceptDetail(conceptId) {
+  const concept = state.conceptMap.get(conceptId);
+  state.selectedPaper = null;
+  if (!concept) {
+    closeDetailPanel();
+    return;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "detail-section";
+
+  const header = document.createElement("header");
+  header.className = "detail-header";
+  const title = document.createElement("h2");
+  title.textContent = concept.path || concept.id;
+  const meta = document.createElement("p");
+  const count = concept.count ?? concept.papers?.length ?? 0;
+  meta.textContent = `${count} papers`;
+  header.appendChild(title);
+  header.appendChild(meta);
+  wrapper.appendChild(header);
+
+  const list = document.createElement("div");
+  list.className = "concept-paper-list";
+  const papers = concept.papers || [];
+  if (papers.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "placeholder";
+    empty.textContent = "No papers attached to this concept.";
+    list.appendChild(empty);
+  } else {
+    papers
+      .slice()
+      .sort((a, b) => {
+        const metaA = state.paperByPath.get(a.path) || a;
+        const metaB = state.paperByPath.get(b.path) || b;
+        return (metaB.year || 0) - (metaA.year || 0);
+      })
+      .slice(0, 50)
+      .forEach((paper) => {
+        const metaInfo = state.paperByPath.get(paper.path) || paper;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "concept-paper";
+
+        const titleSpan = document.createElement("span");
+        titleSpan.className = "paper-title";
+        titleSpan.textContent = paper.title || paper.title_en || paper.slug;
+
+        const metaSpan = document.createElement("span");
+        metaSpan.className = "paper-meta";
+        metaSpan.textContent = metaInfo.year ?? "";
+
+        button.appendChild(titleSpan);
+        button.appendChild(metaSpan);
+
+        button.addEventListener("click", () => {
+          logEvent(`Paper selected: ${paper.title || paper.title_en || paper.slug}`);
+          loadPaper(metaInfo);
+        });
+        list.appendChild(button);
+      });
+  }
+  wrapper.appendChild(list);
+
+  detailContent.innerHTML = "";
+  detailContent.appendChild(wrapper);
+  openDetailPanel();
+}
+
+function renderSearchResults(keyword) {
+  state.selectedPaper = null;
+  const term = keyword.toLowerCase();
+  const matches = state.paperDirectory
+    .filter((paper) => {
+      const fields = [
+        paper.title,
+        paper.title_en,
+        paper.slug,
+        paper.year,
+        ...(paper.authors || []),
+        ...(paper.authors_en || []),
+      ]
+        .filter(Boolean)
+        .map((value) => value.toString().toLowerCase());
+      return fields.some((field) => field.includes(term));
+    })
+    .slice(0, 40);
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "detail-section";
+
+  const header = document.createElement("header");
+  header.className = "detail-header";
+  const title = document.createElement("h2");
+  title.textContent = `Search results (${matches.length})`;
+  header.appendChild(title);
+  wrapper.appendChild(header);
+
+  const list = document.createElement("div");
+  list.className = "concept-paper-list";
+  if (matches.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "placeholder";
+    empty.textContent = "No papers matched your query.";
+    list.appendChild(empty);
+  } else {
+    matches.forEach((paper) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "concept-paper";
+
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "paper-title";
+      titleSpan.textContent = paper.title || paper.title_en || paper.slug;
+
+      const metaSpan = document.createElement("span");
+      metaSpan.className = "paper-meta";
+      metaSpan.textContent = paper.year ?? "";
+
+      button.appendChild(titleSpan);
+      button.appendChild(metaSpan);
+
+      button.addEventListener("click", () => {
+        logEvent(`Paper selected: ${paper.title || paper.title_en || paper.slug}`);
+        loadPaper(paper);
+      });
+      list.appendChild(button);
+    });
+  }
+  wrapper.appendChild(list);
+
+  detailContent.innerHTML = "";
+  detailContent.appendChild(wrapper);
+  openDetailPanel();
+}
+
+async function loadPaper(meta) {
+  if (!meta || !meta.path) {
+    return;
+  }
+  if (state.paperCache.has(meta.path)) {
+    const cached = state.paperCache.get(meta.path);
+    state.selectedPaper = { data: cached, meta };
+    renderPaperDetail(cached, meta);
+    return;
+  }
+
+  try {
+    showLoadingState('Loading paper details...');
+    const response = await fetchWithTimeout(`${config.dataBasePath}${meta.path}`, { timeout: 10000 });
+    const data = await response.json();
+    state.paperCache.set(meta.path, data);
+    state.selectedPaper = { data, meta };
+    renderPaperDetail(data, meta);
+    hideLoadingState();
+  } catch (error) {
+    console.error('Failed to load paper:', error);
+    showError(`Failed to load paper: ${error.message}`);
+    hideLoadingState();
+  }
+}
+
+function renderPaperDetail(data, meta) {
+  if (!data) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "detail-section";
+
+  const header = document.createElement("header");
+  header.className = "detail-header";
+  const title = document.createElement("h2");
+  title.textContent = pickLanguage(data.title, data.title_en);
+  const subtitle = document.createElement("p");
+  subtitle.className = "paper-meta";
+  subtitle.textContent = [
+    meta.year ?? data.year ?? "",
+    formatAuthors(data.authors, data.authors_en),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  header.appendChild(title);
+  if (subtitle.textContent) {
+    header.appendChild(subtitle);
+  }
+  wrapper.appendChild(header);
+
+  appendSection(wrapper, "Abstract", data.abstract, data.abstract_en);
+  appendSection(wrapper, "Positioning", data.positioning_summary, data.positioning_summary_en);
+  appendSection(wrapper, "Purpose", data.purpose_summary, data.purpose_summary_en);
+  appendSection(wrapper, "Method", data.method_summary, data.method_summary_en);
+  appendSection(wrapper, "Evaluation", data.evaluation_summary, data.evaluation_summary_en);
+
+  if (data.links && (data.links.pdf || data.links.code)) {
+    const links = document.createElement("div");
+    links.className = "links";
+    if (data.links.pdf) {
+      const pdfLink = document.createElement("a");
+      pdfLink.href = data.links.pdf;
+      pdfLink.textContent = "PDF";
+      pdfLink.target = "_blank";
+      pdfLink.rel = "noopener";
+      links.appendChild(pdfLink);
+    }
+    if (data.links.code) {
+      const codeLink = document.createElement("a");
+      codeLink.href = data.links.code;
+      codeLink.textContent = "Code";
+      codeLink.target = "_blank";
+      codeLink.rel = "noopener";
+      links.appendChild(codeLink);
+    }
+    wrapper.appendChild(links);
+  }
+
+  detailContent.innerHTML = "";
+  detailContent.appendChild(wrapper);
+  openDetailPanel();
+}
+
+function appendSection(parent, label, valueJa, valueEn) {
+  const text = pickLanguage(valueJa, valueEn);
+  if (!text) return;
+
+  const section = document.createElement("section");
+  section.className = "detail-subsection";
+  const heading = document.createElement("h3");
+  heading.textContent = label;
+  const body = document.createElement("p");
+  body.textContent = text;
+  section.appendChild(heading);
+  section.appendChild(body);
+  parent.appendChild(section);
+}
+
+function openDetailPanel() {
+  detailPanel.classList.add("open");
+  if (appShell) {
+    appShell.classList.add("detail-visible");
+  }
+  // Move focus to detail panel for accessibility
+  if (detailContent) {
+    detailContent.focus();
+  }
+}
+
+function closeDetailPanel() {
+  detailPanel.classList.remove("open");
+  state.selectedPaper = null;
+  if (appShell) {
+    appShell.classList.remove("detail-visible");
+  }
+  if (!state.paperSearch && !state.selectedConceptId) {
+    detailContent.innerHTML = '<p class="placeholder">Select a concept or paper to inspect details.</p>';
+  }
+  // Return focus to the main area
+  const vizContainer = document.getElementById('viz-container');
+  if (vizContainer) {
+    vizContainer.focus();
+  }
+}
+
+function updateBanner() {
+  const parts = [];
+  if (state.selectedConceptId) {
+    const concept = state.conceptMap.get(state.selectedConceptId);
+    if (concept) {
+      const count = concept.count ?? concept.papers?.length ?? 0;
+      parts.push(`Concept: ${concept.path || concept.id} (${count} items)`);
+    }
+  }
+  if (state.paperSearch) {
+    parts.push(`Search: "${state.paperSearchRaw.trim()}"`);
+  }
+  bannerEl.textContent = parts.join(" / ");
+}
+
+function refreshBubbleHighlight() {
+  updateBubbleHighlight({
+    activeId: state.selectedConceptId,
+    searchTerm: state.conceptSearch,
   });
 }
 
@@ -525,10 +716,47 @@ function renderLog() {
   });
 }
 
+function formatAuthors(authorsJa, authorsEn) {
+  const ja = Array.isArray(authorsJa) ? authorsJa.filter(Boolean) : [];
+  const en = Array.isArray(authorsEn) ? authorsEn.filter(Boolean) : [];
+  switch (state.language) {
+    case "ja":
+      return ja.length ? ja.join(", ") : en.join(", ");
+    case "en":
+      return en.length ? en.join(", ") : ja.join(", ");
+    case "both":
+      if (ja.length && en.length) {
+        return `${ja.join(", ")} / ${en.join(", ")}`;
+      }
+      return ja.join(", ") || en.join(", ");
+    default:
+      return ja.join(", ") || en.join(", ");
+  }
+}
+
+function pickLanguage(valueJa, valueEn) {
+  switch (state.language) {
+    case "ja":
+      return valueJa || valueEn || "";
+    case "en":
+      return valueEn || valueJa || "";
+    case "both":
+      if (valueJa && valueEn && valueJa !== valueEn) {
+        return `${valueJa}\n${valueEn}`;
+      }
+      return valueJa || valueEn || "";
+    default:
+      return valueJa || valueEn || "";
+  }
+}
+
 let resizeTimer;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
+    if (window.innerWidth < config.ui.sidebarCollapseBreakpoint && !state.sidebarCollapsed) {
+      setSidebarCollapsed(true);
+    }
     resizeBubble();
     if (state.selectedConceptId) {
       focusOnConcept(state.selectedConceptId);
@@ -536,11 +764,11 @@ window.addEventListener("resize", () => {
       focusOnRoot();
     }
     refreshBubbleHighlight();
-  }, 150);
+  }, config.performance.debounceDelay);
 });
 
 loadIndex().catch((error) => {
   console.error(error);
   conceptListEl.innerHTML = `<li class="placeholder">Failed to load index: ${error.message}</li>`;
-  yearListEl.innerHTML = `<p class="placeholder">Failed to load index.</p>`;
+  detailContent.innerHTML = `<p class="placeholder">Failed to load data.</p>`;
 });
