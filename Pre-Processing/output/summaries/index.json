@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-10-20T02:33:27.437572+00:00",
+  "generated_at": "2025-10-20T03:24:57.510921+00:00",
   "years": [
     {
       "year": 2005,
@@ -4467,6 +4467,22 @@
               "confidence": "high"
             }
           ]
+        },
+        {
+          "path": "2008/paper0033_eyecatcher.json",
+          "slug": "paper0033_eyecatcher",
+          "title": "EyeCatcher: A digital camera for shooting natural faces in daily lives",
+          "title_en": "EyeCatcher: A digital camera for shooting natural faces in daily lives",
+          "authors": [
+            "Koji Tsukada",
+            "Maho Oki"
+          ],
+          "authors_en": [
+            "Koji Tsukada",
+            "Maho Oki"
+          ],
+          "id": null,
+          "concepts": []
         },
         {
           "path": "2008/paper0034_paper.json",
