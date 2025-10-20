@@ -18,5 +18,4 @@ pip-wheel-metadata/
 htmlcov/
 *.log
 *.sqlite3
-summaries/
 wissenv
