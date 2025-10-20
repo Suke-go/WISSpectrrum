@@ -745,7 +745,6 @@ function renderNetworkView(container) {
     }
 
     node.on('click', async (event, d) => {
-        const animate = event.detail === 1;
         let similarPapers;
         const contextMatches =
             lastHighlightContext.nodeId === d.id &&
@@ -765,11 +764,26 @@ function renderNetworkView(container) {
             };
         }
 
-        updateGraphHighlight(d, similarPapers, { animate, eventTarget: event.target });
+        updateGraphHighlight(d, similarPapers, { animate: true, eventTarget: event.target });
+    })
+    .on('dblclick', async (event, d) => {
+        event.stopPropagation();
 
-        if (event.detail === 2) {
-            await selectPaper(d.paper, similarPapers);
+        // Use cached similar papers if available
+        let similarPapers;
+        const contextMatches =
+            lastHighlightContext.nodeId === d.id &&
+            lastHighlightContext.embeddingSection === state.embeddingSection &&
+            lastHighlightContext.similarityThreshold === state.similarityThreshold &&
+            Array.isArray(lastHighlightContext.similarPapers);
+
+        if (contextMatches) {
+            similarPapers = lastHighlightContext.similarPapers;
+        } else {
+            similarPapers = await findSimilarPapers(d.paper, 10);
         }
+
+        await selectPaper(d.paper, similarPapers);
     });
 
     // Tooltip
@@ -924,10 +938,9 @@ function renderTimelineView(container) {
                 .attr('stroke', '#1e2139')
                 .attr('stroke-width', 0.5)
                 .style('opacity', 0.8)
-                .on('click', (event) => {
-                    if (event.detail === 2) {
-                        selectPaper(paper);
-                    }
+                .on('dblclick', async (event) => {
+                    event.stopPropagation();
+                    await selectPaper(paper);
                 })
                 .append('title')
                 .text(paper.title || paper.title_en);
@@ -1269,7 +1282,17 @@ function showConceptDetail(conceptId) {
 }
 
 async function selectPaper(paper, similarPapers = null) {
-    if (!paper) return;
+    if (!paper) {
+        console.warn('selectPaper: paper is null or undefined');
+        return;
+    }
+
+    // Ensure paperMap is initialized
+    if (!state.paperMap || state.paperMap.size === 0) {
+        console.warn('selectPaper: paperMap not yet initialized');
+        return;
+    }
+
     const resolved = state.paperMap.get(paper.slug) || paper;
     state.selectedPaper = resolved;
     openDetailPanel();
@@ -1291,7 +1314,10 @@ window.filterByConceptFromDetail = function(conceptId) {
 
 async function showPaperDetail(paper, similarPapers = []) {
     const detailContent = document.getElementById('detail-content');
-    if (!detailContent) return;
+    if (!detailContent) {
+        console.warn('showPaperDetail: detail-content element not found');
+        return;
+    }
 
     openDetailPanel();
 
