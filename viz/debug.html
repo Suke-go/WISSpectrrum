@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Simple Network Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0e27;
+            color: white;
+            font-family: monospace;
+        }
+        #test-container {
+            width: 800px;
+            height: 600px;
+            background: #151932;
+            border: 2px solid #6366f1;
+        }
+        #info {
+            margin-top: 20px;
+            padding: 10px;
+            background: #1e2139;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Network Visualization Debug</h1>
+    <div id="test-container"></div>
+    <div id="info">
+        <h3>Debug Info:</h3>
+        <pre id="debug-output"></pre>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        const container = document.getElementById('test-container');
+        const debugOutput = document.getElementById('debug-output');
+
+        function log(msg) {
+            debugOutput.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        log('Starting test...');
+        log(`Container size: ${container.clientWidth} x ${container.clientHeight}`);
+
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        if (width === 0 || height === 0) {
+            log('ERROR: Container has no size!');
+        }
+
+        // Create SVG
+        const svg = d3.select(container)
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .style('background', '#0a0e27');
+
+        log('SVG created');
+
+        // Add test circle
+        svg.append('circle')
+            .attr('cx', width / 2)
+            .attr('cy', height / 2)
+            .attr('r', 50)
+            .attr('fill', 'red')
+            .attr('opacity', 0.8);
+
+        log('Circle added at center');
+
+        // Add zoom
+        const g = svg.append('g');
+
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 10])
+            .on('zoom', (event) => {
+                g.attr('transform', event.transform);
+                log(`Zoom: scale=${event.transform.k.toFixed(2)}`);
+            });
+
+        svg.call(zoom);
+
+        log('Zoom enabled');
+
+        // Add some test nodes
+        const nodes = [
+            { x: width * 0.3, y: height * 0.3, r: 20, color: '#6366f1' },
+            { x: width * 0.7, y: height * 0.3, r: 20, color: '#8b5cf6' },
+            { x: width * 0.5, y: height * 0.7, r: 20, color: '#ec4899' }
+        ];
+
+        g.selectAll('circle')
+            .data(nodes)
+            .join('circle')
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y)
+            .attr('r', d => d.r)
+            .attr('fill', d => d.color)
+            .attr('stroke', 'white')
+            .attr('stroke-width', 2);
+
+        log(`Added ${nodes.length} test nodes`);
+        log('Test complete! If you see circles, D3 is working.');
+    </script>
+</body>
+</html>
