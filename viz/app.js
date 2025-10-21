@@ -30,6 +30,21 @@ const EMBEDDING_SECTION_LABELS = {
     evaluation: 'Evaluation',
 };
 
+const DETAIL_FIELD_KEYS = [
+    'abstract',
+    'abstract_en',
+    'positioning_summary',
+    'positioning_summary_en',
+    'purpose_summary',
+    'purpose_summary_en',
+    'method_summary',
+    'method_summary_en',
+    'evaluation_summary',
+    'evaluation_summary_en'
+];
+
+const MISSING_PRECOMPUTED_SIMILAR = '__missing_precomputed__';
+
 const state = {
     data: null,
     currentView: 'network',
@@ -43,8 +58,27 @@ const state = {
     conceptMap: new Map(),
     paperMap: new Map(),
     paperEmbeddingsCache: new Map(),
+    paperDetailCache: new Map(),
     similarityThreshold: 0.7
 };
+
+function extractDetailFields(rawData) {
+    if (!rawData || typeof rawData !== 'object') {
+        return {};
+    }
+
+    const detail = {};
+    DETAIL_FIELD_KEYS.forEach((key) => {
+        const value = rawData[key];
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (trimmed.length > 0) {
+                detail[key] = trimmed;
+            }
+        }
+    });
+    return detail;
+}
 
 // Initialize
 async function init() {
@@ -91,6 +125,9 @@ async function loadData() {
                 yearBlock.papers.forEach(paper => {
                     const paperWithYear = { ...paper, year: yearBlock.year };
                     state.paperMap.set(paper.slug, paperWithYear);
+                    if (paperWithYear.slug && paperWithYear.detail) {
+                        state.paperDetailCache.set(paperWithYear.slug, paperWithYear.detail);
+                    }
                     state.filteredPapers.push(paperWithYear);
                 });
             }
@@ -755,7 +792,7 @@ function renderNetworkView(container) {
         if (contextMatches) {
             similarPapers = lastHighlightContext.similarPapers;
         } else {
-            similarPapers = await findSimilarPapers(d.paper, 10);
+            similarPapers = await retrieveSimilarPapers(d.paper, 10);
             lastHighlightContext = {
                 nodeId: d.id,
                 embeddingSection: state.embeddingSection,
@@ -780,7 +817,7 @@ function renderNetworkView(container) {
         if (contextMatches) {
             similarPapers = lastHighlightContext.similarPapers;
         } else {
-            similarPapers = await findSimilarPapers(d.paper, 10);
+            similarPapers = await retrieveSimilarPapers(d.paper, 10);
         }
 
         await selectPaper(d.paper, similarPapers);
@@ -1085,6 +1122,53 @@ function setupZoomControls(svg, zoom) {
 }
 
 // Embedding Similarity Functions
+function getPrecomputedSimilarPapers(paper, topN = 10) {
+    if (!paper || !paper.embedding_neighbors) {
+        return null;
+    }
+
+    const section = state.embeddingSection;
+    const neighbourList = paper.embedding_neighbors[section];
+    if (!Array.isArray(neighbourList)) {
+        return null;
+    }
+
+    const threshold = state.similarityThreshold;
+    const results = [];
+    for (const entry of neighbourList) {
+        if (!entry || typeof entry.slug !== 'string') {
+            continue;
+        }
+        const similarity = typeof entry.similarity === 'number' ? entry.similarity : 0;
+        if (similarity < threshold) {
+            continue;
+        }
+        const neighbourPaper = state.paperMap.get(entry.slug);
+        if (!neighbourPaper) {
+            continue;
+        }
+        results.push({ paper: neighbourPaper, similarity });
+        if (results.length >= topN) {
+            break;
+        }
+    }
+    return results;
+}
+
+async function retrieveSimilarPapers(paper, topN = 10) {
+    const precomputed = getPrecomputedSimilarPapers(paper, topN);
+    if (precomputed !== null) {
+        return precomputed;
+    }
+    console.warn('Missing precomputed similarity data for', paper.slug || paper);
+    const emptyResult = [];
+    Object.defineProperty(emptyResult, MISSING_PRECOMPUTED_SIMILAR, {
+        value: true,
+        enumerable: false,
+    });
+    return emptyResult;
+}
+
 async function loadPaperEmbedding(paper) {
     if (state.paperEmbeddingsCache.has(paper.slug)) {
         return state.paperEmbeddingsCache.get(paper.slug);
@@ -1296,8 +1380,23 @@ async function selectPaper(paper, similarPapers = null) {
     const resolved = state.paperMap.get(paper.slug) || paper;
     state.selectedPaper = resolved;
     openDetailPanel();
-    const neighbours = Array.isArray(similarPapers) ? similarPapers : await findSimilarPapers(resolved, 10);
-    await showPaperDetail(resolved, neighbours);
+
+    if (Array.isArray(similarPapers)) {
+        const options = {};
+        if (similarPapers[MISSING_PRECOMPUTED_SIMILAR]) {
+            options.similarUnavailable = true;
+        }
+        await showPaperDetail(resolved, similarPapers, options);
+        return;
+    }
+
+    const precomputedNeighbours = getPrecomputedSimilarPapers(resolved, 10);
+    if (precomputedNeighbours !== null) {
+        await showPaperDetail(resolved, precomputedNeighbours);
+        return;
+    }
+
+    await showPaperDetail(resolved, [], { similarUnavailable: true });
 }
 
 window.selectPaperBySlug = async function(slug) {
@@ -1312,7 +1411,43 @@ window.filterByConceptFromDetail = function(conceptId) {
     selectConcept(conceptId);
 };
 
-async function showPaperDetail(paper, similarPapers = []) {
+
+async function loadPaperDetailData(paper) {
+    if (!paper || !paper.slug) {
+        return null;
+    }
+
+    if (paper.detail && typeof paper.detail === 'object') {
+        return paper.detail;
+    }
+
+    if (state.paperDetailCache.has(paper.slug)) {
+        return state.paperDetailCache.get(paper.slug);
+    }
+
+    if (!paper.path) {
+        return null;
+    }
+
+    try {
+        const response = await fetch(new URL(paper.path, SUMMARIES_BASE_URL));
+        if (response.ok) {
+            const data = await response.json();
+            const detail = extractDetailFields(data);
+            state.paperDetailCache.set(paper.slug, detail);
+            if (detail && Object.keys(detail).length > 0) {
+                paper.detail = detail;
+            }
+            return detail;
+        }
+    } catch (error) {
+        console.warn('Failed to load full paper data:', error);
+    }
+    return null;
+}
+
+
+async function showPaperDetail(paper, similarPapers = [], options = {}) {
     const detailContent = document.getElementById('detail-content');
     if (!detailContent) {
         console.warn('showPaperDetail: detail-content element not found');
@@ -1327,15 +1462,9 @@ async function showPaperDetail(paper, similarPapers = []) {
         </div>
     `;
 
-    let fullData = null;
-    try {
-        const response = await fetch(new URL(paper.path, SUMMARIES_BASE_URL));
-        if (response.ok) {
-            fullData = await response.json();
-        }
-    } catch (error) {
-        console.warn('Failed to load full paper data:', error);
-    }
+    const { isSimilarLoading = false, similarUnavailable = false } = options || {};
+
+    const detailData = await loadPaperDetailData(paper);
 
     const concepts = paper.concepts || [];
     const filteredSlugs = new Set(state.filteredPapers.map(p => p.slug));
@@ -1361,11 +1490,11 @@ async function showPaperDetail(paper, similarPapers = []) {
         : '';
 
     const sections = [
-        { title: '概要', body: fullData?.abstract || fullData?.abstract_en },
-        { title: '位置付け', body: fullData?.positioning_summary || fullData?.positioning_summary_en },
-        { title: '目的', body: fullData?.purpose_summary || fullData?.purpose_summary_en },
-        { title: '手法', body: fullData?.method_summary || fullData?.method_summary_en },
-        { title: '評価', body: fullData?.evaluation_summary || fullData?.evaluation_summary_en }
+        { title: '概要', body: detailData?.abstract || detailData?.abstract_en },
+        { title: '位置付け', body: detailData?.positioning_summary || detailData?.positioning_summary_en },
+        { title: '目的', body: detailData?.purpose_summary || detailData?.purpose_summary_en },
+        { title: '手法', body: detailData?.method_summary || detailData?.method_summary_en },
+        { title: '評価', body: detailData?.evaluation_summary || detailData?.evaluation_summary_en }
     ].filter(section => section.body && section.body.trim().length > 0);
 
     const sectionHtml = sections.map(section => `
@@ -1378,7 +1507,27 @@ async function showPaperDetail(paper, similarPapers = []) {
     `).join('');
 
     let similarHtml;
-    if (Array.isArray(similarPapers) && similarPapers.length > 0) {
+    if (similarUnavailable) {
+        similarHtml = `
+            <div class="detail-section">
+                <h3>類似論文</h3>
+                <div class="content">
+                    <p class="empty-note">この論文の類似論文リストは事前計算データが存在しないため表示できません。</p>
+                </div>
+            </div>
+        `;
+    } else if (isSimilarLoading) {
+        similarHtml = `
+            <div class="detail-section">
+                <h3>類似論文</h3>
+                <div class="content">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (Array.isArray(similarPapers) && similarPapers.length > 0) {
         const sectionLabel = EMBEDDING_SECTION_LABELS[state.embeddingSection] || state.embeddingSection;
         similarHtml = `
             <div class="detail-section">

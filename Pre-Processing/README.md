@@ -20,6 +20,7 @@ This folder hosts the ingestion pipeline: PDF extraction, section-level summaris
    python Pre-Processing/output/build_index.py
    python Pre-Processing/output/build_enhanced_index.py
    ```
+- index_enhanced.json に詳細パネル用の要約テキストも同梱されるため、ビジュアライザーは初回から個別 JSON をフェッチせずに済みます。
 - build_enhanced_index.py は Annoy ベースの近似最近傍グラフと 2D 座標を前計算し、ビジュアライザーが即時に類似論文を提示できるようにします。実行前に pip install annoy を実行してください。
 5. 生成された `Pre-Processing/output/summaries/index.json` と各年の JSON をフロントエンドに渡す。
 
@@ -149,6 +150,7 @@ python Pre-Processing/output/build_index.py \
 
 ### `output/build_enhanced_index.py`
 index.json を読み込み、セクション毎の埋め込みから PCA + t-SNE で 2D 座標を付与し、Annoy による近似最近傍リストも前計算して index_enhanced.json を出力します。
+- 生成物には軽量な `paper.detail` ブロック（テキストサマリーのみ）が含まれるため、viz 側は個別 JSON を追加取得せずに詳細パネルを描画できます。
 
 ### `search/build_embedding_index.py` & `search/search_embeddings.py`
 - `build_embedding_index.py` – summaries からベクトル検索用 JSONL / Faiss ファイルを生成
