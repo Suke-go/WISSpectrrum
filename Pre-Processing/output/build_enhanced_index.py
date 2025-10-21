@@ -35,8 +35,34 @@ TOP_NEIGHBOURS = 15
 ANNOY_TREES = 64
 
 
-def load_paper_with_embedding(paper_path: Path) -> Optional[Dict[str, np.ndarray]]:
-    """Load a paper JSON file and extract section embeddings as unit vectors."""
+DETAIL_TEXT_FIELDS: Tuple[str, ...] = (
+    "abstract",
+    "abstract_en",
+    "positioning_summary",
+    "positioning_summary_en",
+    "purpose_summary",
+    "purpose_summary_en",
+    "method_summary",
+    "method_summary_en",
+    "evaluation_summary",
+    "evaluation_summary_en",
+)
+
+
+def _extract_detail_fields(data: Dict[str, object]) -> Dict[str, str]:
+    """Collect lightweight detail fields needed by the viz detail panel."""
+    detail: Dict[str, str] = {}
+    for field in DETAIL_TEXT_FIELDS:
+        value = data.get(field)
+        if isinstance(value, str):
+            trimmed = value.strip()
+            if trimmed:
+                detail[field] = trimmed
+    return detail
+
+
+def load_paper_payload(paper_path: Path) -> Optional[Tuple[Dict[str, np.ndarray], Dict[str, str]]]:
+    """Load a paper JSON file, extracting normalised embeddings and trimmed detail text."""
     try:
         with paper_path.open("r", encoding="utf-8") as handle:
             data = json.load(handle)
@@ -46,9 +72,9 @@ def load_paper_with_embedding(paper_path: Path) -> Optional[Dict[str, np.ndarray
 
     embeddings_data = data.get("embeddings", {})
     if not isinstance(embeddings_data, dict):
-        return None
+        embeddings_data = {}
 
-    result: Dict[str, np.ndarray] = {}
+    embeddings: Dict[str, np.ndarray] = {}
     for section in SECTIONS:
         raw_vector = embeddings_data.get(section)
         if not isinstance(raw_vector, list) or not raw_vector:
@@ -57,8 +83,10 @@ def load_paper_with_embedding(paper_path: Path) -> Optional[Dict[str, np.ndarray
         norm = np.linalg.norm(vector)
         if norm == 0.0:
             continue
-        result[section] = vector / norm
-    return result or None
+        embeddings[section] = vector / norm
+
+    detail = _extract_detail_fields(data)
+    return embeddings, detail
 
 
 def compute_reduced_dimensions(vectors: Sequence[np.ndarray]) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
@@ -153,7 +181,15 @@ def main() -> None:
         print(f"  Year {year}:")
         for paper in year_block.get("papers", []):
             paper_path = summaries_dir / paper["path"]
-            embeddings_dict = load_paper_with_embedding(paper_path)
+            payload = load_paper_payload(paper_path)
+            if payload is None:
+                continue
+
+            embeddings_dict, detail_fields = payload
+
+            if detail_fields:
+                paper["detail"] = detail_fields
+
             if not embeddings_dict:
                 continue
 
